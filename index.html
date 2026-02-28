@@ -370,9 +370,13 @@
         </section>
 
         <section id="admin-dashboard" class="page">
-            <div style="text-align: center; margin-top: 30px;">
+            <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
                     <button onclick="openQrModal()" style="background: linear-gradient(135deg, #4a6bff, #3b5bdb); color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(74, 107, 255, 0.3); transition: transform 0.2s;">
                         <span class="material-icons" style="vertical-align: middle;">qr_code_2</span> Generate Daily QR
+                    </button>
+
+                    <button onclick="declareSchoolOff(event)" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); transition: transform 0.2s;">
+                        <span class="material-icons" style="vertical-align: middle;">event_busy</span> Declare School Off
                     </button>
                 </div>
 
@@ -671,6 +675,7 @@
                                     <th>App Password</th>
                                     <th>Designation</th>
                                     <th>Basic Salary</th>
+                                    <th style="text-align: center;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="staffTableBody"></tbody>
@@ -681,6 +686,27 @@
         </section>
 
     </main>
+
+    <div id="customConfirmOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 9999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+        <div id="customConfirmBox" style="background: white; width: 90%; max-width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); text-align: center; transform: translateY(20px); transition: transform 0.3s ease;">
+            <span class="material-icons" id="confirmIcon" style="font-size: 4.5rem; color: #e74c3c; margin-bottom: 10px;">warning_amber</span>
+            <h2 id="confirmTitle" style="color: #333; margin-bottom: 10px; font-weight: 700; font-size: 1.5rem;">Are you sure?</h2>
+            <p id="confirmMessage" style="color: #666; margin-bottom: 25px; line-height: 1.5; font-size: 0.95rem;">Action cannot be undone.</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="confirmCancelBtn" style="flex: 1; background: #f1f3f5; color: #555; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: background 0.2s;">Cancel</button>
+                <button id="confirmProceedBtn" style="flex: 1; background: #e74c3c; color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); transition: transform 0.2s;">Yes, Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customAlertOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 9999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+        <div id="customAlertBox" style="background: white; width: 90%; max-width: 380px; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); text-align: center; transform: translateY(20px); transition: transform 0.3s ease;">
+            <span class="material-icons" id="alertIcon" style="font-size: 4.5rem; margin-bottom: 10px;">info</span>
+            <h2 id="alertTitle" style="margin-bottom: 10px; font-weight: 700; font-size: 1.5rem;">Notice</h2>
+            <p id="alertMessage" style="color: #666; margin-bottom: 25px; line-height: 1.5; font-size: 0.95rem;">Message goes here.</p>
+            <button onclick="closeCustomAlert()" style="width: 100%; background: #4a6bff; color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 15px rgba(74, 107, 255, 0.3);">OK</button>
+        </div>
+    </div>
 
     <footer>
         <div class="footer-content">
@@ -702,7 +728,7 @@
         // ------------------------------------
         // CONFIG: PASTE GOOGLE SCRIPT URL HERE
         // ------------------------------------
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAOyGoV6x1g2m_nL4ZtHhGRlEwBdNt97i0o4V3RVDv37vvHT7K3htWb6N8BJqPtXkmaw/exec"; 
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2zPkxBALcQRNhGegZYU2ZZJ3yWOF04trbmGI5YDoq9F6vwjaONEUq428ofE3Xgrb-Cw/exec"; 
         
         function checkAuth() { return sessionStorage.getItem('isLoggedIn') === 'true'; }
 
@@ -715,6 +741,62 @@
                 const loginBtn = document.getElementById('nav-login-btn');
                 if(loginBtn) loginBtn.style.setProperty('display', 'flex', 'important');
             }
+        }
+
+        // ==========================================
+        // 🌟 GLOBAL CUSTOM POPUP LOGIC
+        // ==========================================
+        function showCustomAlert(title, message, type = 'info') {
+            const overlay = document.getElementById('customAlertOverlay');
+            const box = document.getElementById('customAlertBox');
+            const icon = document.getElementById('alertIcon');
+            const titleEl = document.getElementById('alertTitle');
+            
+            titleEl.innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            
+            if(type === 'success') { icon.innerText = 'task_alt'; icon.style.color = '#2ecc71'; titleEl.style.color = '#2ecc71'; }
+            else if(type === 'error') { icon.innerText = 'error_outline'; icon.style.color = '#e74c3c'; titleEl.style.color = '#e74c3c'; }
+            else { icon.innerText = 'info'; icon.style.color = '#4a6bff'; titleEl.style.color = '#4a6bff'; }
+            
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'translateY(0)'; }, 10);
+        }
+
+        function closeCustomAlert() {
+            const overlay = document.getElementById('customAlertOverlay');
+            const box = document.getElementById('customAlertBox');
+            overlay.style.opacity = '0'; box.style.transform = 'translateY(20px)';
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+
+        function showCustomConfirm(title, message, proceedCallback) {
+            const overlay = document.getElementById('customConfirmOverlay');
+            const box = document.getElementById('customConfirmBox');
+            
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+            
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+            const proceedBtn = document.getElementById('confirmProceedBtn');
+            
+            const newCancelBtn = cancelBtn.cloneNode(true);
+            const newProceedBtn = proceedBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+            proceedBtn.parentNode.replaceChild(newProceedBtn, proceedBtn);
+            
+            newCancelBtn.onclick = () => {
+                overlay.style.opacity = '0'; box.style.transform = 'translateY(20px)';
+                setTimeout(() => { overlay.style.display = 'none'; }, 300);
+            };
+            
+            newProceedBtn.onclick = () => {
+                overlay.style.opacity = '0'; box.style.transform = 'translateY(20px)';
+                setTimeout(() => { overlay.style.display = 'none'; proceedCallback(); }, 300);
+            };
+            
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.style.opacity = '1'; box.style.transform = 'translateY(0)'; }, 10);
         }
 
         // --- ACADEMICS TAB LOGIC ---
@@ -738,7 +820,10 @@
 
         function navigateTo(pageId) {
             const privatePages = ['admin-dashboard', 'admission-form-view', 'receipt-download-view', 'database-records-view', 'monthly-fee-view', 'staff-management-menu', 'staff-enrollment-view', 'staff-records-view'];
-            if (privatePages.includes(pageId) && !checkAuth()) { alert("Restricted Area: Please login to access this panel."); pageId = 'login-section'; }
+            if (privatePages.includes(pageId) && !checkAuth()) { 
+                showCustomAlert("Restricted Area", "Please login to access this panel.", "error"); 
+                pageId = 'login-section'; 
+            }
             sessionStorage.setItem('currentPage', pageId);
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -753,7 +838,10 @@
         async function handleLogin(e) {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value;
-            if(APPS_SCRIPT_URL === "YOUR_WEB_APP_URL_HERE") { alert("Developer Error: Please paste Apps Script URL in HTML."); return; }
+            if(APPS_SCRIPT_URL === "YOUR_WEB_APP_URL_HERE") { 
+                showCustomAlert("Developer Error", "Please paste Apps Script URL in HTML.", "error"); 
+                return; 
+            }
             document.getElementById('loginLoader').style.display = 'block';
             try {
                 const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'login', email: email, password: pass }) });
@@ -761,20 +849,25 @@
                 document.getElementById('loginLoader').style.display = 'none';
                 if (result.status === 'success') {
                     sessionStorage.setItem('isLoggedIn', 'true');
-                    sessionStorage.setItem('authToken', result.token); // 🛡️ API FIREWALL TOKEN
+                    sessionStorage.setItem('authToken', result.token); 
                     updateNavUI();
                     document.getElementById('loginEmail').value = ''; document.getElementById('loginPass').value = '';
                     navigateTo('admin-dashboard');
-                } else { alert("Access Denied: " + result.message); }
-            } catch (err) { document.getElementById('loginLoader').style.display = 'none'; alert("Network Error. Please try again."); }
+                } else { 
+                    showCustomAlert("Access Denied", result.message, "error"); 
+                }
+            } catch (err) { 
+                document.getElementById('loginLoader').style.display = 'none'; 
+                showCustomAlert("Network Error", "Please try again.", "error"); 
+            }
         }
 
         function logout() { 
             sessionStorage.removeItem('isLoggedIn'); 
             sessionStorage.removeItem('currentPage'); 
-            sessionStorage.removeItem('authToken'); // 🛡️ TOKEN DESTROYED
+            sessionStorage.removeItem('authToken'); 
             updateNavUI(); 
-            alert("Securely logged out."); 
+            showCustomAlert("Logged Out", "Securely logged out.", "success"); 
             navigateTo('home'); 
         }
 
@@ -791,7 +884,7 @@
             document.getElementById('admLoader').style.display = 'block';
             const payload = {
                 action: 'admission', 
-                token: sessionStorage.getItem('authToken'), // 🛡️ FIREWALL PASS
+                token: sessionStorage.getItem('authToken'),
                 studentName: document.getElementById('stuName').value, dob: document.getElementById('stuDob').value,
                 fatherName: document.getElementById('fatName').value, motherName: document.getElementById('motName').value,
                 mobile: document.getElementById('mobile').value, aadhaar: document.getElementById('aadhaar').value, address: document.getElementById('address').value,
@@ -804,11 +897,16 @@
                 const result = await response.json();
                 document.getElementById('admLoader').style.display = 'none';
                 if (result.status === 'success') {
-                    alert(`✅ Admission Successful!\nStudent ID: ${result.studentId}\nGenerating PDF Receipt...`);
+                    showCustomAlert("Admission Successful!", "Student ID: " + result.studentId + "\nGenerating PDF Receipt...", "success");
                     generatePDFReceipt(payload, result.studentId);
                     e.target.reset(); document.getElementById('totalFee').value = 0; navigateTo('admin-dashboard');
-                } else { alert("Database Error: " + result.message); }
-            } catch (err) { document.getElementById('admLoader').style.display = 'none'; alert("Network Error. Data could not be sent."); }
+                } else { 
+                    showCustomAlert("Database Error", result.message, "error"); 
+                }
+            } catch (err) { 
+                document.getElementById('admLoader').style.display = 'none'; 
+                showCustomAlert("Network Error", "Data could not be sent.", "error"); 
+            }
         }
 
         async function handleReceiptDownload(e) {
@@ -820,9 +918,16 @@
                 const result = await response.json();
                 document.getElementById('searchLoader').style.display = 'none';
                 if (result.status === 'success') {
-                    generatePDFReceipt(result.data, searchId); alert("Receipt Found & Downloaded Successfully!"); e.target.reset(); 
-                } else { alert("Not Found: " + result.message); }
-            } catch (err) { document.getElementById('searchLoader').style.display = 'none'; alert("Network Error. Please try again."); }
+                    generatePDFReceipt(result.data, searchId); 
+                    showCustomAlert("Success", "Receipt Found & Downloaded Successfully!", "success"); 
+                    e.target.reset(); 
+                } else { 
+                    showCustomAlert("Not Found", result.message, "error"); 
+                }
+            } catch (err) { 
+                document.getElementById('searchLoader').style.display = 'none'; 
+                showCustomAlert("Network Error", "Please try again.", "error"); 
+            }
         }
 
         function generatePDFReceipt(data, id) {
@@ -867,8 +972,13 @@
                         });
                     }
                     document.getElementById('table-container').style.display = 'block';
-                } else { alert("Notice: " + result.message); }
-            } catch (err) { document.getElementById('dbLoader').style.display = 'none'; alert("Network Error. Please try again."); }
+                } else { 
+                    showCustomAlert("Notice", result.message, "info"); 
+                }
+            } catch (err) { 
+                document.getElementById('dbLoader').style.display = 'none'; 
+                showCustomAlert("Network Error", "Please try again.", "error"); 
+            }
         }
 
         let currentStudentData = null;
@@ -910,8 +1020,13 @@
                     if (initialIndexed < 0) { labelEl.innerText = "Current Advance Balance:"; labelEl.style.color = "green"; indexedEl.innerText = "Rs. " + Math.abs(initialIndexed); indexedEl.style.color = "green"; } 
                     else { labelEl.innerText = "Automatic Total Due Fee Indexed:"; labelEl.style.color = "var(--primary-color)"; indexedEl.innerText = "Rs. " + initialIndexed; indexedEl.style.color = "var(--primary-color)"; }
                     document.getElementById('receiptPreview').style.display = 'block'; 
-                } else { alert("Not Found: " + result.message); }
-            } catch (err) { document.getElementById('feeLoader').style.display = 'none'; alert("Network Error."); }
+                } else { 
+                    showCustomAlert("Not Found", result.message, "error"); 
+                }
+            } catch (err) { 
+                document.getElementById('feeLoader').style.display = 'none'; 
+                showCustomAlert("Network Error", "Could not fetch details.", "error"); 
+            }
         }
 
         function calculateIndexedDue() {
@@ -938,20 +1053,28 @@
                     method: 'POST', 
                     body: JSON.stringify({ 
                         action: 'pay_fee', 
-                        token: sessionStorage.getItem('authToken'), // 🛡️ SECURE TOKEN
+                        token: sessionStorage.getItem('authToken'), 
                         className: currentStudentData.className, 
-                        studentId: currentStudentData.studentId, // 🛡️ SECURE ZERO-TRUST ID (REMOVED ROWINDEX)
+                        studentId: currentStudentData.studentId, 
                         amountPaid: amountPaid 
                     }) 
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
-                    setTimeout(() => { generateMonthlyFeePDF(currentStudentData, amountPaid, result.totalPaidNow); document.getElementById('gpayOverlay').style.display = 'none'; document.getElementById('receiptPreview').style.display = 'none'; document.getElementById('feeAmountReceived').value = ''; }, 2500); 
+                    setTimeout(() => { 
+                        generateMonthlyFeePDF(currentStudentData, amountPaid, result.totalPaidNow); 
+                        document.getElementById('gpayOverlay').style.display = 'none'; 
+                        document.getElementById('receiptPreview').style.display = 'none'; 
+                        document.getElementById('feeAmountReceived').value = ''; 
+                    }, 2500); 
                 } else {
                     document.getElementById('gpayOverlay').style.display = 'none';
-                    alert("Error: " + result.message);
+                    showCustomAlert("Error", result.message, "error");
                 }
-            } catch (err) { document.getElementById('gpayOverlay').style.display = 'none'; alert("Payment Failed. Network Error."); }
+            } catch (err) { 
+                document.getElementById('gpayOverlay').style.display = 'none'; 
+                showCustomAlert("Payment Failed", "Network Error.", "error"); 
+            }
         }
 
         function generateMonthlyFeePDF(data, amountPaid, newTotalPaid) {
@@ -1010,7 +1133,7 @@
             
             const payload = {
                 action: 'add_staff', 
-                token: sessionStorage.getItem('authToken'), // 🛡️ API FIREWALL PASS
+                token: sessionStorage.getItem('authToken'),
                 staffName: document.getElementById('staffName').value,
                 staffPhone: document.getElementById('staffPhone').value,
                 staffPass: document.getElementById('staffPass').value,
@@ -1025,15 +1148,15 @@
                 if(loader) loader.style.display = 'none';
                 
                 if (result.status === 'success') {
-                    alert(`✅ Staff Registered Successfully!\nGenerated Teacher ID: ${result.newStaffId}`);
+                    showCustomAlert("Staff Registered Successfully!", "Generated Teacher ID: " + result.newStaffId, "success");
                     e.target.reset(); 
-                    navigateTo('staff-management-menu'); // Form bharne ke baad wapas menu bhej dega
+                    navigateTo('staff-management-menu');
                 } else { 
-                    alert("Database Error: " + result.message); 
+                    showCustomAlert("Database Error", result.message, "error"); 
                 }
             } catch (err) { 
                 if(loader) loader.style.display = 'none'; 
-                alert("Network Error. Data could not be sent. Check your connection."); 
+                showCustomAlert("Network Error", "Data could not be sent. Check your connection.", "error"); 
             }
         }
 
@@ -1045,7 +1168,7 @@
             
             const payload = {
                 action: 'get_all_staff', 
-                token: sessionStorage.getItem('authToken') // 🛡️ Zero-Trust Security
+                token: sessionStorage.getItem('authToken')
             };
             
             try {
@@ -1059,7 +1182,7 @@
                     tbody.innerHTML = '';
                     
                     if (result.data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No staff records found. Please add a staff member first.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No staff records found. Please add a staff member first.</td></tr>';
                     } else {
                         result.data.forEach(staff => {
                             const row = `<tr>
@@ -1069,19 +1192,107 @@
                                 <td style="color:#e74c3c; font-family:monospace; font-weight:bold;">${staff.password}</td>
                                 <td><span class="status-badge" style="background:#e3f2fd; color:#0d47a1;">${staff.post}</span></td>
                                 <td style="font-weight:bold; color:green;">₹ ${staff.salary}</td>
+                                <td style="text-align:center;">
+                                    <button onclick="removeStaff('${staff.id}', '${staff.name}')" style="background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
+                                        <span class="material-icons" style="font-size: 1rem; vertical-align: middle;">delete</span> Remove
+                                    </button>
+                                </td>
                             </tr>`;
                             tbody.innerHTML += row;
                         });
                     }
                     document.getElementById('staffTableContainer').style.display = 'block';
                 } else { 
-                    alert("Database Error: " + result.message); 
+                    showCustomAlert("Database Error", result.message, "error"); 
                 }
             } catch (err) { 
                 document.getElementById('staffListLoader').style.display = 'none';
-                alert("Network Error. Could not fetch staff records."); 
+                showCustomAlert("Network Error", "Could not fetch staff records.", "error"); 
             }
         }
+
+        // ==========================================
+        // ADMIN: REMOVE STAFF MEMBER
+        // ==========================================
+        function removeStaff(staffId, staffName) {
+            if(!checkAuth()) return;
+            
+            showCustomConfirm(
+                "Remove Staff Member?", 
+                `Are you sure you want to permanently delete the record of ${staffName} (ID: ${staffId})?\n\nThey will immediately lose access to the Staff Portal App. This cannot be undone.`, 
+                async () => {
+                    document.getElementById('staffListLoader').style.display = 'block';
+                    document.getElementById('staffTableContainer').style.display = 'none';
+
+                    const payload = {
+                        action: 'remove_staff',
+                        token: sessionStorage.getItem('authToken'),
+                        staffId: staffId
+                    };
+
+                    try {
+                        const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                        const result = await response.json();
+                        
+                        if (result.status === 'success') {
+                            showCustomAlert("Deleted Successfully!", result.message, "success");
+                            fetchStaffRecords(); 
+                        } else { 
+                            showCustomAlert("Database Error", result.message, "error");
+                            document.getElementById('staffListLoader').style.display = 'none';
+                            document.getElementById('staffTableContainer').style.display = 'block';
+                        }
+                    } catch (err) { 
+                        showCustomAlert("Network Error", "Could not connect to the server.", "error"); 
+                        document.getElementById('staffListLoader').style.display = 'none';
+                        document.getElementById('staffTableContainer').style.display = 'block';
+                    }
+                }
+            );
+        }
+
+        // ==========================================
+        // ADMIN: DECLARE SCHOOL OFF (BULK PRESENT)
+        // ==========================================
+        function declareSchoolOff(e) {
+            if(!checkAuth()) return;
+            
+            const btn = e.currentTarget; 
+            
+            showCustomConfirm(
+                "Declare School Off?", 
+                "Are you sure you want to mark today as a holiday?\n\nAll teachers who haven't scanned their QR yet will automatically be marked 'Present' (Reason: School Off).", 
+                async () => {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = `<span class="material-icons" style="vertical-align: middle; animation: spin 1s linear infinite;">hourglass_top</span> Processing...`;
+                    btn.style.pointerEvents = 'none';
+
+                    const payload = {
+                        action: 'admin_school_off',
+                        token: sessionStorage.getItem('authToken') 
+                    };
+
+                    try {
+                        const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                        const result = await response.json();
+                        
+                        btn.innerHTML = originalText;
+                        btn.style.pointerEvents = 'auto';
+
+                        if (result.status === 'success') {
+                            showCustomAlert("Action Completed!", result.message, "success");
+                        } else { 
+                            showCustomAlert("Database Error", result.message, "error"); 
+                        }
+                    } catch (err) { 
+                        btn.innerHTML = originalText;
+                        btn.style.pointerEvents = 'auto';
+                        showCustomAlert("Network Error", "Could not connect to the secure server. Check your connection.", "error"); 
+                    }
+                }
+            );
+        }
+
     </script>
 
     <script>
