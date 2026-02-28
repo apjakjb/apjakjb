@@ -3,17 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School | Secure Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Dr. APJ Abdul Kalam Jatiya Bidyalaya | Best School in Sirajuli, Sonitpur (Assam)</title>
+    <meta name="description" content="Welcome to Dr. APJ Abdul Kalam Jatiya Bidyalaya, Sirajuli. We provide world-class education, smart classrooms, and a highly secure holistic learning environment in Sonitpur, Assam. Admission Open!">
+    <meta name="keywords" content="Dr. APJ Abdul Kalam Jatiya Bidyalaya, Best school in Sirajuli, Schools in Sonitpur Assam, Jatiya Bidyalaya admission, Top school in Assam">
     
+    <link rel="canonical" href="https://apjakjb.in/" />
+
+    <meta property="og:title" content="Dr. APJ Abdul Kalam Jatiya Bidyalaya">
+    <meta property="og:description" content="Excellence in Education at Sirajuli, Sonitpur. Discover our smart classrooms, advanced labs, and secure campus.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80">
+    <meta property="og:url" content="https://apjakjb.in/">
+    <meta property="og:type" content="website">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "Dr. APJ Abdul Kalam Jatiya Bidyalaya",
+      "url": "https://apjakjb.in/",
+      "logo": "https://lh3.googleusercontent.com/u/0/d/1DDQ6K4IWtRrqop6qW1H_aTr7w2A5sd1S",
+      "foundingDate": "2016",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Santi Chowk (Sirajuli)",
+        "addressLocality": "Sonitpur",
+        "addressRegion": "Assam",
+        "postalCode": "784117",
+        "addressCountry": "IN"
+      },
+      "telephone": "+91 88227 78233",
+      "email": "apjakjatiyavidyalaya@gmail.com",
+      "description": "A premier educational institution in Sirajuli, Sonitpur offering world-class facilities and holistic development."
+    }
+    </script>
+
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
     <style>
         /* --- CORE VARIABLES & RESET --- */
         :root { --primary-color: #0c3b5e; --secondary-color: #f1c40f; --bg-light: #f4f7f6; --text-dark: #333; --header-height: 70px; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background-color: var(--bg-light); color: var(--text-dark); display: flex; flex-direction: column; min-height: 100vh; }
+        body { 
+            background-color: var(--bg-light); color: var(--text-dark); display: flex; flex-direction: column; min-height: 100vh; 
+            /* 👇 NAYA CODE: Text Selection Disabled 👇 */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+/Edge */
+            user-select: none; /* Standard */
+        }
+        /* Admin forms ke andar typing allow karne ke liye */
+        input, textarea, select { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
 
         /* --- HEADER & NAVIGATION --- */
         header { position: fixed; top: 0; width: 100%; height: var(--header-height); background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -185,9 +227,9 @@
 </head>
 <body>
 
-    <header>
-        <div class="logo-area">
-            <img src="https://lh3.googleusercontent.com/u/0/d/1DDQ6K4IWtRrqop6qW1H_aTr7w2A5sd1S" alt="Logo" class="school-logo">
+<header>
+        <div class="logo-area" onclick="navigateTo('home')" style="cursor: pointer;" title="Go to Home">
+            <img src="https://lh3.googleusercontent.com/u/0/d/1DDQ6K4IWtRrqop6qW1H_aTr7w2A5sd1S" alt="Logo" class="school-logo" loading="lazy">
             <div class="school-title-box">
                 <span class="school-name">Dr. APJ Abdul Kalam Jatiya Bidyalaya</span>
                 <span class="est-year">ESTD. 2016</span> 
@@ -211,15 +253,15 @@
                 <div class="slider-container">
                     <div class="slides" id="slider-track">
                         <div class="slide">
-                            <img src="https://lh3.googleusercontent.com/u/0/d/1UDouWfcot0LOeathEC-gBIEIlU49veDp" alt="Campus">
+                            <img src="https://lh3.googleusercontent.com/u/0/d/1UDouWfcot0LOeathEC-gBIEIlU49veDp" alt="Dr. APJ Abdul Kalam Jatiya Bidyalaya Campus in Sirajuli, Sonitpur" loading="lazy">
                             <div class="slide-text"><h1>Excellence in Education</h1><p>Building tomorrow's leaders today.</p></div>
                         </div>
                         <div class="slide">
-                            <img src="https://lh3.googleusercontent.com/u/0/d/1KdFDjk6ufIgreFUD9HMsFBd9rEw5rKsJ" alt="Classroom">
+                            <img src="https://lh3.googleusercontent.com/u/0/d/1KdFDjk6ufIgreFUD9HMsFBd9rEw5rKsJ" alt="Smart Classrooms at Best School in Assam" loading="lazy">
                             <div class="slide-text"><h1>Inspirational Events</h1><p>Fostering innovation and critical thinking.</p></div>
                         </div>
                         <div class="slide">
-                            <img src="https://lh3.googleusercontent.com/u/0/d/1HTV1Or-XtMWzwByYuKrg6LmdQ1abo0XX" alt="Students">
+                            <img src="https://lh3.googleusercontent.com/u/0/d/1HTV1Or-XtMWzwByYuKrg6LmdQ1abo0XX" alt="innovation with the motivational speakers" loading="lazy">
                             <div class="slide-text"><h1>A Brighter Future</h1><p>Join our elite academic community.</p></div>
                         </div>
                     </div>
@@ -262,7 +304,7 @@
         
             <div class="principal-desk">
                 <div class="principal-image-box">
-                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=500&q=80" alt="Principal">
+                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=500&q=80" alt="The highly qualified principal" loading="lazy">
                 </div>
                 <div class="principal-msg">
                     <h2><span class="material-icons" style="font-size: 2.2rem; color: var(--secondary-color);">format_quote</span> Principal's Message</h2>
@@ -286,7 +328,7 @@
                 </div>
             </div>
 
-            <a href="https://wa.me/918822778233?text=Hello%20Dr.%20APJ%20Abdul%20Kalam%20J.B.!%20I%20would%20like%20to%20know%20more%20about%20admissions." class="floating-whatsapp" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp"></a>
+            <a href="https://wa.me/918822778233?text=Hello%20Dr.%20APJ%20Abdul%20Kalam%20J.B.!%20I%20would%20like%20to%20know%20more%20about%20admissions." class="floating-whatsapp" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp-icon" loading="lazy"></a>
         </section>
 
         <section id="academics" class="page">
@@ -315,7 +357,7 @@
                                     <li>Engagement through Smart Classrooms</li>
                                 </ul>
                             </div>
-                            <div class="academic-image"><img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=600&q=80" alt="Primary"></div>
+                            <div class="academic-image"><img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=600&q=80" alt="Primary" loading="lazy"></div>
                         </div>
                     </div>
 
@@ -331,7 +373,7 @@
                                     <li>Debates, seminars, and personality development</li>
                                 </ul>
                             </div>
-                            <div class="academic-image"><img src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=600&q=80" alt="Senior"></div>
+                            <div class="academic-image"><img src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=600&q=80" alt="Senior" loading="lazy"></div>
                         </div>
                     </div>
 
@@ -347,14 +389,14 @@
                                     <li>Regular Parent-Teacher Meetings (PTMs)</li>
                                 </ul>
                             </div>
-                            <div class="academic-image"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80" alt="Exams"></div>
+                            <div class="academic-image"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80" alt="Exams" loading="lazy"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="login-section" class="page">
+        <section id="login-section" class="page" data-nosnippet>
             <div class="auth-wrapper">
                 <div class="auth-bg"></div><div class="auth-overlay"></div>
                 <div class="auth-card">
@@ -369,7 +411,7 @@
             </div>
         </section>
 
-        <section id="admin-dashboard" class="page">
+        <section id="admin-dashboard" class="page" data-nosnippet>
             <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
                     <button onclick="openQrModal()" style="background: linear-gradient(135deg, #4a6bff, #3b5bdb); color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(74, 107, 255, 0.3); transition: transform 0.2s;">
                         <span class="material-icons" style="vertical-align: middle;">qr_code_2</span> Generate Daily QR
@@ -728,7 +770,7 @@
         // ------------------------------------
         // CONFIG: PASTE GOOGLE SCRIPT URL HERE
         // ------------------------------------
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2zPkxBALcQRNhGegZYU2ZZJ3yWOF04trbmGI5YDoq9F6vwjaONEUq428ofE3Xgrb-Cw/exec"; 
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwUNQv4SF3QGtKVn_6pn9tT3KllJBnfEUr4a4Au0dfTlcAW3m2mrqPoOJBlM4UJv6x9iQ/exec"; 
         
         function checkAuth() { return sessionStorage.getItem('isLoggedIn') === 'true'; }
 
@@ -824,6 +866,12 @@
                 showCustomAlert("Restricted Area", "Please login to access this panel.", "error"); 
                 pageId = 'login-section'; 
             }
+            
+            // 👇 NAYA SEO HASH ROUTING 👇
+            if (window.location.hash !== '#' + pageId) {
+                window.location.hash = pageId; 
+            }
+            
             sessionStorage.setItem('currentPage', pageId);
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -945,10 +993,22 @@
 
         window.onload = () => {
             updateNavUI();
-            const savedPage = sessionStorage.getItem('currentPage') || 'home';
+            
+            // 👇 NAYA SEO BROWSER BACK BUTTON FIX 👇
+            const hashPage = window.location.hash.substring(1); 
+            const savedPage = hashPage || sessionStorage.getItem('currentPage') || 'home';
+            
             const privatePages = ['admin-dashboard', 'admission-form-view', 'receipt-download-view', 'database-records-view', 'monthly-fee-view', 'staff-management-menu', 'staff-enrollment-view', 'staff-records-view'];
             if (privatePages.includes(savedPage) && !checkAuth()) { navigateTo('home'); } else { navigateTo(savedPage); }
         };
+
+        // 👇 BROWSER BACK BUTTON EVENT LISTENER 👇
+        window.addEventListener('hashchange', () => {
+            const hashPage = window.location.hash.substring(1) || 'home';
+            if (sessionStorage.getItem('currentPage') !== hashPage) {
+                navigateTo(hashPage);
+            }
+        });
 
         async function handleFetchRecords(e) {
             e.preventDefault(); if(!checkAuth()) return;
@@ -1299,18 +1359,18 @@
     // ==========================================
     // ADMIN: MODAL CONTROLS & DYNAMIC QR LOGIC
     // ==========================================
-
     function openQrModal() {
         const overlay = document.getElementById('qrModalOverlay');
         const modalBox = document.getElementById('qrModalBox');
         
         overlay.style.display = 'flex';
+        generateAttendanceQR();
+        
+
         setTimeout(() => {
             overlay.style.opacity = '1';
             modalBox.style.transform = 'translateY(0)';
         }, 10);
-
-        generateAttendanceQR();
     }
 
     function closeQrModal() {
@@ -1384,5 +1444,40 @@
         `);
     }
     </script>
+    <script>
+        // 1. Right-Click (Context Menu) Disable
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showCustomAlert("Security Notice", "Right-click is disabled on this portal for security reasons.", "info");
+        });
+
+        // 2. Keyboard Shortcuts Disable (F12, Ctrl+U, Ctrl+Shift+I/J, Ctrl+S)
+        document.addEventListener('keydown', function(e) {
+            // Block F12
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault();
+            }
+            // Block Ctrl+U (View Source)
+            if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
+                e.preventDefault();
+            }
+            // Block Ctrl+S (Save Page)
+            if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+            }
+            // Block Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C (Inspect Element)
+            if (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J' || e.key === 'c' || e.key === 'C')) {
+                e.preventDefault();
+            }
+        });
+
+        // 3. Dragging Images Disable (Taki koi image utha ke na le jaye)
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.nodeName.toUpperCase() === "IMG") {
+                e.preventDefault();
+            }
+        });
+    </script>
+
 </body>
 </html>
