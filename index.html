@@ -115,7 +115,12 @@
         .loader { display: none; text-align: center; margin-top: 10px; color: var(--primary-color); font-weight: bold; }
 
         /* --- STATS, PRINCIPAL & FACILITIES --- */
-        .stats-section { padding: 1rem 6.5rem 3rem 6.5rem; margin: 1rem 0; background-color: transparent; }
+        .stats-section { 
+        max-width: 1200px; /* Baaki container jaisa width */
+        margin: 1rem auto 3rem auto; /* Center align karne ke liye auto margin */
+        padding: 0 2rem; /* Normal horizontal padding */
+        background-color: transparent; 
+            }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
         .stat-item { background: white; padding: 2rem 1rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); border-bottom: 4px solid var(--secondary-color); border-top: 1px solid #eee; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden; }
         .stat-item:hover { transform: translateY(-10px); box-shadow: 0 12px 25px rgba(0,0,0,0.12); }
@@ -1508,7 +1513,6 @@
 
 </body>
 </html>
-
 
 
 
