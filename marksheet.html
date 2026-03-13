@@ -240,16 +240,28 @@
         .security-area {
             display: flex;
             flex-direction: column;
-            align-items: flex-end;
-            width: 110px;
+            align-items: center; /* Aligns text cleanly */
+            min-width: 120px;
+            background: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .serial-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #4b5563;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
         }
 
         .serial-no {
             font-family: monospace;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
             color: #ef4444;
-            margin-bottom: 8px;
         }
 
         .student-details {
@@ -461,7 +473,7 @@
             <input type="number" id="m-elective" class="mark-input" min="0" max="100" value="90" oninput="updateMarks()">
         </div>
 
-        <button class="action-btn" onclick="window.print()">🖨️ Export to PDF / Print</button>
+        <button class="action-btn" onclick="printAndIncrementSerial()">🖨️ Export to PDF / Print</button>
     </div>
 
     <div class="preview-area">
@@ -487,7 +499,8 @@
                             </div>
 
                             <div class="security-area">
-                                <div class="serial-no">SL: <span id="out-serial"></span></div>
+                                <div class="serial-label">Serial Number</div>
+                                <div class="serial-no" id="out-serial">APJAKJB - 001</div>
                             </div>
                         </div>
 
@@ -600,24 +613,31 @@
             }
         }
 
-        // NAYA CODE: Browser Storage se sequential number generate karna
-        function generateDynamicSerial() {
-            // Local Storage se current number nikalo, agar nahi hai toh 1 set karo
+        // NAYA CODE: Sirf current serial read karega, page load par increment nahi karega
+        function loadCurrentSerial() {
             let currentSerial = localStorage.getItem('marksheet_serial_counter');
             if (!currentSerial) {
                 currentSerial = 1;
+                localStorage.setItem('marksheet_serial_counter', 1);
             } else {
                 currentSerial = parseInt(currentSerial);
             }
             
-            // Number ko 3-digit format mein convert karo (e.g., 1 -> 001, 15 -> 015)
             let formattedNumber = String(currentSerial).padStart(3, '0');
-            
-            // HTML mein APJAKJB - 001 format set karo
             document.getElementById('out-serial').textContent = `APJAKJB - ${formattedNumber}`;
+        }
+
+        // NAYA CODE: Yeh function print hone ke baad automatically number badhayega
+        function printAndIncrementSerial() {
+            // 1. Pehle page ko current serial number ke sath print karo
+            window.print();
             
-            // Next refresh ke liye number ko +1 karke save kardo
+            // 2. Print window close hone ke baad, next student ke liye number ko +1 karo
+            let currentSerial = parseInt(localStorage.getItem('marksheet_serial_counter') || 1);
             localStorage.setItem('marksheet_serial_counter', currentSerial + 1);
+            
+            // 3. Naya number UI me update kar do
+            loadCurrentSerial();
         }
 
         function updateMarks() {
@@ -662,7 +682,7 @@
                 document.getElementById('m-elective').style.display = '';
                 document.getElementById('tr-elective').style.display = '';
             }
-            // Update DOM references dynamically
+            
             document.getElementById('lbl-in-social').textContent = socialName;
             document.getElementById('td-name-social').textContent = socialName;
             
@@ -678,14 +698,12 @@
                 if (activeSubjects.includes(sub)) {
                     const val = parseInt(document.getElementById('m-' + sub).value) || 0;
                     document.getElementById('out-m-' + sub).textContent = val;
-                    // Letter Marks Logic: L if >= 80, otherwise Empty Dash
                     document.getElementById('rem-' + sub).textContent = val >= 80 ? "L" : "-";
                     totalMarks += val;
                     if(val < 30) hasFailed = true;
                 }
             });
 
-            // Adjust totals dynamically
             const maxMarks = activeSubjects.length * 100;
             const passMarks = activeSubjects.length * 30;
             
@@ -693,7 +711,6 @@
             document.getElementById('out-max-marks').textContent = maxMarks;
             document.getElementById('out-pass-marks').textContent = passMarks;
 
-            // Result Grading Logic based on percentages
             const percentage = (totalMarks / maxMarks) * 100;
             let division = "";
 
@@ -721,7 +738,7 @@
         }
 
         window.onload = function() {
-            generateDynamicSerial();
+            loadCurrentSerial(); // Ab page load pe bas data load hoga
             updateUI();
             updateMarks();
         };
