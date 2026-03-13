@@ -186,7 +186,7 @@
             letter-spacing: 1px;
         }
 
-        /* HEADER LAYOUT (Address, Logo, QR) */
+        /* HEADER LAYOUT (Address, Logo) */
         .header {
             display: flex;
             justify-content: space-between;
@@ -200,13 +200,12 @@
         .logo-area {
             width: 100px;
             height: 100px;
-            border: 2px dashed #cbd5e0;
+            border: 2px dashed transparent;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            cursor: pointer;
             position: relative;
             background: white;
         }
@@ -215,13 +214,7 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            display: none;
-        }
-
-        .logo-area span {
-            font-size: 10px;
-            color: #718096;
-            text-align: center;
+            display: block;
         }
 
         .school-info {
@@ -259,21 +252,6 @@
             margin-bottom: 8px;
         }
 
-        .qr-placeholder {
-            width: 50px;
-            height: 50px;
-            border: 1px solid var(--primary-color);
-            padding: 2px;
-            background: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(15, 44, 89, 0.05) 5px, rgba(15, 44, 89, 0.05) 10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-            color: var(--primary-color);
-            text-align: center;
-            font-weight: bold;
-        }
-
         .student-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -309,13 +287,13 @@
         }
 
         table.marks-table th {
-            background: var(--primary-color);
-            color: white;
-            font-family: 'Playfair Display', serif;
+            background: #E0DEDE;
+            color: #0646A1;
+            font-family: Calibri;
             font-weight: 600;
             padding: 12px;
             font-size: 14px;
-            border: 1px solid var(--primary-color);
+            border: 1px solid grey;
         }
 
         table.marks-table td {
@@ -421,10 +399,6 @@
         <h2>Student Details</h2>
         
         <div class="input-group">
-            <label>Serial Number</label>
-            <input type="text" id="in-serial" value="APJAKJB-100" oninput="updateUI()">
-        </div>
-        <div class="input-group">
             <label>Student Name</label>
             <input type="text" id="in-name" value="John Doe" oninput="updateUI()">
         </div>
@@ -502,10 +476,8 @@
                         </div>
 
                         <div class="header">
-                            <div class="logo-area" onclick="document.getElementById('logo-upload').click()">
-                                <span id="logo-text">Click to<br>Upload Logo</span>
-                                <img id="out-logo" src="Marksheet-Logo.png" alt="School Logo">
-                                <input type="file" id="logo-upload" accept="image/*" style="display: none;" onchange="loadLogo(event)">
+                            <div class="logo-area">
+                                <img id="out-logo" src="Marksheet-Logo.png" alt="School Logo" style="display: block;">
                             </div>
                             
                             <div class="school-info">
@@ -515,8 +487,7 @@
                             </div>
 
                             <div class="security-area">
-                                <div class="serial-no">SL: <span id="out-serial">APJAKJB-100</span></div>
-                                <div class="qr-placeholder">VALID<br>CODE</div>
+                                <div class="serial-no">SL: <span id="out-serial"></span></div>
                             </div>
                         </div>
 
@@ -617,7 +588,7 @@
 
     <script>
         function updateUI() {
-            const fields = ['serial', 'name', 'father', 'mother', 'roll', 'class', 'season'];
+            const fields = ['name', 'father', 'mother', 'roll', 'class', 'season'];
             fields.forEach(field => {
                 document.getElementById('out-' + field).textContent = document.getElementById('in-' + field).value;
             });
@@ -629,12 +600,24 @@
             }
         }
 
-        function loadLogo(event) {
-            const image = document.getElementById('out-logo');
-            const text = document.getElementById('logo-text');
-            image.src = URL.createObjectURL(event.target.files[0]);
-            image.style.display = 'block';
-            text.style.display = 'none';
+        // NAYA CODE: Browser Storage se sequential number generate karna
+        function generateDynamicSerial() {
+            // Local Storage se current number nikalo, agar nahi hai toh 1 set karo
+            let currentSerial = localStorage.getItem('marksheet_serial_counter');
+            if (!currentSerial) {
+                currentSerial = 1;
+            } else {
+                currentSerial = parseInt(currentSerial);
+            }
+            
+            // Number ko 3-digit format mein convert karo (e.g., 1 -> 001, 15 -> 015)
+            let formattedNumber = String(currentSerial).padStart(3, '0');
+            
+            // HTML mein APJAKJB - 001 format set karo
+            document.getElementById('out-serial').textContent = `APJAKJB - ${formattedNumber}`;
+            
+            // Next refresh ke liye number ko +1 karke save kardo
+            localStorage.setItem('marksheet_serial_counter', currentSerial + 1);
         }
 
         function updateMarks() {
@@ -738,10 +721,10 @@
         }
 
         window.onload = function() {
+            generateDynamicSerial();
             updateUI();
             updateMarks();
         };
     </script>
 </body>
-
 </html>
