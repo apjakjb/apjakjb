@@ -494,13 +494,16 @@
                             
                             <div class="school-info">
                                 <p>ESTD - 2016</p>
-                                <p>Molanpukhuri, Sirajuli, Assam - 784117</p>
+                                <p>Mulanpukhuri, Sirajuli, Assam - 784117</p>
                                 <p class="doc-title">ACADEMIC MARKSHEET</p>
                             </div>
 
                             <div class="security-area">
                                 <div class="serial-label">Serial Number</div>
                                 <div class="serial-no" id="out-serial">APJAKJB - 001</div>
+                                
+                                <div class="serial-label" style="margin-top: 8px;">Issue Date</div>
+                                <div class="serial-no" id="out-issue-date" style="color: var(--primary-color);">DD-MM-YYYY</div>
                             </div>
                         </div>
 
@@ -613,7 +616,6 @@
             }
         }
 
-        // NAYA CODE: Sirf current serial read karega, page load par increment nahi karega
         function loadCurrentSerial() {
             let currentSerial = localStorage.getItem('marksheet_serial_counter');
             if (!currentSerial) {
@@ -627,16 +629,21 @@
             document.getElementById('out-serial').textContent = `APJAKJB - ${formattedNumber}`;
         }
 
-        // NAYA CODE: Yeh function print hone ke baad automatically number badhayega
+        // NAYA: Current date generate karne ke liye function
+        function setIssueDate() {
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+            const year = today.getFullYear();
+            document.getElementById('out-issue-date').textContent = `${day}-${month}-${year}`;
+        }
+
         function printAndIncrementSerial() {
-            // 1. Pehle page ko current serial number ke sath print karo
             window.print();
             
-            // 2. Print window close hone ke baad, next student ke liye number ko +1 karo
             let currentSerial = parseInt(localStorage.getItem('marksheet_serial_counter') || 1);
             localStorage.setItem('marksheet_serial_counter', currentSerial + 1);
             
-            // 3. Naya number UI me update kar do
             loadCurrentSerial();
         }
 
@@ -646,7 +653,6 @@
             let socialName = "Social Science";
             let scienceName = "Science";
 
-            // Process dynamic subjects based on class selection
             if (classVal === "LKG" || classVal === "UKG") {
                 activeSubjects = ['assamese', 'english', 'math', 'social'];
                 socialName = "EVS/Drawing";
@@ -738,11 +744,11 @@
         }
 
         window.onload = function() {
-            loadCurrentSerial(); // Ab page load pe bas data load hoga
+            loadCurrentSerial(); 
+            setIssueDate(); // Naya function call jo page load pe current date fill karega
             updateUI();
             updateMarks();
         };
     </script>
 </body>
 </html>
-
