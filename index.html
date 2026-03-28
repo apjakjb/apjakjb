@@ -40,8 +40,6 @@
     </script>
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         /* --- CORE VARIABLES & RESET --- */
         :root { --primary-color: #0c3b5e; --secondary-color: #f1c40f; --bg-light: #f4f7f6; --text-dark: #333; --header-height: 70px; }
@@ -215,6 +213,22 @@
         @keyframes iconLineTip { 0% { width: 0; left: 1px; top: 19px; } 54% { width: 0; left: 1px; top: 19px; } 70% { width: 50px; left: -8px; top: 37px; } 84% { width: 17px; left: 21px; top: 48px; } 100% { width: 25px; left: 14px; top: 46px; } }
         @keyframes iconLineLong { 0% { width: 0; right: 46px; top: 54px; } 65% { width: 0; right: 46px; top: 54px; } 84% { width: 55px; right: 0px; top: 35px; } 100% { width: 47px; right: 8px; top: 38px; } }
 
+        /* --- PREMIUM DOCUMENT UPLOAD UI --- */
+        .upload-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.2rem; margin-top: 1rem; }
+        .upload-box { border: 2px dashed #ccc; border-radius: 8px; padding: 1.5rem 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease; background: #fafafa; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 140px; }
+        .upload-box:hover { border-color: var(--primary-color); background: #f0f4f8; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .upload-box input[type="file"] { display: none; }
+        .upload-icon { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 8px; transition: transform 0.3s; }
+        .upload-box:hover .upload-icon { transform: scale(1.1); }
+        .upload-text { font-size: 0.85rem; color: #444; font-weight: 600; line-height: 1.3; }
+        .upload-status { margin-top: 8px; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .status-pending { color: #888; }
+        .status-uploading { color: #f39c12; }
+        .status-success { color: #2ecc71; }
+        .status-error { color: #e74c3c; }
+        .spinner { animation: spin 1s linear infinite; font-size: 1.2rem !important; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
         @media (max-width: 768px) {
             .top-nav { display: none; flex-direction: column; position: absolute; top: var(--header-height); left: 0; width: 100%; background: var(--primary-color); padding: 1rem 0; }
             .top-nav.show { display: flex !important; }
@@ -227,6 +241,59 @@
             .tab-buttons { flex-direction: column; }
             .academic-grid { grid-template-columns: 1fr; }
             .tab-content { padding: 1.5rem; }
+        }
+
+
+
+
+        /* ========================================== */
+        /* PREMIUM RECEIPT PRINT ENGINE               */
+        /* ========================================== */
+        #premium-receipt-template { display: none; }
+
+        @media print {
+            @page { size: A4; margin: 0; }
+            
+            /* Hide the entire website when printing */
+            body * { visibility: hidden; }
+            
+            /* Show ONLY the receipt template */
+            #premium-receipt-template, #premium-receipt-template * { visibility: visible; }
+            
+            #premium-receipt-template {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                padding: 0;
+                background: white;
+                /* Force background colors and SVG patterns to print */
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            /* Marksheet Design Border Replicated */
+            .receipt-print-wrapper {
+                width: 210mm; height: 297mm; background: #0f2c59; padding: 12px; box-sizing: border-box;
+            }
+
+            .receipt-print-inner {
+                background-color: white; width: 100%; height: 100%; box-sizing: border-box; padding: 35px;
+                /* The beautiful SVG Brick Border */
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3Cpattern id='h-brick' width='70' height='22' patternUnits='userSpaceOnUse'%3E%3Crect width='70' height='22' fill='%23ffffff' stroke='%230f2c59' stroke-width='1'/%3E%3Ctext x='35' y='15' font-family='monospace' font-size='11' font-weight='bold' fill='%230f2c59' text-anchor='middle'%3EAPJAKJB%3C/text%3E%3C/pattern%3E%3Cpattern id='v-brick' width='22' height='70' patternUnits='userSpaceOnUse'%3E%3Crect width='22' height='70' fill='%23ffffff' stroke='%230f2c59' stroke-width='1'/%3E%3Ctext x='-35' y='15' font-family='monospace' font-size='11' font-weight='bold' fill='%230f2c59' text-anchor='middle' transform='rotate(-90)'%3EAPJAKJB%3C/text%3E%3C/pattern%3E%3C/defs%3E%3Crect x='0' y='0' width='100%25' height='22' fill='url(%23h-brick)'/%3E%3Crect x='0' y='calc(100%25 - 22px)' width='100%25' height='22' fill='url(%23h-brick)'/%3E%3Crect x='0' y='22' width='22' height='calc(100%25 - 44px)' fill='url(%23v-brick)'/%3E%3Crect x='calc(100%25 - 22px)' y='22' width='22' height='calc(100%25 - 44px)' fill='url(%23v-brick)'/%3E%3C/svg%3E");
+                background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
+            }
+
+            .receipt-print-content {
+                background: white; height: 100%; border: 1px solid #c5a880; padding: 30px;
+                box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; 
+            }
+
+            .receipt-layer { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
         }
     </style>
 </head>
@@ -519,6 +586,48 @@
                             <div class="form-group"><label>Total Fee (Auto)</label><input type="number" id="totalFee" class="form-control" value="0" readonly style="background:#eee; font-weight:bold;"></div>
                             <div class="form-group"><label>Paid Amount</label><input type="number" id="paidFee" class="form-control" value="0" min="0" required></div>
                         </div>
+
+                        <div class="section-title">Section C: Document Uploads</div>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Files will automatically upload to the secure server when selected. Max size: 2MB per file.</p>
+                        
+                        <div class="upload-grid">
+                            <label class="upload-box" id="box-urlDob">
+                                <input type="file" accept="image/*,.pdf" onchange="handleAsyncUpload(this, 'urlDob', 'DOB')">
+                                <span class="material-icons upload-icon">child_care</span>
+                                <div class="upload-text">Student Birth Certificate</div>
+                                <div class="upload-status status-pending" id="status-urlDob"><span class="material-icons" style="font-size:1rem;">touch_app</span> Select File</div>
+                            </label>
+
+                            <label class="upload-box" id="box-urlStuAadhaar">
+                                <input type="file" accept="image/*,.pdf" onchange="handleAsyncUpload(this, 'urlStuAadhaar', 'STU_AADHAAR')">
+                                <span class="material-icons upload-icon">badge</span>
+                                <div class="upload-text">Student Aadhaar Card</div>
+                                <div class="upload-status status-pending" id="status-urlStuAadhaar"><span class="material-icons" style="font-size:1rem;">touch_app</span> Select File</div>
+                            </label>
+
+                            <label class="upload-box" id="box-urlPhoto">
+                                <input type="file" accept="image/*" onchange="handleAsyncUpload(this, 'urlPhoto', 'PHOTO')">
+                                <span class="material-icons upload-icon">add_a_photo</span>
+                                <div class="upload-text">Student Passport Photo</div>
+                                <div class="upload-status status-pending" id="status-urlPhoto"><span class="material-icons" style="font-size:1rem;">touch_app</span> Select File</div>
+                            </label>
+
+                            <label class="upload-box" id="box-urlFatherAadhaar">
+                                <input type="file" accept="image/*,.pdf" onchange="handleAsyncUpload(this, 'urlFatherAadhaar', 'FATHER_AADHAAR')">
+                                <span class="material-icons upload-icon">person</span>
+                                <div class="upload-text">Father's Aadhaar Card</div>
+                                <div class="upload-status status-pending" id="status-urlFatherAadhaar"><span class="material-icons" style="font-size:1rem;">touch_app</span> Select File</div>
+                            </label>
+
+                            <label class="upload-box" id="box-urlMotherAadhaar">
+                                <input type="file" accept="image/*,.pdf" onchange="handleAsyncUpload(this, 'urlMotherAadhaar', 'MOTHER_AADHAAR')">
+                                <span class="material-icons upload-icon">face_3</span>
+                                <div class="upload-text">Mother's Aadhaar Card</div>
+                                <div class="upload-status status-pending" id="status-urlMotherAadhaar"><span class="material-icons" style="font-size:1rem;">touch_app</span> Select File</div>
+                            </label>
+                        </div>
+
+
                         <button type="submit" class="btn-submit" style="margin-top: 1rem;"><span class="material-icons">save</span> Submit to Database & Print Receipt</button>
                         <div class="loader" id="admLoader">Uploading Database & Generating Receipt...</div>
                     </form>
@@ -771,6 +880,147 @@
         </div>
     </div>
 
+
+
+
+
+
+
+
+    <div id="premium-receipt-template" style="display: none;">
+        <div class="receipt-print-wrapper">
+            <div class="receipt-print-inner">
+                <div class="receipt-print-content">
+                    <div class="receipt-layer">
+                        
+                        <div style="text-align: center; margin-bottom: 10px; width: 100%;">
+                            <h1 style="font-family: 'Playfair Display', serif; color: #0f2c59; font-size: 38px; margin: 0; font-weight: 700;">Dr. APJ ABDUL KALAM J.B.</h1>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f2c59; padding-bottom: 15px; margin-bottom: 20px; margin-top: 15px;">
+                            
+                            <div style="width: 100px; height: 100px; border: 2px dashed #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: white; padding: 5px;">
+                                <img src="https://lh3.googleusercontent.com/u/0/d/1DDQ6K4IWtRrqop6qW1H_aTr7w2A5sd1S" alt="School Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                            </div>
+                            
+                            <div style="flex: 1; text-align: center; padding: 0 15px;">
+                                <p style="margin: 0; font-size: 15px; color: #4b5563; font-weight: bold;">ESTD - 2016</p>
+                                <p style="margin: 5px 0; font-size: 14px; color: #4b5563;">Molanpukhuri, Sirajuli, Sonitpur, Assam - 784117</p>
+                                <p style="margin-top: 15px; font-weight: 800; letter-spacing: 3px; color: #c5a880; font-size: 24px; margin-bottom: 0;">OFFICIAL ADMISSION RECEIPT</p>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; align-items: center;">
+                                <div style="width: 90px; height: 110px; border: 2px solid #0f2c59; background: #f8fafc; padding: 3px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                    <img id="print-photo" src="" alt="Student Photo" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                    <div id="print-photo-placeholder" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 10px; text-align: center;">No Photo<br>Uploaded</div>
+                                </div>
+                                <div style="font-size: 10px; font-weight: 700; color: #4b5563; margin-top: 5px;">STUDENT ID</div>
+                                <div id="print-id" style="font-family: monospace; font-size: 16px; font-weight: 700; color: #ef4444;">---</div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: right; font-weight: bold; color: #0f2c59; font-size: 14px; margin-bottom: 15px;">
+                            Date: <span id="print-date"></span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; row-gap: 15px; margin-bottom: 30px; background: rgba(255, 255, 255, 0.8);">
+                            <div style="display: flex; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                                <strong style="width: 130px; color: #0f2c59;">Student Name:</strong><span id="print-name" style="flex: 1; color: #1f2937; font-weight: 600;"></span>
+                            </div>
+                            <div style="display: flex; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                                <strong style="width: 130px; color: #0f2c59;">Admission Class:</strong><span id="print-class" style="flex: 1; color: #1f2937; font-weight: 600;"></span>
+                            </div>
+                            <div style="display: flex; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                                <strong style="width: 130px; color: #0f2c59;">Date of Birth:</strong><span id="print-dob" style="flex: 1; color: #1f2937; font-weight: 600;"></span>
+                            </div>
+                            <div style="display: flex; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                                <strong style="width: 130px; color: #0f2c59;">Mobile No:</strong><span id="print-mobile" style="flex: 1; color: #1f2937; font-weight: 600;"></span>
+                            </div>
+                            <div style="display: flex; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                                <strong style="width: 130px; color: #0f2c59;">Father's Name:</strong><span id="print-father" style="flex: 1; color: #1f2937; font-weight: 600;"></span>
+                            </div>
+                            <div style="display: flex; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                                <strong style="width: 130px; color: #0f2c59;">Mother's Name:</strong><span id="print-mother" style="flex: 1; color: #1f2937; font-weight: 600;"></span>
+                            </div>
+                        </div>
+
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; background: rgba(255, 255, 255, 0.9);">
+                            <thead>
+                                <tr>
+                                    <th style="background: #E0DEDE; color: #0646A1; font-weight: 600; padding: 12px; font-size: 14px; border: 1px solid grey; text-align: left;">Fee Particulars</th>
+                                    <th style="background: #E0DEDE; color: #0646A1; font-weight: 600; padding: 12px; font-size: 14px; border: 1px solid grey; text-align: center; width: 150px;">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #1f2937;">Admission Fee</td>
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #1f2937; text-align: center;" id="print-adFee"></td>
+                                </tr>
+                                <tr style="background-color: rgba(243, 244, 246, 0.4);">
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #1f2937;">Book Fee</td>
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #1f2937; text-align: center;" id="print-bkFee"></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #1f2937;">Computer Class Fee</td>
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #1f2937; text-align: center;" id="print-cpFee"></td>
+                                </tr>
+                                <tr style="background-color: rgba(243, 244, 246, 0.4);">
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #1f2937;">Other Fee</td>
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #1f2937; text-align: center;" id="print-otFee"></td>
+                                </tr>
+                                <tr style="background-color: rgba(248, 250, 252, 0.9); font-weight: 700;">
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #0f2c59; text-align: right;">GRAND TOTAL</td>
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 16px; color: #0f2c59; text-align: center;" id="print-totalFee"></td>
+                                </tr>
+                                <tr style="background-color: rgba(248, 250, 252, 0.9); font-weight: 700;">
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: #059669; text-align: right;">AMOUNT PAID</td>
+                                    <td style="border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 16px; color: #059669; text-align: center;" id="print-paidFee"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="display: flex; justify-content: space-between; margin-top: auto; padding-top: 50px;">
+                            <div style="text-align: center; width: 250px;">
+                                <div style="border-top: 1px solid #0f2c59; padding-top: 8px; font-size: 14px; font-weight: 600; color: #0f2c59;">Parent/Guardian Signature</div>
+                            </div>
+                            <div style="text-align: center; width: 250px;">
+                                <div style="border-top: 1px solid #0f2c59; padding-top: 8px; font-size: 14px; font-weight: 600; color: #0f2c59;">Authorized Signature</div>
+                                <div style="font-size: 11px; color: #4b5563; margin-top: 3px;">Dr. APJ Abdul Kalam J.B.</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 15px; border-top: 1px dashed #c5a880; font-size: 13px; color: #0f2c59;">
+                            <span style="font-weight: 600; color: #1f2937;">* Keep this receipt safely for future reference.</span>
+                            <span style="font-family: 'Playfair Display', serif; font-style: italic;">Official Website: https://apjakjb.in/</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <footer>
         <div class="footer-content">
             <div class="footer-col">
@@ -820,7 +1070,7 @@
         // ------------------------------------
         // CONFIG: PASTE GOOGLE SCRIPT URL HERE
         // ------------------------------------
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUwdQLZfxLzAYa2z1pcvhHKsrYOvTbvX18rl31yABaKe9qqcMTNCD3rxVlGp_Hpgzp2w/exec"; 
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyecvLrmWJUcOryscMyejYyGPuhLo4Fy6t9dcy0xmIq-d3E-dIq_i7lH53fA2vIb2mL0Q/exec"; 
         
         function checkAuth() { return sessionStorage.getItem('isLoggedIn') === 'true'; }
 
@@ -935,28 +1185,39 @@
 
         async function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value;
+            const email = document.getElementById('loginEmail').value; 
+            const pass = document.getElementById('loginPass').value;
+            
             if(APPS_SCRIPT_URL === "YOUR_WEB_APP_URL_HERE") { 
                 showCustomAlert("Developer Error", "Please paste Apps Script URL in HTML.", "error"); 
                 return; 
             }
+            
             document.getElementById('loginLoader').style.display = 'block';
+            
             try {
-                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'login', email: email, password: pass }) });
+                const response = await fetch(APPS_SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'login', email: email, password: pass }) 
+                });
                 const result = await response.json();
                 document.getElementById('loginLoader').style.display = 'none';
+                
                 if (result.status === 'success') {
+                    // --- THE CORRECT LOGIN SUCCESS LOGIC ---
                     sessionStorage.setItem('isLoggedIn', 'true');
-                    sessionStorage.setItem('authToken', result.token); 
+                    sessionStorage.setItem('authToken', result.token);
                     updateNavUI();
-                    document.getElementById('loginEmail').value = ''; document.getElementById('loginPass').value = '';
+                    document.getElementById('loginEmail').value = '';
+                    document.getElementById('loginPass').value = '';
+                    showCustomAlert("Access Granted", "Welcome to the Admin Dashboard.", "success");
                     navigateTo('admin-dashboard');
                 } else { 
                     showCustomAlert("Access Denied", result.message, "error"); 
                 }
             } catch (err) { 
                 document.getElementById('loginLoader').style.display = 'none'; 
-                showCustomAlert("Network Error", "Please try again.", "error"); 
+                showCustomAlert("System Error", "Could not complete login. Please try again.", "error"); 
             }
         }
 
@@ -976,28 +1237,131 @@
             });
         });
 
+        // ==========================================
+        // DOCUMENT UPLOAD SYSTEM ENGINE
+        // ==========================================
+        
+        // Object to store the final Drive URLs of the uploaded documents
+        const uploadedDocuments = {
+            urlDob: "", urlStuAadhaar: "", urlPhoto: "", urlFatherAadhaar: "", urlMotherAadhaar: ""
+        };
+
+        // Helper: Convert File to Base64 for Google Apps Script
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]); // Extract base64 part
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Main Async Upload Function triggered when a file is selected
+        async function handleAsyncUpload(inputElement, docKey, prefix) {
+            const file = inputElement.files[0];
+            if (!file) return;
+
+            // UI Update: Switch to "Uploading..." State
+            const statusDiv = document.getElementById(`status-${docKey}`);
+            const boxDiv = document.getElementById(`box-${docKey}`);
+            statusDiv.className = "upload-status status-uploading";
+            statusDiv.innerHTML = `<span class="material-icons spinner">autorenew</span> Uploading...`;
+            boxDiv.style.borderColor = "#f39c12";
+
+            try {
+                const base64Data = await getBase64(file);
+                const payload = {
+                    action: 'upload_async',
+                    token: sessionStorage.getItem('authToken'), // Securing the upload
+                    fileData: base64Data,
+                    mimeType: file.type,
+                    fileName: file.name,
+                    prefix: prefix
+                };
+
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // UI Update: Switch to "Success" State
+                    uploadedDocuments[docKey] = result.fileUrl;
+                    statusDiv.className = "upload-status status-success";
+                    statusDiv.innerHTML = `<span class="material-icons" style="font-size:1.2rem;">task_alt</span> Uploaded`;
+                    boxDiv.style.borderColor = "#2ecc71";
+                    boxDiv.style.background = "#eafaf1";
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                // UI Update: Switch to "Error" State
+                statusDiv.className = "upload-status status-error";
+                statusDiv.innerHTML = `<span class="material-icons" style="font-size:1.2rem;">error</span> Failed`;
+                boxDiv.style.borderColor = "#e74c3c";
+                showCustomAlert("Upload Failed", "Could not upload document. Please try again.", "error");
+            }
+        }
+
         async function handleAdmissionSubmit(e) {
             e.preventDefault();
             if(!checkAuth()) return;
             document.getElementById('admLoader').style.display = 'block';
+            
             const payload = {
-                action: 'admission', 
+                action: 'admission_final', 
                 token: sessionStorage.getItem('authToken'),
-                studentName: document.getElementById('stuName').value, dob: document.getElementById('stuDob').value,
-                fatherName: document.getElementById('fatName').value, motherName: document.getElementById('motName').value,
-                mobile: document.getElementById('mobile').value, aadhaar: document.getElementById('aadhaar').value, address: document.getElementById('address').value,
-                className: document.getElementById('admClass').value, admissionFee: document.getElementById('adFee').value, bookFee: document.getElementById('bkFee').value,
-                computerFee: document.getElementById('cpFee').value, otherFee: document.getElementById('otFee').value, totalFee: document.getElementById('totalFee').value,
-                paidFee: document.getElementById('paidFee').value
+                studentName: document.getElementById('stuName').value, 
+                dob: document.getElementById('stuDob').value,
+                fatherName: document.getElementById('fatName').value, 
+                motherName: document.getElementById('motName').value,
+                mobile: document.getElementById('mobile').value, 
+                aadhaar: document.getElementById('aadhaar').value, 
+                address: document.getElementById('address').value,
+                className: document.getElementById('admClass').value, 
+                admissionFee: document.getElementById('adFee').value, 
+                bookFee: document.getElementById('bkFee').value,
+                computerFee: document.getElementById('cpFee').value, 
+                otherFee: document.getElementById('otFee').value, 
+                totalFee: document.getElementById('totalFee').value,
+                paidFee: document.getElementById('paidFee').value,
+                urlDob: uploadedDocuments.urlDob,
+                urlStuAadhaar: uploadedDocuments.urlStuAadhaar,
+                urlPhoto: uploadedDocuments.urlPhoto,
+                urlFatherAadhaar: uploadedDocuments.urlFatherAadhaar,
+                urlMotherAadhaar: uploadedDocuments.urlMotherAadhaar
             };
+            
             try {
                 const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await response.json();
                 document.getElementById('admLoader').style.display = 'none';
+                
                 if (result.status === 'success') {
                     showCustomAlert("Admission Successful!", "Student ID: " + result.studentId + "\nGenerating PDF Receipt...", "success");
+                    
+                    // 1. Generate PDF
                     generatePDFReceipt(payload, result.studentId);
-                    e.target.reset(); document.getElementById('totalFee').value = 0; navigateTo('admin-dashboard');
+                    
+                    // 2. Reset Main Form
+                    e.target.reset(); 
+                    document.getElementById('totalFee').value = 0; 
+                    
+                    // 3. Reset Section C Upload Boxes
+                    Object.keys(uploadedDocuments).forEach(key => uploadedDocuments[key] = "");
+                    document.querySelectorAll('.upload-status').forEach(el => {
+                        el.className = 'upload-status status-pending';
+                        el.innerHTML = '<span class="material-icons" style="font-size:1rem;">touch_app</span> Select File';
+                    });
+                    document.querySelectorAll('.upload-box').forEach(box => {
+                        box.style.borderColor = '#ccc';
+                        box.style.background = '#fafafa';
+                    });
+
+                    // 4. Redirect
+                    navigateTo('admin-dashboard');
                 } else { 
                     showCustomAlert("Database Error", result.message, "error"); 
                 }
@@ -1028,17 +1392,66 @@
             }
         }
 
+
+
         function generatePDFReceipt(data, id) {
-            const doc = new window.jspdf.jsPDF();
-            doc.setFontSize(24); doc.setTextColor(12, 59, 94); doc.text("Dr. APJ ABDUL KALAM J.B.", 105, 20, null, null, "center");
-            doc.setFontSize(10); doc.setTextColor(100); doc.text("Santi Chowk (Sirajuli), Sonitpur (Assm) - 17 | +91 88227 78233", 105, 28, null, null, "center");
-            doc.setDrawColor(12, 59, 94); doc.setLineWidth(0.5); doc.line(14, 35, 196, 35);
-            doc.setFontSize(16); doc.setTextColor(0); doc.setFont("helvetica", "bold"); doc.text("OFFICIAL ADMISSION RECEIPT", 105, 45, null, null, "center");
-            doc.setFontSize(11); doc.setFont("helvetica", "normal"); doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 14, 55); doc.setFont("helvetica", "bold"); doc.text(`Student ID: ${id}`, 140, 55);
-            doc.autoTable({ startY: 60, theme: 'grid', headStyles: { fillColor: [12, 59, 94] }, head: [['Student Information', '']], body: [ ['Student Name:', data.studentName], ['Admission Class:', data.className], ['Date of Birth:', data.dob], ["Father's Name:", data.fatherName], ["Mother's Name:", data.motherName], ['Parent Mobile No.:', data.mobile] ], columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } } });
-            doc.autoTable({ startY: doc.lastAutoTable.finalY + 10, theme: 'grid', headStyles: { fillColor: [12, 59, 94] }, head: [['Fee Particulars', 'Amount (Rs.)']], body: [ ['Admission Fee', `Rs. ${data.admissionFee}`], ['Book Fee', `Rs. ${data.bookFee}`], ['Computer Fee', `Rs. ${data.computerFee}`], ['Other Fee', `Rs. ${data.otherFee}`], [{content: 'Total Fee', styles: {fontStyle: 'bold'}}, {content: `Rs. ${data.totalFee}`, styles: {fontStyle: 'bold'}}], [{content: 'Amount Paid', styles: {fontStyle: 'bold', textColor: [0, 128, 0]}}, {content: `Rs. ${data.paidFee}`, styles: {fontStyle: 'bold', textColor: [0, 128, 0]}}] ] });
-            const finalY = doc.lastAutoTable.finalY + 30; doc.setFont("helvetica", "normal"); doc.text("_______________________", 20, finalY); doc.text("Parent Signature", 20, finalY + 5); doc.text("_______________________", 140, finalY); doc.text("Authorized Signatory", 145, finalY + 5);
-            doc.save(`SA_Khan_Receipt_${id}.pdf`);
+            // 1. Populate Text Data
+            document.getElementById('print-id').innerText = id;
+            document.getElementById('print-date').innerText = new Date().toLocaleDateString('en-GB');
+            document.getElementById('print-name').innerText = (data.studentName || data.name).toUpperCase();
+            document.getElementById('print-class').innerText = (data.className).toUpperCase();
+            let rawDob = data.dob || "";
+            let formattedDob = rawDob;
+            if (rawDob.includes("-")) {
+                let parts = rawDob.split("T")[0].split("-");
+                if (parts.length === 3) {
+                    // Agar format YYYY-MM-DD hai, toh usko DD/MM/YYYY bana do
+                    formattedDob = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+            }
+            document.getElementById('print-dob').innerText = formattedDob;
+            document.getElementById('print-mobile').innerText = data.mobile;
+            document.getElementById('print-father').innerText = (data.fatherName).toUpperCase();
+            document.getElementById('print-mother').innerText = (data.motherName).toUpperCase();
+            
+            document.getElementById('print-adFee').innerText = data.admissionFee;
+            document.getElementById('print-bkFee').innerText = data.bookFee;
+            document.getElementById('print-cpFee').innerText = data.computerFee;
+            document.getElementById('print-otFee').innerText = data.otherFee;
+            document.getElementById('print-totalFee').innerText = data.totalFee;
+            document.getElementById('print-paidFee').innerText = data.paidFee;
+
+            // 2. Handle the Student Passport Photo dynamically (100% WORKING LOGIC)
+            const photoEl = document.getElementById('print-photo');
+            const placeholderEl = document.getElementById('print-photo-placeholder');
+            const photoInput = document.querySelector('#box-urlPhoto input[type="file"]');
+            
+            // PRIORITY 1: New Admission (Immediate Print se pehle local file show karo - Super Fast)
+            if (photoInput && photoInput.files && photoInput.files[0]) {
+                photoEl.src = URL.createObjectURL(photoInput.files[0]);
+                photoEl.style.display = 'block';
+                placeholderEl.style.display = 'none';
+            } 
+            // PRIORITY 2: Old Receipt Download (Database se Drive link fetch karo)
+            else if (data.urlPhoto && data.urlPhoto.trim() !== "") {
+                let match = data.urlPhoto.match(/[-\w]{25,}/);
+                if (match) {
+                    // Google Drive ka secure thumbnail API use kiya hai taaki block na ho
+                    photoEl.src = "https://drive.google.com/thumbnail?id=" + match[0] + "&sz=w400";
+                    photoEl.style.display = 'block';
+                    placeholderEl.style.display = 'none';
+                }
+            } 
+            // FALLBACK: Agar photo nahi hai
+            else {
+                photoEl.style.display = 'none';
+                placeholderEl.style.display = 'flex';
+            }
+
+            // 3. Trigger High-Quality Native Print
+            setTimeout(() => {
+                window.print();
+            }, 800); // 800ms ka delay diya hai taaki HD photo properly render ho jaye print se pehle
         }
 
         window.onload = () => {
@@ -1531,7 +1944,6 @@
 
 </body>
 </html>
-
 
 
 
