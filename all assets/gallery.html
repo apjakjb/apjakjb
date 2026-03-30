@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://drive.google.com">
+    
+    <title>Photo Gallery | Dr. APJ Abdul Kalam Jatiya Bidyalaya (APJAKJB)</title>
+    <meta name="description" content="Explore the official photo gallery of Dr. APJ Abdul Kalam Jatiya Bidyalaya (APJAKJB). View high-quality images of our beautiful campus in Sirajuli, academic events, and student life.">
+    <meta name="keywords" content="APJAKJB gallery, Dr. APJ Abdul Kalam Jatiya Bidyalaya photos, Sirajuli school events pictures, Sonitpur best school photos, Assam student life">
+    <meta name="author" content="Dr. APJ Abdul Kalam Jatiya Bidyalaya">
+    
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+    <link rel="canonical" href="https://apjakjb.in/gallery.html">
+    
+    <link rel="icon" type="image/png" sizes="512x512" href="https://apjakjb.in/favicon.png">
+    <link rel="apple-touch-icon" href="https://apjakjb.in/favicon.png">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://apjakjb.in/gallery.html">
+    <meta property="og:site_name" content="Dr. APJ Abdul Kalam Jatiya Bidyalaya">
+    <meta property="og:title" content="APJAKJB - Official Photo Gallery">
+    <meta property="og:description" content="A visual glimpse into academic excellence and vibrant student life at APJAKJB, Sirajuli.">
+    <meta property="og:image" content="https://apjakjb.in/assets/gallery-cover.jpg">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="APJAKJB Campus Gallery">
+    <meta name="twitter:description" content="View the latest photos from APJAKJB's campus, events, and sports in Sirajuli, Sonitpur.">
+    <meta name="twitter:image" content="https://apjakjb.in/assets/gallery-cover.jpg">
+
+    <link rel="stylesheet" href="style.css">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "Dr. APJ Abdul Kalam Jatiya Bidyalaya",
+      "alternateName": "APJAKJB",
+      "url": "https://apjakjb.in/",
+      "logo": "https://apjakjb.in/logo.png",
+      "foundingDate": "2016",
+      "telephone": "+91 99577 28935",
+      "email": "apjakjatiyavidyalaya@gmail.com",
+      "description": "The official photo gallery of APJAKJB showcasing student activities and infrastructure.",
+      "image": "https://apjakjb.in/assets/gallery-cover.jpg",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Molanpukhuri (Sirajuli)",
+        "addressLocality": "Sonitpur",
+        "addressRegion": "Assam",
+        "postalCode": "784117",
+        "addressCountry": "IN"
+      }
+    }
+    </script>
+</head>
+<body>
+
+    <header class="gallery-header">
+        <div class="header-content">
+            <h1>Our School in Pictures</h1>
+            <p>A glimpse into academic excellence and vibrant student life.</p>
+        </div>
+    </header>
+
+    <main class="gallery-container">
+        <section class="upload-section">
+            <form id="upload-form" class="upload-form">
+                <h2>Upload Gallery Image</h2>
+                <div class="input-group">
+                    <input type="text" id="photo-title" placeholder="Descriptive Title" required>
+                    <select id="photo-category" required>
+                        <option value="" disabled selected>Select Category</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Academics">Academics</option>
+                        <option value="Events">Events</option>
+                        <option value="Campus">Campus</option>
+                    </select>
+                </div>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="photo-file" accept="image/*" required>
+                </div>
+                <button type="submit" id="submit-btn" class="btn-primary">Publish to Gallery</button>
+                <p id="upload-status" class="status-msg"></p>
+            </form>
+        </section>
+
+        <div id="loader" class="loader">
+            <p>Loading gallery...</p>
+        </div>
+        
+        <section id="gallery-grid" class="premium-grid"></section>
+    </main>
+
+    <div id="lightbox" class="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <img class="lightbox-content" id="lightbox-img">
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
