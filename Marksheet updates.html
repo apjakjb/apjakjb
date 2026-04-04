@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. APJ Abdul Kalam J.B. - Marksheet Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CRITICAL PRINT FIX */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        :root {
+            --primary-color: #0f2c59; 
+            --accent-color: #c5a880; 
+            --text-main: #1f2937;
+            --bg-page: #f3f4f6;
+        }
+
+        @font-face {
+            font-family: 'sakhanfont'; 
+            src: url('Southern-Beach.otf') format('opentype'); 
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-page);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            gap: 30px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* --- PREMIUM LEFT PANEL: CONTROLS --- */
+        .controls {
+            width: 380px;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex-shrink: 0;
+            border-top: 5px solid var(--primary-color);
+        }
+
+        .controls-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .controls-header h2 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 1.4rem;
+        }
+        
+        .controls-header p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            background: #f9fafb;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(197, 168, 128, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-fetch { background: var(--primary-color); color: white; }
+        .btn-fetch:hover { background: #0a1f40; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(15, 44, 89, 0.3); }
+
+        .btn-print {
+            background: #10b981;
+            color: white;
+            margin-top: auto;
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none; /* Prevents clicking when disabled */
+        }
+        .btn-print.active { opacity: 1; cursor: pointer; pointer-events: auto; }
+        .btn-print.active:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+
+        #status-msg {
+            text-align: center; font-size: 0.9rem; font-weight: 500; min-height: 20px; padding: 10px; border-radius: 6px;
+        }
+        .msg-error { background: #fee2e2; color: #b91c1c; }
+        .msg-success { background: #d1fae5; color: #047857; }
+        .msg-loading { background: #fef3c7; color: #b45309; }
+
+        .loader {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white; border-radius: 50%; width: 18px; height: 18px;
+            animation: spin 1s linear infinite; display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- RIGHT PANEL: MARKSHEET PREVIEW (UNTOUCHED DESIGN) --- */
+        .preview-area {
+            flex: 1; display: flex; justify-content: center; overflow-y: auto; padding: 20px;
+        }
+
+        .certificate-wrapper {
+            width: 210mm; height: 297mm; background: var(--primary-color); padding: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15); box-sizing: border-box; position: relative;
+            opacity: 0.2; transition: opacity 0.4s ease; filter: blur(2px);
+        }
+        .certificate-wrapper.active { opacity: 1; filter: blur(0); }
+
+        .certificate-inner {
+            background-color: white; width: 100%; height: 100%; box-sizing: border-box; padding: 35px; position: relative;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3Cpattern id='h-brick' width='70' height='22' patternUnits='userSpaceOnUse'%3E%3Crect width='70' height='22' fill='%23ffffff' stroke='%230f2c59' stroke-width='1'/%3E%3Ctext x='35' y='15' font-family='monospace' font-size='11' font-weight='bold' fill='%230f2c59' text-anchor='middle'%3EAPJAKJB%3C/text%3E%3C/pattern%3E%3Cpattern id='v-brick' width='22' height='70' patternUnits='userSpaceOnUse'%3E%3Crect width='22' height='70' fill='%23ffffff' stroke='%230f2c59' stroke-width='1'/%3E%3Ctext x='-35' y='15' font-family='monospace' font-size='11' font-weight='bold' fill='%230f2c59' text-anchor='middle' transform='rotate(-90)'%3EAPJAKJB%3C/text%3E%3C/pattern%3E%3C/defs%3E%3Crect x='0' y='0' width='100%25' height='22' fill='url(%23h-brick)'/%3E%3Crect x='0' y='calc(100%25 - 22px)' width='100%25' height='22' fill='url(%23h-brick)'/%3E%3Crect x='0' y='22' width='22' height='calc(100%25 - 44px)' fill='url(%23v-brick)'/%3E%3Crect x='calc(100%25 - 22px)' y='22' width='22' height='calc(100%25 - 44px)' fill='url(%23v-brick)'/%3E%3C/svg%3E");
+            background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
+        }
+
+        .certificate-content {
+            background: white; height: 100%; border: 1px solid var(--accent-color); padding: 30px;
+            position: relative; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; 
+        }
+
+        .content-layer { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
+        .main-title { text-align: center; margin-bottom: 10px; width: 100%; }
+        .main-title h1 { font-family: 'sakhanfont', serif; color: #595555; font-size: 47px; margin: -20px; letter-spacing: 1px; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 15px; margin-bottom: 30px; margin-top: 25px; }
+        .logo-area { width: 100px; height: 100px; border: 2px dashed transparent; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; background: white; }
+        .logo-area img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .school-info { flex: 1; text-align: center; padding: 0 15px; }
+        .school-info p { margin-top: -15px; font-size: 17px; color: #4b5563; }
+        .school-info .doc-title { margin-top: 20px; font-weight: 700; letter-spacing: 3px; color: var(--accent-color); font-size: 25px; }
+
+        .security-area { display: flex; flex-direction: column; align-items: center; min-width: 120px; background: #f8fafc; padding: 6px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .serial-label { font-size: 10px; font-weight: 700; color: #4b5563; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+        .serial-no { font-family: monospace; font-size: 15px; font-weight: 700; color: #ef4444; }
+
+        .student-details { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; row-gap: 15px; margin-bottom: 35px; background: rgba(255, 255, 255, 0.8); }
+        .detail-row { display: flex; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        .detail-row strong { width: 130px; color: var(--primary-color); }
+        .detail-row span { flex: 1; color: var(--text-main); font-weight: 600; }
+
+        table.marks-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; background: rgba(255, 255, 255, 0.9); }
+        table.marks-table th { background: #E0DEDE; color: #0646A1; font-family: Calibri; font-weight: 600; padding: 12px; font-size: 14px; border: 1px solid grey; }
+        table.marks-table td { border: 1px solid #cbd5e0; padding: 10px 12px; font-size: 14px; color: var(--text-main); }
+        table.marks-table tbody tr:nth-child(even) { background-color: rgba(243, 244, 246, 0.4); }
+        table.marks-table td.center { text-align: center; }
+        
+        .row-highlight { background-color: rgba(248, 250, 252, 0.9) !important; font-weight: 700; }
+        .row-highlight td { color: var(--primary-color); }
+
+        .signatures { display: flex; justify-content: space-between; margin-top: auto; padding-top: 50px; }
+        .sig-block { text-align: center; width: 250px; }
+        .sig-line { border-top: 1px solid var(--primary-color); padding-top: 8px; font-size: 13px; font-weight: 600; color: var(--primary-color); }
+        .sig-subtext { font-size: 11px; color: #4b5563; margin-top: 3px; line-height: 1.4; }
+
+        .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 15px; border-top: 1px dashed var(--accent-color); color: var(--primary-color); font-size: 14px; }
+        .footer-left { font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-main); }
+        .footer-right { font-family: 'Playfair Display', serif; font-style: italic; }
+
+        /* PRINT SETTINGS */
+        @media print {
+            @page { size: A4; margin: 0; }
+            body { background: white; padding: 0; margin: 0; display: block; }
+            .controls { display: none; }
+            .preview-area { padding: 0; margin: 0; display: block; }
+            .certificate-wrapper { box-shadow: none; width: 210mm; height: 297mm; margin: 0; opacity: 1 !important; filter: none !important; }
+            .certificate-content { border: 1px solid var(--primary-color); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <div class="controls-header">
+            <h2>Marksheet Portal</h2>
+            <p>Live Connected to Database</p>
+        </div>
+        
+        <div class="input-group">
+            <label>Select Class</label>
+            <select id="sel-class">
+<option value="Nursery">Nursery</option>
+<option value="UPP">UPP</option>
+                <option value="Class 1">Class 1</option>
+                <option value="Class 2">Class 2</option>
+                <option value="Class 3">Class 3</option>
+                <option value="Class 4">Class 4</option>
+                <option value="Class 5">Class 5</option>
+                <option value="Class 6">Class 6</option>
+                <option value="Class 7">Class 7</option>
+                <option value="Class 8">Class 8</option>
+                <option value="Class 9">Class 9</option>
+                <option value="Class 10">Class 10</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Enter Roll Number</label>
+            <input type="text" id="in-roll" placeholder="e.g. 10A-45" autocomplete="off">
+        </div>
+
+        <button class="btn btn-fetch" id="btn-fetch" onclick="fetchStudentData()">
+            <span id="btn-text">🔍 Fetch Record</span>
+            <div class="loader" id="loader"></div>
+        </button>
+
+        <div id="status-msg" style="display: none;"></div>
+
+        <button class="btn btn-print" id="btn-print" onclick="processPrint()">
+            🖨️ Generate & Print
+        </button>
+    </div>
+
+    <div class="preview-area">
+        <div class="certificate-wrapper" id="marksheet-wrapper">
+            <div class="certificate-inner">
+                <div class="certificate-content">
+                    <div class="content-layer">
+                        <div class="main-title">
+                            <h1>Dr. APJ ABDUL KALAM J.B.</h1>
+                        </div>
+
+                        <div class="header">
+                            <div class="logo-area">
+                                <img id="out-logo" src="Marksheet-Logo.png" alt="School Logo" style="display: block;">
+                            </div>
+                            
+                            <div class="school-info">
+                                <p>ESTD - 2016</p>
+                                <p>Molanpukhuri, Sirajuli, Assam - 784117</p>
+                                <p class="doc-title">ACADEMIC MARKSHEET</p>
+                            </div>
+
+                            <div class="security-area">
+                                <div class="serial-label">Serial Number</div>
+                                <div class="serial-no" id="out-serial">APJAKJB - ***</div>
+                                
+                                <div class="serial-label" style="margin-top: 8px;">Issue Date</div>
+                                <div class="serial-no" id="out-issue-date" style="color: var(--primary-color);">DD/MM/YYYY</div>
+                            </div>
+                        </div>
+
+                        <div class="student-details">
+                            <div class="detail-row"><strong>Name:</strong><span id="out-name">-</span></div>
+                            <div class="detail-row"><strong>Roll Number:</strong><span id="out-roll">-</span></div>
+                            <div class="detail-row"><strong>Father's Name:</strong><span id="out-father">-</span></div>
+                            <div class="detail-row"><strong>Class:</strong><span id="out-class">-</span></div>
+                            <div class="detail-row"><strong>Mother's Name:</strong><span id="out-mother">-</span></div>
+                            <div class="detail-row"><strong>Academic Season:</strong><span id="out-season">-</span></div>
+                            <div class="detail-row"><strong>Date of Birth:</strong><span id="out-dob">-</span></div>
+                        </div>
+
+                        <table class="marks-table">
+                            <thead>
+                                <tr>
+                                    <th>Subjects</th>
+                                    <th class="center" style="width: 90px;">Full Marks</th>
+                                    <th class="center" style="width: 90px;">Pass Marks</th>
+                                    <th class="center" style="width: 120px;">Obtained Marks</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="tr-assamese">
+                                    <td>First Language Assamese</td>
+                                    <td class="center">100</td><td class="center">30</td>
+                                    <td class="center" id="out-m-assamese">-</td>
+                                    <td id="rem-assamese">-</td>
+                                </tr>
+                                <tr id="tr-english">
+                                    <td>Second Language English</td>
+                                    <td class="center">100</td><td class="center">30</td>
+                                    <td class="center" id="out-m-english">-</td>
+                                    <td id="rem-english">-</td>
+                                </tr>
+                                <tr id="tr-math">
+                                    <td>Mathematics</td>
+                                    <td class="center">100</td><td class="center">30</td>
+                                    <td class="center" id="out-m-math">-</td>
+                                    <td id="rem-math">-</td>
+                                </tr>
+                                <tr id="tr-science">
+                                    <td id="td-name-science">Science</td>
+                                    <td class="center">100</td><td class="center">30</td>
+                                    <td class="center" id="out-m-science">-</td>
+                                    <td id="rem-science">-</td>
+                                </tr>
+                                <tr id="tr-social">
+                                    <td id="td-name-social">Social Science</td>
+                                    <td class="center">100</td><td class="center">30</td>
+                                    <td class="center" id="out-m-social">-</td>
+                                    <td id="rem-social">-</td>
+                                </tr>
+                                <tr id="tr-elective">
+                                    <td>Geography/Hindi</td>
+                                    <td class="center">100</td><td class="center">30</td>
+                                    <td class="center" id="out-m-elective">-</td>
+                                    <td id="rem-elective">-</td>
+                                </tr>
+                                <tr class="row-highlight">
+                                    <td>GRAND TOTAL</td>
+                                    <td class="center" id="out-max-marks">-</td>
+                                    <td class="center" id="out-pass-marks">-</td>
+                                    <td class="center" id="out-total">-</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr class="row-highlight">
+                                    <td>RESULT</td>
+                                    <td colspan="4" class="center" id="out-division">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="signatures">
+                            <div class="sig-block">
+                                <div class="sig-line">Class Teacher Signature</div>
+                                <div class="sig-subtext">Verified by</div>
+                            </div>
+                            <div class="sig-block">
+                                <div class="sig-line">Principal Signature</div>
+                                <div class="sig-subtext">
+                                    Dr. APJ Abdul Kalam J.B.<br>
+                                    Molanpukhuri, Sirajuli, Assam - 784117
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="footer">
+                            <span class="footer-left">L - Letter Marks (80+ out of 100)</span>
+                            <span class="footer-right">Official Website: https://apjakjb.in/</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DHYAN DEIN: Yahan apna Web App URL paste karein
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeP70e9N3IZk-FSfGYsbqVswwiFvx5_bQXOKyMhR2_iyC15sLAPFbd1kmLIx_ip0TW/exec"; 
+        // ==========================================
+
+        let currentStudentData = null;
+
+        window.onload = function() {
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = today.getFullYear();
+            // Default Issue Date format DD/MM/YYYY
+            document.getElementById('out-issue-date').textContent = `${day}/${month}/${year}`;
+        };
+
+        function setStatus(msg, type) {
+            const el = document.getElementById('status-msg');
+            el.textContent = msg;
+            el.className = 'msg-' + type;
+            el.style.display = 'block';
+        }
+
+        // Bug Fix #2: Print button ki state properly manage ki gayi hai
+        function setUIDisabled(isDisabled, keepPrintActive = false) {
+            document.getElementById('sel-class').disabled = isDisabled;
+            document.getElementById('in-roll').disabled = isDisabled;
+            document.getElementById('btn-fetch').disabled = isDisabled;
+            document.getElementById('btn-text').style.display = isDisabled ? 'none' : 'block';
+            document.getElementById('loader').style.display = isDisabled ? 'block' : 'none';
+            
+            const printBtn = document.getElementById('btn-print');
+            
+            if (isDisabled && !keepPrintActive) {
+                printBtn.disabled = true;
+                printBtn.classList.remove('active');
+                document.getElementById('marksheet-wrapper').classList.remove('active');
+            }
+        }
+
+        async function fetchStudentData() {
+            if (SCRIPT_URL === "YOUR_GOOGLE_WEB_APP_URL_HERE") {
+                setStatus("Pehle HTML file mein SCRIPT_URL update karein!", "error");
+                return;
+            }
+
+            const classVal = document.getElementById('sel-class').value;
+            const rollVal = document.getElementById('in-roll').value.trim();
+
+            if(!rollVal) {
+                setStatus("Roll Number enter karna zaroori hai", "error");
+                return;
+            }
+
+            setUIDisabled(true, false);
+            setStatus("Database se connect ho raha hai...", "loading");
+            
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getStudent&className=${encodeURIComponent(classVal)}&rollNumber=${encodeURIComponent(rollVal)}`);
+                const result = await response.json();
+                
+                if(result.success) {
+                    currentStudentData = result.data;
+                    setStatus("Record mil gaya!", "success");
+                    populateMarksheet(currentStudentData, classVal);
+                    
+                    // Activate Generate & Print Button
+                    const printBtn = document.getElementById('btn-print');
+                    printBtn.disabled = false;
+                    printBtn.classList.add('active');
+                    document.getElementById('marksheet-wrapper').classList.add('active');
+                } else {
+                    setStatus(result.message, "error");
+                    currentStudentData = null;
+                }
+            } catch (error) {
+                setStatus("Network Error. Check console.", "error");
+                console.error(error);
+            } finally {
+                // UI Enable karo, lekin agar record mil gaya tha toh Print ko active rehne do
+                setUIDisabled(false, currentStudentData !== null);
+            }
+        }
+
+        // Bug Fix #4: Uppercase All Details
+        function toUpperFallback(val) {
+            return (val || '-').toString().toUpperCase();
+        }
+
+        function populateMarksheet(data, classVal) {
+            // Mapping values to UPPERCASE
+            document.getElementById('out-name').textContent = toUpperFallback(data['name']);
+            document.getElementById('out-father').textContent = toUpperFallback(data['father name'] || data["father's name"]);
+            document.getElementById('out-mother').textContent = toUpperFallback(data['mother name'] || data["mother's name"]);
+            document.getElementById('out-roll').textContent = toUpperFallback(data['roll number'] || data['rollno']);
+            document.getElementById('out-class').textContent = toUpperFallback(classVal);
+            document.getElementById('out-season').textContent = toUpperFallback(data['academic season']);
+            
+            // Bug Fix #1: DOB explicit format parsing just in case DB sends time
+            let dobRaw = (data['dob_formatted'] || data['dob'] || '-').toString();
+            // Remove time if it exists (e.g. 15/05/2010 00:00:00 or 15/05/2010T00:00:00.000Z)
+            dobRaw = dobRaw.split('T')[0].split(' ')[0];
+            // Replace '-' with '/' to strictly enforce DD/MM/YYYY
+            dobRaw = dobRaw.replace(/-/g, '/');
+            document.getElementById('out-dob').textContent = dobRaw;
+
+            let activeSubjects = [];
+            let socialName = "SOCIAL SCIENCE";
+            let scienceName = "SCIENCE";
+
+            if (classVal === "Nursery" || classVal === "UPP") {
+                activeSubjects = ['assamese', 'english', 'mathematics', 'social science'];
+                socialName = "EVS/DRAWING";
+                document.getElementById('tr-science').style.display = 'none';
+                document.getElementById('tr-elective').style.display = 'none';
+            } else if (classVal.match(/Class [1-5]$/)) {
+                activeSubjects = ['assamese', 'english', 'mathematics', 'science', 'social science'];
+                scienceName = "EVS";
+                socialName = "HINDI";
+                document.getElementById('tr-science').style.display = '';
+                document.getElementById('tr-elective').style.display = 'none';
+            } else {
+                activeSubjects = ['assamese', 'english', 'mathematics', 'science', 'social science', 'elective'];
+                socialName = "SOCIAL SCIENCE";
+                document.getElementById('tr-science').style.display = '';
+                document.getElementById('tr-elective').style.display = '';
+            }
+            
+            document.getElementById('td-name-social').textContent = socialName;
+            document.getElementById('td-name-science').textContent = scienceName;
+
+            let totalMarks = 0;
+            let hasFailed = false;
+
+            const subjectMap = {
+                'assamese': 'assamese', 'english': 'english', 'mathematics': 'math',
+                'science': 'science', 'social science': 'social', 'elective': 'elective'
+            };
+
+            for (const [dbKey, uiKey] of Object.entries(subjectMap)) {
+                if (activeSubjects.includes(dbKey)) {
+                    let val = parseInt(data[dbKey]) || 0;
+                    document.getElementById('out-m-' + uiKey).textContent = val;
+                    document.getElementById('rem-' + uiKey).textContent = val >= 80 ? "L" : "-";
+                    totalMarks += val;
+                    if(val < 30) hasFailed = true;
+                }
+            }
+
+            const maxMarks = activeSubjects.length * 100;
+            const passMarks = activeSubjects.length * 30;
+            
+            document.getElementById('out-total').textContent = totalMarks;
+            document.getElementById('out-max-marks').textContent = maxMarks;
+            document.getElementById('out-pass-marks').textContent = passMarks;
+
+            const percentage = (totalMarks / maxMarks) * 100;
+            let division = "";
+
+            if(hasFailed || percentage < 30) {
+                division = "FAIL";
+                document.getElementById('out-division').style.color = "#ef4444"; 
+            } else if(percentage >= 85) {
+                division = "DISTINCTION"; document.getElementById('out-division').style.color = "#0f2c59";
+            } else if(percentage >= 75) {
+                division = "STAR"; document.getElementById('out-division').style.color = "#0f2c59";
+            } else if(percentage >= 60) {
+                division = "FIRST DIVISION"; document.getElementById('out-division').style.color = "#0f2c59";
+            } else if(percentage >= 45) {
+                division = "SECOND DIVISION"; document.getElementById('out-division').style.color = "#0f2c59";
+            } else if(percentage >= 30) {
+                division = "THIRD DIVISION"; document.getElementById('out-division').style.color = "#0f2c59";
+            }
+
+            document.getElementById('out-division').textContent = division;
+        }
+
+        // Bug Fix #3: Print click par API se Serial fetch hoke UI pe lagega, phir print hoga
+        async function processPrint() {
+            if(!currentStudentData) return;
+            
+            const printBtn = document.getElementById('btn-print');
+            const originalText = printBtn.innerHTML;
+            printBtn.innerHTML = "⏳ Generating Serial...";
+            printBtn.disabled = true;
+
+            try {
+                // Fetch dynamic serial number with redirect support
+                const response = await fetch(`${SCRIPT_URL}?action=getSerial`, { redirect: "follow" });
+                const result = await response.json();
+                
+                if(result.success) {
+                    document.getElementById('out-serial').textContent = `APJAKJB - ${result.serial}`;
+                    // Thoda sa UI delay taaki render ho jaye properly print dialog khulne se pehle
+                    setTimeout(() => {
+                        window.print();
+                        printBtn.innerHTML = originalText;
+                        printBtn.disabled = false;
+                    }, 300);
+                } else {
+                    alert("Serial Number generate nahi ho paya: " + result.message);
+                    printBtn.innerHTML = originalText;
+                    printBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Network error while generating serial number.");
+                printBtn.innerHTML = originalText;
+                printBtn.disabled = false;
+            } 
+        }
+    </script>
+</body>
+</html>
