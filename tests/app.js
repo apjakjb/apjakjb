@@ -256,10 +256,13 @@ function showCustomPopup(title, message, type = 'info', confirmCallback = null, 
     popupOverlay.style.display = 'flex';
 }
 
-// Request Push Notification Permission Safely
+// Request Push Notification Permission Safely & Link User Device
 function triggerSmartPushPrompt() {
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     OneSignalDeferred.push(function(OneSignal) {
+        if (loggedInUser) {
+            OneSignal.login(loggedInUser); 
+        }
         OneSignal.Slidedown.promptPush({ force: true });
     });
 }
