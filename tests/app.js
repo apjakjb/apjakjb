@@ -256,6 +256,14 @@ function showCustomPopup(title, message, type = 'info', confirmCallback = null, 
     popupOverlay.style.display = 'flex';
 }
 
+// Request Push Notification Permission Safely
+function triggerSmartPushPrompt() {
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.Slidedown.promptPush({ force: true });
+    });
+}
+
 // ==========================================
 // 4. AUTHENTICATION
 // ==========================================
@@ -266,6 +274,7 @@ function checkAuthSession() {
         updateProfileUI();
         history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
         loadDashboard(); 
+        triggerSmartPushPrompt();
     } else {
         history.replaceState({ screen: 'login-screen' }, "", "#login-screen");
         navigate('login-screen', false);
@@ -304,7 +313,8 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             updateProfileUI();
             document.getElementById('login-form').reset();
             errorMsg.innerText = "";
-            loadDashboard(); 
+            loadDashboard();
+            triggerSmartPushPrompt(); 
         } else {
             errorMsg.innerText = result.message;
         }
