@@ -8,7 +8,7 @@ const CACHE_VERSION = 'premium-portal-v2'; // Version bumped for the update
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
-// Core assets for instant 1-second offline load
+// Core assets for instant 1-second offline load 
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
