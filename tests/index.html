@@ -19,6 +19,19 @@
 
     <title>Student Testing Portal</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "8dc4ff84-609d-41b5-8766-366398f9b1f1", // TODO: Replace with your actual App ID
+          allowLocalhostAsSecureOrigin: true,
+          notifyButton: {
+            enable: false, // Hum ganda sa floating button nahi dikhayenge
+          }
+        });
+      });
+    </script>
 </head>
 <body>
 
