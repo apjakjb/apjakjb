@@ -24,10 +24,11 @@
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
-          appId: "8dc4ff84-609d-41b5-8766-366398f9b1f1", // TODO: Replace with your actual App ID
+          appId: "8dc4ff84-609d-41b5-8766-366398f9b1f1", 
           allowLocalhostAsSecureOrigin: true,
+          serviceWorkerPath: "sw.js",
           notifyButton: {
-            enable: false, // Hum ganda sa floating button nahi dikhayenge
+            enable: false, 
           }
         });
       });
