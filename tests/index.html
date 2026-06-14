@@ -26,8 +26,9 @@
         await OneSignal.init({
           appId: "8dc4ff84-609d-41b5-8766-366398f9b1f1", 
           allowLocalhostAsSecureOrigin: true,
-          serviceWorkerPath: "sw.js", 
-          serviceWorkerParam: { scope: "/tests/" },
+          // ✅ THE PREMIUM FIX: Using absolute URLs so the token generator never gets lost
+          serviceWorkerPath: "https://apjakjb.in/tests/sw.js", 
+          serviceWorkerParam: { scope: "https://apjakjb.in/tests/" }, 
           notifyButton: {
             enable: false, 
           }
