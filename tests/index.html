@@ -26,7 +26,8 @@
         await OneSignal.init({
           appId: "8dc4ff84-609d-41b5-8766-366398f9b1f1", 
           allowLocalhostAsSecureOrigin: true,
-          serviceWorkerPath: "sw.js",
+          serviceWorkerPath: "sw.js", 
+          serviceWorkerParam: { scope: "/tests/" },
           notifyButton: {
             enable: false, 
           }
