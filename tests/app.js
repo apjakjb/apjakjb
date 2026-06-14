@@ -654,19 +654,3 @@ function displayDeepAnalysis(score, total, percentage, detailsArray, pushToHisto
 document.getElementById('close-analysis-btn').addEventListener('click', () => {
     loadDashboard(); // Refreshes backend data and routes back to App Shell (Results or Home)
 });
-
-
-// ==========================================
-// 8. ADVANCED SERVICE WORKER REGISTRATION (PWA)
-// ==========================================
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then((registration) => {
-                console.log('[PWA Engine] ServiceWorker successfully registered with scope: ', registration.scope);
-            })
-            .catch((error) => {
-                console.error('[PWA Engine] ServiceWorker registration failed: ', error);
-            });
-    });
-}
