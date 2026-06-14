@@ -1,6 +1,8 @@
 // =========================================================================
 // PREMIUM SERVICE WORKER FOR ADVANCED SPNWA
 // =========================================================================
+// IMPORT ONESIGNAL SDK
+importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 
 const CACHE_VERSION = 'premium-portal-v2'; // Version bumped for the update
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
@@ -98,29 +100,5 @@ self.addEventListener('fetch', (event) => {
             // Deliver cached version instantly, let network update silently
             return cachedResponse || fetchPromise;
         })
-    );
-});
-
-// 4. PUSH NOTIFICATIONS: Smart Placeholder Engine
-self.addEventListener('push', (event) => {
-    let data = { title: 'Portal Alert', body: 'New study material is available!' };
-    if (event.data) {
-        try {
-            data = event.data.json();
-        } catch (e) {
-            data.body = event.data.text();
-        }
-    }
-
-    const options = {
-        body: data.body,
-        icon: 'icon-192x192.png',
-        badge: 'icon-192x192.png',
-        vibrate: [100, 50, 100],
-        data: { dateOfArrival: Date.now(), primaryKey: 1 }
-    };
-
-    event.waitUntil(
-        self.registration.showNotification(data.title, options)
     );
 });
