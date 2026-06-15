@@ -1,3 +1,4 @@
+
 // ==========================================
 // API CONFIGURATION
 // ==========================================
@@ -444,10 +445,10 @@ async function loadDashboard() {
                     practiceTestContainer.insertAdjacentHTML('beforeend', `
                         <div class="test-card" data-test="${test.testId}" data-duration="${test.duration}" data-type="practice">
                             <div class="test-info">
-                                <h4>${test.title} <span class="new-badge" style="background:var(--primary)">MOCK</span></h4>
+                                <h4>${test.title} <span class="new-badge" style="background:var(--primary)">NEW</span></h4>
                                 <p><span class="material-icons" style="font-size: 13px; vertical-align: middle;">schedule</span> ${test.duration} Mins Duration</p>
                             </div>
-                            <button class="btn-primary test-action-btn">Start Practice</button>
+                            <button class="btn-primary test-action-btn">Attend Now</button>
                         </div>
                     `);
                 }
@@ -590,7 +591,7 @@ function attachTestCardListeners() {
                 }
 
                 showCustomPopup(
-                    testType === 'live' ? "Start LIVE Exam" : "Start Practice", 
+                    testType === 'live' ? "Start LIVE Exam" : "Start Test", 
                     `This test is strictly timed for <strong>${duration} minutes</strong>. You cannot pause it, switch tabs, or go back.<br><br>Are you ready?`, 
                     "info", 
                     () => { startLiveTest(activeTestName, duration); }, 
