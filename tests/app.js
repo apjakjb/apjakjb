@@ -146,24 +146,24 @@ document.getElementById('profile-dark-toggle-row').addEventListener('click', tog
 
 
 // Feature Grid Category Switcher (Home Tab)
-const gridTests = document.getElementById('grid-action-tests');
-const gridNotes = document.getElementById('grid-action-notes');
-const sectionTests = document.getElementById('test-series-section-wrapper');
-const sectionNotes = document.getElementById('pdf-notes-section-wrapper');
+const gridLive = document.getElementById('grid-action-live');
+const gridPractice = document.getElementById('grid-action-practice');
+const sectionLive = document.getElementById('live-tests-section-wrapper');
+const sectionPractice = document.getElementById('practice-tests-section-wrapper');
 
-if(gridTests && gridNotes) {
-    gridTests.addEventListener('click', () => {
-        gridTests.classList.add('active-card');
-        gridNotes.classList.remove('active-card');
-        sectionTests.style.display = 'block';
-        sectionNotes.style.display = 'none';
+if(gridLive && gridPractice) {
+    gridLive.addEventListener('click', () => {
+        gridLive.classList.add('active-card');
+        gridPractice.classList.remove('active-card');
+        sectionLive.style.display = 'block';
+        sectionPractice.style.display = 'none';
     });
 
-    gridNotes.addEventListener('click', () => {
-        gridNotes.classList.add('active-card');
-        gridTests.classList.remove('active-card');
-        sectionNotes.style.display = 'block';
-        sectionTests.style.display = 'none';
+    gridPractice.addEventListener('click', () => {
+        gridPractice.classList.add('active-card');
+        gridLive.classList.remove('active-card');
+        sectionPractice.style.display = 'block';
+        sectionLive.style.display = 'none';
     });
 }
 
@@ -395,94 +395,164 @@ function handleLogout() {
 document.getElementById('drawer-logout-btn').addEventListener('click', handleLogout);
 document.getElementById('profile-logout-btn').addEventListener('click', handleLogout);
 
+
+
+
+
 // ==========================================
-// 5. DASHBOARD & DATA DISTRIBUTION
+// 5. DASHBOARD, DATA & LIVE ENGINE
 // ==========================================
+let dashboardTimerInterval; // Background UI updater engine
+
 async function loadDashboard() {
     navigate('main-app-shell');
     switchTab('home-tab', 'Home Dashboard');
     
-    const liveTestContainer = document.getElementById('dynamic-test-list');
+    const liveTestContainer = document.getElementById('dynamic-live-list');
+    const practiceTestContainer = document.getElementById('dynamic-practice-list');
     const pastResultsContainer = document.getElementById('past-results-list');
     
+    // Reset View to Live Tab
+    const liveGridBtn = document.getElementById('grid-action-live');
+    if(liveGridBtn) liveGridBtn.click();
+
     showLoader("Syncing Live Portal...");
+    clearInterval(dashboardTimerInterval); // Reset engine
 
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            redirect: "follow",
             body: JSON.stringify({ action: "getDashboard", username: loggedInUser })
         });
         const result = JSON.parse(await response.text());
 
         if (result.success) {
             liveTestContainer.innerHTML = "";
+            practiceTestContainer.innerHTML = "";
             pastResultsContainer.innerHTML = "";
             testHistoryData = result.history || {}; 
 
-            let pendingCount = 0;
-            let completedCount = 0;
+            let liveCount = 0, practiceCount = 0, completedCount = 0;
 
-            result.dashboard.forEach(test => {
-                const isCompleted = test.status === "completed";
-                
-                let badgeHTML = '';
-                if (!isCompleted && test.publishedDate) {
-                    const pubDate = new Date(test.publishedDate);
-                    if (!isNaN(pubDate.getTime())) { 
-                        const diffDays = Math.ceil((new Date() - pubDate) / (1000 * 60 * 60 * 24));
-                        if (diffDays >= 0 && diffDays <= 5) badgeHTML = `<span class="new-badge">NEW</span>`; 
-                    }
-                }
-
-                if (isCompleted) {
-                    completedCount++;
-                    const pastData = testHistoryData[test.testId];
-                    const safeScore = pastData ? pastData.score : test.score;
-                    const safeTotal = pastData ? pastData.total : test.total;
-                    
-                    const cardHTML = `
-                        <div class="test-card" data-test="${test.testId}" data-completed="true">
-                            <div class="test-info">
-                                <h4>${test.title}</h4>
-                                <p>Scored: ${safeScore} / ${safeTotal} Marks</p>
-                            </div>
-                            <button class="btn-secondary test-action-btn">Analyze</button>
-                        </div>
-                    `;
-                    pastResultsContainer.insertAdjacentHTML('beforeend', cardHTML);
+            // --- RENDER PRACTICE TESTS ---
+            (result.practiceTests || []).forEach(test => {
+                if (test.status === "completed") {
+                    completedCount++; renderCompletedCard(test, pastResultsContainer);
                 } else {
-                    pendingCount++;
-                    const cardHTML = `
-                        <div class="test-card" data-test="${test.testId}" data-duration="${test.duration}" data-completed="false">
+                    practiceCount++;
+                    practiceTestContainer.insertAdjacentHTML('beforeend', `
+                        <div class="test-card" data-test="${test.testId}" data-duration="${test.duration}" data-type="practice">
                             <div class="test-info">
-                                <h4>${test.title} ${badgeHTML}</h4>
+                                <h4>${test.title} <span class="new-badge" style="background:var(--primary)">MOCK</span></h4>
                                 <p><span class="material-icons" style="font-size: 13px; vertical-align: middle;">schedule</span> ${test.duration} Mins Duration</p>
                             </div>
-                            <button class="btn-primary test-action-btn">Start Test</button>
+                            <button class="btn-primary test-action-btn">Start Practice</button>
                         </div>
-                    `;
-                    liveTestContainer.insertAdjacentHTML('beforeend', cardHTML);
+                    `);
                 }
             });
 
-            if (pendingCount === 0) {
-                liveTestContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No new live tests available.</div>`;
-            }
-            if (completedCount === 0) {
-                pastResultsContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">You haven't attempted any tests yet.</div>`;
-            }
+            // --- RENDER LIVE TESTS ---
+            (result.liveTests || []).forEach(test => {
+                if (test.status === "completed") {
+                    completedCount++; renderCompletedCard(test, pastResultsContainer);
+                } else {
+                    liveCount++;
+                    liveTestContainer.insertAdjacentHTML('beforeend', `
+                        <div class="test-card live-test-card" 
+                             data-test="${test.testId}" 
+                             data-duration="${test.duration}" 
+                             data-start="${test.startTime}" 
+                             data-end="${test.endTime}" 
+                             data-type="live">
+                            <div class="test-info">
+                                <h4>${test.title} <span class="live-status-badge"></span></h4>
+                                <p class="live-timing-text" style="font-size: 12px; margin-top: 5px;"></p>
+                            </div>
+                            <button class="btn-primary test-action-btn" disabled>Wait...</button>
+                        </div>
+                    `);
+                }
+            });
+
+            if (liveCount === 0) liveTestContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No scheduled live tests right now.</div>`;
+            if (practiceCount === 0) practiceTestContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No practice tests available.</div>`;
+            if (completedCount === 0) pastResultsContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">You haven't attempted any tests yet.</div>`;
 
             attachTestCardListeners();
+            startDashboardLiveEngine(); // 🚀 Ignite the Real-Time UI Engine
         } else {
             liveTestContainer.innerHTML = `<p class='error'>${result.message}</p>`;
         }
     } catch (e) {
-        liveTestContainer.innerHTML = "<p class='error' style='text-align:center;'>Failed to sync dashboard. Check internet connection.</p>";
+        liveTestContainer.innerHTML = "<p class='error' style='text-align:center;'>Failed to sync dashboard. Check internet.</p>";
     } finally {
         hideLoader();
     }
+}
+
+function renderCompletedCard(test, container) {
+    const pastData = testHistoryData[test.testId];
+    const safeScore = pastData ? pastData.score : test.score;
+    const safeTotal = pastData ? pastData.total : test.total;
+    container.insertAdjacentHTML('beforeend', `
+        <div class="test-card" data-test="${test.testId}" data-completed="true">
+            <div class="test-info">
+                <h4>${test.title}</h4>
+                <p>Scored: <strong style="color:var(--success)">${safeScore}</strong> / ${safeTotal} Marks</p>
+            </div>
+            <button class="btn-secondary test-action-btn">View Analysis</button>
+        </div>
+    `);
+}
+
+// --- NATIVE LIVE ENGINE (REAL-TIME UI) ---
+function startDashboardLiveEngine() {
+    function updateLiveCards() {
+        const now = Date.now();
+        document.querySelectorAll('.live-test-card').forEach(card => {
+            const startTime = new Date(card.getAttribute('data-start')).getTime();
+            const endTime = new Date(card.getAttribute('data-end')).getTime();
+            
+            const badge = card.querySelector('.live-status-badge');
+            const timeText = card.querySelector('.live-timing-text');
+            const btn = card.querySelector('.test-action-btn');
+
+            if (now < startTime) {
+                badge.innerHTML = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
+                timeText.innerHTML = `Starts: <strong>${new Date(startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</strong>`;
+                btn.innerText = "Locked";
+                btn.disabled = true;
+                btn.style.opacity = "0.5";
+            } 
+            else if (now >= startTime && now <= endTime) {
+                badge.innerHTML = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🟢 LIVE NOW</span>`;
+                const diffMs = endTime - now;
+                const hrs = Math.floor(diffMs / 3600000);
+                const mins = Math.floor((diffMs % 3600000) / 60000);
+                timeText.innerHTML = `<span style="color:var(--danger); font-weight:600;">Closes in: ${hrs}h ${mins}m</span>`;
+                
+                btn.innerText = "Start Live Test";
+                btn.disabled = false;
+                btn.style.opacity = "1";
+                btn.style.backgroundColor = "var(--danger)"; // Striking Red for Live
+                btn.style.color = "white";
+            } 
+            else {
+                badge.innerHTML = `<span style="color:var(--danger); font-size:11px; font-weight:bold;">🔴 CLOSED</span>`;
+                timeText.innerText = `Missed: ${new Date(endTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}`;
+                btn.innerText = "Expired";
+                btn.disabled = true;
+                btn.style.opacity = "0.3";
+                btn.style.backgroundColor = "transparent";
+                btn.style.color = "var(--text-muted)";
+            }
+        });
+    }
+    
+    updateLiveCards(); 
+    dashboardTimerInterval = setInterval(updateLiveCards, 30000); // UI Updates every 30 seconds
 }
 
 function attachTestCardListeners() {
@@ -490,6 +560,7 @@ function attachTestCardListeners() {
         btn.addEventListener('click', async (e) => {
             const testCard = e.target.closest('.test-card');
             const isCompleted = testCard.getAttribute('data-completed') === "true";
+            const testType = testCard.getAttribute('data-type');
             activeTestName = testCard.getAttribute('data-test');
             
             if (isCompleted) {
@@ -497,13 +568,34 @@ function attachTestCardListeners() {
                 if (pastData && !pastData.error) {
                     displayDeepAnalysis(pastData.score, pastData.total, pastData.percentage, pastData.details, true);
                 } else {
-                    showCustomPopup("Unavailable", "Deep analysis data is corrupted or unavailable for this test.", "danger");
+                    showCustomPopup("Unavailable", "Analysis data is corrupted or unavailable for this test.", "danger");
                 }
             } else {
                 const duration = parseInt(testCard.getAttribute('data-duration'));
-                showCustomPopup("Start Live Test", `This test is strictly timed for ${duration} minutes. You cannot pause it or go back. Ready?`, "info", () => {
-                    startLiveTest(activeTestName, duration);
-                }, true);
+                
+                // 🔒 SMART LOCK: Final Security Check before backend call
+                if (testType === 'live') {
+                    const start = new Date(testCard.getAttribute('data-start')).getTime();
+                    const end = new Date(testCard.getAttribute('data-end')).getTime();
+                    const now = Date.now();
+                    
+                    if (now < start) {
+                        showCustomPopup("Locked Securely", "This test hasn't started yet. Please wait.", "warning");
+                        return;
+                    }
+                    if (now > end) {
+                        showCustomPopup("Expired", "This test window has been permanently closed.", "danger");
+                        return;
+                    }
+                }
+
+                showCustomPopup(
+                    testType === 'live' ? "Start LIVE Exam" : "Start Practice", 
+                    `This test is strictly timed for <strong>${duration} minutes</strong>. You cannot pause it, switch tabs, or go back.<br><br>Are you ready?`, 
+                    "info", 
+                    () => { startLiveTest(activeTestName, duration); }, 
+                    true
+                );
             }
         });
     });
