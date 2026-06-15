@@ -275,34 +275,48 @@ function showCustomPopup(title, message, type = 'info', confirmCallback = null, 
 }
 
 
-// Request Firebase Push Notification & Link User to RTDB
+// Request Firebase Push Notification & Link User to RTDB Safely
 function triggerSmartPushPrompt() {
+    // Basic browser support check
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+        console.log("[Firebase] Push notifications not supported in this browser.");
+        return;
+    }
+
     Notification.requestPermission().then((permission) => {
         if (permission === 'granted') {
-            console.log('[Firebase] Native Permission Granted!');
+            console.log('[Firebase] Native Permission Granted! Waiting for Engine...');
             
-            messaging.getToken({ vapidKey: "BG-J8WhZpg2eAMoLahgNbRJZhDTSvTLXO5B_Vr4kw8VUMF4OvynfMBe2nckINHoAhEa-6mMIDP_NOECRu6vKREc" })
+            // ✅ BUG FIX 1: Wait for Service Worker to be 100% Ready
+            navigator.serviceWorker.ready.then((registration) => {
+                messaging.getToken({ 
+                    vapidKey: "BG-J8WhZpg2eAMoLahgNbRJZhDTSvTLXO5B_Vr4kw8VUMF4OvynfMBe2nckINHoAhEa-6mMIDP_NOECRu6vKREc",
+                    serviceWorkerRegistration: registration 
+                })
                 .then((currentToken) => {
                     if (currentToken) {
-                        console.log('[Firebase] Token Generated!');
+                        console.log('[Firebase] 🔥 Token Generated Successfully!');
                         
-                        // ✅ IIT-STANDARD: Securely link the Token with Username in RTDB
                         if (loggedInUser) {
-                            database.ref('students_fcm/' + loggedInUser).set({
+                            // ✅ BUG FIX 2: Sanitize Username (Removes invalid DB chars like . # $ [ ])
+                            const safeUsername = loggedInUser.replace(/[.#$[\]]/g, '_');
+                            
+                            database.ref('students_fcm/' + safeUsername).set({
                                 token: currentToken,
                                 lastLogin: new Date().toISOString()
                             }).then(() => {
-                                console.log(`[Firebase RTDB] Token successfully saved for user: ${loggedInUser}`);
+                                console.log(`[Firebase RTDB] Token securely saved for user: ${safeUsername}`);
                             }).catch((error) => {
-                                console.error("[Firebase RTDB] Error saving token:", error);
+                                console.error("[Firebase RTDB] Database save failed! Check Firebase Rules.", error);
                             });
                         }
                     } else {
                         console.log('[Firebase] No registration token available.');
                     }
                 }).catch((err) => {
-                    console.error('[Firebase] Token Generation Failed: ', err);
+                    console.error('[Firebase] Token Generation Blocked: ', err);
                 });
+            });
         } else {
             console.log('[Firebase] User blocked the notification prompt.');
         }
