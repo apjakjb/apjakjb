@@ -3,14 +3,13 @@
 // ==========================================
 const API_URL = "https://script.google.com/macros/s/AKfycbxCjihbmkPbjRefEym2TIdu2pNFrOQkgkIE1r0YBtD93H2HUzhzg-OKRmFLVIE3XAbmQw/exec";
 
-
-
 // ==========================================
-// FIREBASE PUSH NOTIFICATION ENGINE
+// FIREBASE ENGINE & DATABASE
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
     authDomain: "testportal-9562c.firebaseapp.com",
+    databaseURL: "https://testportal-9562c-default-rtdb.asia-southeast1.firebasedatabase.app/",
     projectId: "testportal-9562c",
     storageBucket: "testportal-9562c.firebasestorage.app",
     messagingSenderId: "737523775575",
@@ -20,10 +19,7 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
-
-
-
-
+const database = firebase.database(); // ✅ Initialize Database
 
 // ==========================================
 // DOM ELEMENTS & GLOBAL STATE
@@ -279,19 +275,28 @@ function showCustomPopup(title, message, type = 'info', confirmCallback = null, 
 }
 
 
-
-// Request Firebase Push Notification Permission Native Engine
+// Request Firebase Push Notification & Link User to RTDB
 function triggerSmartPushPrompt() {
     Notification.requestPermission().then((permission) => {
         if (permission === 'granted') {
             console.log('[Firebase] Native Permission Granted!');
             
-            // Get the magic token (Replace VAPID key later)
             messaging.getToken({ vapidKey: "BG-J8WhZpg2eAMoLahgNbRJZhDTSvTLXO5B_Vr4kw8VUMF4OvynfMBe2nckINHoAhEa-6mMIDP_NOECRu6vKREc" })
                 .then((currentToken) => {
                     if (currentToken) {
-                        console.log('[Firebase] 🔥 Premium Push Token Generated:', currentToken);
-                        // Future Code: Save this token to Google Sheet to send direct messages to this user
+                        console.log('[Firebase] Token Generated!');
+                        
+                        // ✅ IIT-STANDARD: Securely link the Token with Username in RTDB
+                        if (loggedInUser) {
+                            database.ref('students_fcm/' + loggedInUser).set({
+                                token: currentToken,
+                                lastLogin: new Date().toISOString()
+                            }).then(() => {
+                                console.log(`[Firebase RTDB] Token successfully saved for user: ${loggedInUser}`);
+                            }).catch((error) => {
+                                console.error("[Firebase RTDB] Error saving token:", error);
+                            });
+                        }
                     } else {
                         console.log('[Firebase] No registration token available.');
                     }
@@ -303,7 +308,6 @@ function triggerSmartPushPrompt() {
         }
     });
 }
-
 // ==========================================
 // 4. AUTHENTICATION
 // ==========================================
