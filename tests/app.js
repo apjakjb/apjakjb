@@ -3,6 +3,28 @@
 // ==========================================
 const API_URL = "https://script.google.com/macros/s/AKfycbxCjihbmkPbjRefEym2TIdu2pNFrOQkgkIE1r0YBtD93H2HUzhzg-OKRmFLVIE3XAbmQw/exec";
 
+
+
+// ==========================================
+// FIREBASE PUSH NOTIFICATION ENGINE
+// ==========================================
+const firebaseConfig = {
+    apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
+    authDomain: "testportal-9562c.firebaseapp.com",
+    projectId: "testportal-9562c",
+    storageBucket: "testportal-9562c.firebasestorage.app",
+    messagingSenderId: "737523775575",
+    appId: "1:737523775575:web:26db3649ede4845e688b12"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
+
+
+
+
+
 // ==========================================
 // DOM ELEMENTS & GLOBAL STATE
 // ==========================================
@@ -256,14 +278,29 @@ function showCustomPopup(title, message, type = 'info', confirmCallback = null, 
     popupOverlay.style.display = 'flex';
 }
 
-// Request Push Notification Permission Safely & Link User Device
+
+
+// Request Firebase Push Notification Permission Native Engine
 function triggerSmartPushPrompt() {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(function(OneSignal) {
-        if (loggedInUser) {
-            OneSignal.login(loggedInUser); 
+    Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+            console.log('[Firebase] Native Permission Granted!');
+            
+            // Get the magic token (Replace VAPID key later)
+            messaging.getToken({ vapidKey: "BG-J8WhZpg2eAMoLahgNbRJZhDTSvTLXO5B_Vr4kw8VUMF4OvynfMBe2nckINHoAhEa-6mMIDP_NOECRu6vKREc" })
+                .then((currentToken) => {
+                    if (currentToken) {
+                        console.log('[Firebase] 🔥 Premium Push Token Generated:', currentToken);
+                        // Future Code: Save this token to Google Sheet to send direct messages to this user
+                    } else {
+                        console.log('[Firebase] No registration token available.');
+                    }
+                }).catch((err) => {
+                    console.error('[Firebase] Token Generation Failed: ', err);
+                });
+        } else {
+            console.log('[Firebase] User blocked the notification prompt.');
         }
-        OneSignal.Slidedown.promptPush({ force: true });
     });
 }
 
@@ -653,4 +690,32 @@ function displayDeepAnalysis(score, total, percentage, detailsArray, pushToHisto
 
 document.getElementById('close-analysis-btn').addEventListener('click', () => {
     loadDashboard(); // Refreshes backend data and routes back to App Shell (Results or Home)
+});
+
+
+
+// ==========================================
+// 8. ADVANCED FIREBASE SERVICE WORKER (PWA)
+// ==========================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./firebase-messaging-sw.js')
+            .then((registration) => {
+                console.log('[PWA Engine] Firebase SW registered beautifully.');
+                messaging.useServiceWorker(registration); // Tell Firebase to use this specific SW
+            })
+            .catch((error) => {
+                console.error('[PWA Engine] Firebase SW registration failed: ', error);
+            });
+    });
+}
+
+// Foreground In-App Notification Handler
+messaging.onMessage((payload) => {
+    console.log('[Firebase] Foreground Message Received: ', payload);
+    showCustomPopup(
+        payload.notification.title, 
+        payload.notification.body, 
+        "info"
+    );
 });
