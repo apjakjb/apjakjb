@@ -145,15 +145,25 @@
                             </div>
                         </div>
 
+
                         <p class="section-title">Explore Categories</p>
                         <div class="features-grid">
-                            <div class="grid-card active-card" id="grid-action-tests">
+                            <div class="grid-card active-card" id="grid-action-live">
+                                <div class="grid-icon-box danger-box">
+                                    <span class="material-icons">alarm_on</span>
+                                </div>
+                                <h4>Live Tests</h4>
+                                <p>Scheduled Exams</p>
+                            </div>
+                            
+                            <div class="grid-card" id="grid-action-practice">
                                 <div class="grid-icon-box primary-box">
                                     <span class="material-icons">assignment</span>
                                 </div>
-                                <h4>Test Series</h4>
-                                <p>Live Mock Tests</p>
+                                <h4>Practice</h4>
+                                <p>Mock Tests</p>
                             </div>
+                            
                             <div class="grid-card" id="grid-action-notes">
                                 <div class="grid-icon-box success-box">
                                     <span class="material-icons">description</span>
@@ -161,15 +171,9 @@
                                 <h4>PDF Notes</h4>
                                 <p>Revision E-Books</p>
                             </div>
-                            <div class="grid-card" id="grid-action-quiz">
-                                <div class="grid-icon-box warning-box">
-                                    <span class="material-icons">flash_on</span>
-                                </div>
-                                <h4>Daily Quiz</h4>
-                                <p>Quick Practice</p>
-                            </div>
+                            
                             <div class="grid-card" id="grid-action-papers">
-                                <div class="grid-icon-box danger-box">
+                                <div class="grid-icon-box warning-box">
                                     <span class="material-icons">history_edu</span>
                                 </div>
                                 <h4>PYQs Bank</h4>
@@ -177,9 +181,15 @@
                             </div>
                         </div>
 
-                        <div id="test-series-section-wrapper">
-                            <p class="section-title">Available Live Tests</p>
-                            <div id="dynamic-test-list" aria-live="polite">
+                        <div id="live-tests-section-wrapper">
+                            <p class="section-title">Active & Upcoming Live Tests</p>
+                            <div id="dynamic-live-list" aria-live="polite">
+                                </div>
+                        </div>
+
+                        <div id="practice-tests-section-wrapper" style="display: none;">
+                            <p class="section-title">Available Practice Tests</p>
+                            <div id="dynamic-practice-list" aria-live="polite">
                                 </div>
                         </div>
 
