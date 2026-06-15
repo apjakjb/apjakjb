@@ -7,7 +7,7 @@
     <meta name="description" content="Premium Android-Style Test Series & Learning Portal">
     
     <link rel="icon" href="data:," /> 
-    <link rel="apple-touch-icon" href="apple-touch-icon.png"> 
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -19,22 +19,8 @@
 
     <title>Student Testing Portal</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "8dc4ff84-609d-41b5-8766-366398f9b1f1", 
-          allowLocalhostAsSecureOrigin: true,
-          // ✅ THE PREMIUM FIX: Using absolute URLs so the token generator never gets lost
-          serviceWorkerPath: "https://apjakjb.in/tests/sw.js", 
-          serviceWorkerParam: { scope: "https://apjakjb.in/tests/" }, 
-          notifyButton: {
-            enable: false, 
-          }
-        });
-      });
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 </head>
 <body>
 
