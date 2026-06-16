@@ -336,6 +336,10 @@
                         <h2 id="score-text" aria-live="polite">Loading...</h2>
                         <p id="percentage-text" class="accuracy-badge">0% Accuracy</p>
                     </div>
+                    <!-- 🏆 NEW LEADERBOARD BUTTON -->
+                    <button id="view-leaderboard-btn" class="btn-primary" style="margin-top: 15px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; background-color: #F59E0B; color: #fff; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                        <span class="material-icons">emoji_events</span> View Live Leaderboard
+                    </button>
                 </div>
 
                 <p class="section-title">Question Breakdown</p>
@@ -343,6 +347,36 @@
                     </div>
             </div>
         </section>
+
+        <!-- ========================================== -->
+        <!-- 🏆 LEADERBOARD SCREEN -->
+        <!-- ========================================== -->
+        <section id="leaderboard-screen" class="screen" aria-labelledby="leaderboard-title" style="display: none;">
+            <header class="app-header">
+                <div class="header-title-wrapper">
+                    <span class="material-icons" style="color: #F59E0B;" aria-hidden="true">emoji_events</span>
+                    <h3 id="leaderboard-title">Live Rankings</h3>
+                </div>
+                <button id="close-leaderboard-btn" class="btn-icon close-btn" aria-label="Return to Analysis">
+                    <span class="material-icons" aria-hidden="true">close</span>
+                </button>
+            </header>
+            
+            <div class="screen-content">
+                <div style="text-align: center; padding: 10px 0 20px;">
+                    <h4 id="leaderboard-test-name" style="color: var(--primary);">Test Name</h4>
+                    <p style="font-size: 12px; color: var(--text-muted);">Top Performers All India</p>
+                </div>
+
+                <!-- RANKING LIST CONTAINER -->
+                <div id="leaderboard-list" class="leaderboard-container">
+                    <!-- JS will inject ranks here -->
+                </div>
+            </div>
+        </section>
+
+
+
 
     </main>
 
