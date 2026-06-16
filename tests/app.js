@@ -198,7 +198,7 @@ window.addEventListener('popstate', (e) => {
     
     if (activeScreen && activeScreen.id === 'test-screen' && isTestActive) {
         history.pushState({ screen: 'test-screen' }, "", `#test-screen`);
-        showCustomPopup("Action Blocked", "You cannot go back during a <strong style='color: var(--danger);'>LIVE</strong> test. Please complete and submit it.", "danger");
+        showCustomPopup("Blocked", "Back disabled in <strong style='color: var(--danger);'>LIVE</strong> tests. Please submit.", "danger");
         return;
     }
 
