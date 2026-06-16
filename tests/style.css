@@ -616,3 +616,27 @@ button {
 }
 [data-theme="dark"] .lb-card-bronze .lb-score { background: rgba(180, 83, 9, 0.3); border-color: #B45309; }
 [data-theme="dark"] .lb-card-bronze h4 { color: #FDE68A; }
+
+/* ========================================== */
+/* 🚫 HIDE SCROLLBARS FOR NATIVE APP FEEL     */
+/* ========================================== */
+
+/* Chrome, Safari, iOS, Android browsers ke liye */
+*::-webkit-scrollbar {
+    display: none !important;
+}
+
+/* Firefox aur older Edge browsers ke liye */
+* {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+
+
+
+
+
+
+
+
