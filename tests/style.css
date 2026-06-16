@@ -494,15 +494,20 @@ button {
 /* 🏆 PREMIUM LEADERBOARD UI EXTENSION        */
 /* ========================================== */
 
+/* 1. Container ki side padding hata di taaki card ko failne ki jagah mile */
 .leaderboard-container { 
-    padding: 15px; 
+    padding: 10px 0px; /* Pehle yahan 15px tha, jisko 0px kar diya */
+    margin: 0 -5px;    /* Thoda aur edge-to-edge stretch karne ke liye */
     overflow-y: auto; 
     height: 100%; 
     padding-bottom: 80px; 
 }
+
+/* 2. Card ko 100% width lene ke liye bol diya */
 .lb-card { 
     display: flex; 
     align-items: center; 
+    width: 100%; /* ✅ NAYA: Full width capture karega */
     background: var(--card-bg); 
     padding: 15px; 
     border-radius: 16px; 
@@ -511,6 +516,8 @@ button {
     border: 1px solid var(--border); 
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
 }
+
+
 .lb-card:active { transform: scale(0.98); }
 
 .lb-rank { 
