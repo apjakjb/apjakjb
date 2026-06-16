@@ -1,8 +1,7 @@
-
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbw3ErRfjQ1ekvrQxrif9mMar5QSeHm6FCScDi42RnWdLwC5UyiCSA7BpjOEKNi1ozGrWg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxjJ6ROcsZktgYFccxBRfT_vkSTjCXGPfguumkGyE3Zctz35tnTgi-3LITPZv-qnGbuAA/exec";
 
 // ==========================================
 // FIREBASE ENGINE & DATABASE
@@ -39,7 +38,8 @@ let testHistoryData = {};
 let timerInterval;
 let timeRemaining = 0;
 let testEndTime = 0;
-let isTestActive = false; // ANTI-CHEAT LOCK
+let isTestActive = false;
+let totalTestSeconds = 0;
 
 const optionPrefixes = ['(a) ', '(b) ', '(c) ', '(d) '];
 
@@ -643,6 +643,7 @@ async function startLiveTest(testId, durationMins) {
             
             isTestActive = true; 
             renderQuestion();
+            totalTestSeconds = durationMins * 60;
             startTimer(durationMins * 60); 
             navigate('test-screen'); 
         } else {
@@ -735,26 +736,28 @@ document.getElementById('next-btn').addEventListener('click', () => {
 // 7. ANALYSIS & RESULTS SCREEN
 // ==========================================
 async function processSubmission() {
-    // FIX 1: The Mutex Lock - Prevent double submissions or Anti-Cheat overlaps
     if (!isTestActive) return; 
-    isTestActive = false; // Immediately lock the test so it can't be submitted again
+    isTestActive = false; 
 
     clearInterval(timerInterval);
-    showLoader("Grading your test...");
+    showLoader("Grading your test & Calculating Rank...");
+
+    const timeTaken = totalTestSeconds - timeRemaining;
 
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             redirect: "follow",
-            body: JSON.stringify({ action: "submitTest", username: loggedInUser, testName: activeTestName, answers: userAnswers })
+            // Payload mein timeTaken add kar diya
+            body: JSON.stringify({ action: "submitTest", username: loggedInUser, testName: activeTestName, answers: userAnswers, timeTaken: timeTaken })
         });
         const result = JSON.parse(await response.text());
 
         if (result.success) {
             history.replaceState({ screen: 'analysis-screen' }, "", "#analysis-screen");
             hideLoader();
-            showCustomPopup("Submitted!", "Results processed.", "success", () => {
+            showCustomPopup("Submitted!", "Results processed successfully.", "success", () => {
                 displayDeepAnalysis(result.score, result.total, result.percentage, result.analysis, false);
             });
         } else {
@@ -762,8 +765,8 @@ async function processSubmission() {
         }
     } catch (e) {
         hideLoader();
-        isTestActive = false; // Ensure it stays locked
-        showCustomPopup("Error", "Network issue. Results saved locally. Returning to dashboard.", "danger", () => loadDashboard());
+        isTestActive = false; 
+        showCustomPopup("Error", "Network issue. Returning to dashboard.", "danger", () => loadDashboard());
     }
 }
 
@@ -800,10 +803,8 @@ function displayDeepAnalysis(score, total, percentage, detailsArray, pushToHisto
 }
 
 document.getElementById('close-analysis-btn').addEventListener('click', () => {
-    loadDashboard(); // Refreshes backend data and routes back to App Shell (Results or Home)
+    loadDashboard();
 });
-
-
 
 // ==========================================
 // 8. ADVANCED FIREBASE SERVICE WORKER (PWA)
@@ -821,7 +822,6 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Foreground In-App Notification Handler
 messaging.onMessage((payload) => {
     console.log('[Firebase] Foreground Message Received: ', payload);
     showCustomPopup(
@@ -830,3 +830,75 @@ messaging.onMessage((payload) => {
         "info"
     );
 });
+
+
+
+// ==========================================
+// 9. PREMIUM LEADERBOARD ENGINE
+// ==========================================
+document.getElementById('view-leaderboard-btn').addEventListener('click', () => {
+    fetchAndRenderLeaderboard(activeTestName);
+});
+
+document.getElementById('close-leaderboard-btn').addEventListener('click', () => {
+    document.getElementById('leaderboard-screen').style.display = 'none';
+});
+
+async function fetchAndRenderLeaderboard(testId) {
+    const lbScreen = document.getElementById('leaderboard-screen');
+    const listContainer = document.getElementById('leaderboard-list');
+    
+
+    lbScreen.style.display = 'flex';
+    document.getElementById('leaderboard-test-name').innerText = testId.replace(/_/g, ' ').toUpperCase();
+    
+
+    listContainer.innerHTML = `<div style="text-align:center; padding: 40px;"><span class="material-icons" style="font-size:40px; color:var(--primary); animation: waveMotion 1.5s infinite;">emoji_events</span><p style="margin-top:10px; font-weight:600;">Fetching All India Ranks...</p></div>`;
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "getLeaderboard", testName: testId })
+        });
+        const result = JSON.parse(await response.text());
+
+        if (result.success && result.leaderboard.length > 0) {
+            listContainer.innerHTML = "";
+            
+            result.leaderboard.forEach(student => {
+                let rankDisplay = `<span class="normal-rank">#${student.rank}</span>`;
+                let cardClass = "lb-card-normal";
+                let trophy = "";
+                
+
+                if (student.rank === 1) { rankDisplay = `🥇`; cardClass = "lb-card-gold"; trophy = `<span class="material-icons star-icon">star</span>`; }
+                else if (student.rank === 2) { rankDisplay = `🥈`; cardClass = "lb-card-silver"; }
+                else if (student.rank === 3) { rankDisplay = `🥉`; cardClass = "lb-card-bronze"; }
+
+
+                let mins = Math.floor(student.timeTaken / 60);
+                let secs = student.timeTaken % 60;
+                let timeStr = `${mins}m ${secs}s`;
+
+                listContainer.insertAdjacentHTML('beforeend', `
+                    <div class="lb-card ${cardClass}">
+                        <div class="lb-rank">${rankDisplay}</div>
+                        <div class="lb-details">
+                            <h4>${student.username} ${trophy}</h4>
+                            <p><span class="material-icons">timer</span> ${timeStr}</p>
+                        </div>
+                        <div class="lb-score">
+                            <h2>${student.score}<span>/${student.total}</span></h2>
+                            <p>Marks</p>
+                        </div>
+                    </div>
+                `);
+            });
+        } else {
+            listContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No ranks generated yet. Be the first!</p>`;
+        }
+    } catch (err) {
+        listContainer.innerHTML = `<p class="error" style="text-align:center; padding:30px;">Failed to connect to ranking server.</p>`;
+    }
+}
