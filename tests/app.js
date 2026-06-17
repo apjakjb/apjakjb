@@ -530,7 +530,7 @@ function startDashboardLiveEngine() {
             if (now < startTime) {
                 badge.innerHTML = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
                 timeText.innerHTML = `Starts: <strong>${new Date(startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</strong>`;
-                btn.innerText = "Locked";
+                btn.innerText = "🔏 Locked";
                 btn.disabled = true;
                 btn.style.opacity = "0.5";
             } 
@@ -813,34 +813,35 @@ document.getElementById('close-analysis-btn').addEventListener('click', () => {
     loadDashboard();
 });
 
+
+
 // ==========================================
 // 8. ADVANCED FIREBASE SERVICE WORKER (PWA)
 // ==========================================
 
 let newWorker;
+let swRegistration = null; // ✅ NAYA: SW ko global banaya taaki button click par check kar sakein
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        // ✅ FIX 1: "updateViaCache: 'none'" browser ko force karega ki SW ko hamesha server se live check kare
         navigator.serviceWorker.register('./firebase-messaging-sw.js', { updateViaCache: 'none' })
             .then((registration) => {
                 console.log('[PWA Engine] Firebase SW registered beautifully.');
+                swRegistration = registration;
                 messaging.useServiceWorker(registration); 
 
-                // ✅ FIX 2: App khulte hi forcefully server par naya update check karega
-                registration.update();
+                registration.update(); // Auto check on load
 
-                // ✅ FIX 3: Agar pichli baar app band karne se update atak gaya tha, toh turant popup dikhao
                 if (registration.waiting) {
                     newWorker = registration.waiting;
                     showUpdatePopup();
                 }
 
-                // ✅ FIX 4: Jab app use karte waqt naya update server par aaye
                 registration.addEventListener('updatefound', () => {
                     newWorker = registration.installing;
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            hideLoader(); // Loader hatao agar manual check chal raha tha
                             showUpdatePopup();
                         }
                     });
@@ -850,12 +851,11 @@ if ('serviceWorker' in navigator) {
                 console.error('[PWA Engine] Firebase SW registration failed: ', error);
             });
 
-        // App reloads automatically when new SW activates
         let refreshing;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (refreshing) return;
             refreshing = true;
-            window.location.reload();
+            window.location.reload(); // Turant naya version reload hoga
         });
     });
 }
@@ -866,7 +866,7 @@ function showUpdatePopup() {
         "A new premium version of the portal is ready. Click update to get the latest features!", 
         "success", 
         () => {
-            showLoader("Installing Update...");
+            showLoader("Installing & Restarting...");
             if (newWorker) {
                 newWorker.postMessage({ type: 'SKIP_WAITING' });
             }
@@ -875,6 +875,46 @@ function showUpdatePopup() {
     );
 }
 
+// ✅ NAYA: MANUAL "CHECK FOR UPDATES" ENGINE
+const menuUpdateBtn = document.getElementById('menu-update-btn');
+if (menuUpdateBtn) {
+    menuUpdateBtn.addEventListener('click', async () => {
+        toggleDrawer(); // Side menu band karo
+        
+        if (!swRegistration) {
+            showCustomPopup("Hold On", "Update engine is initializing. Try again in a few seconds.", "warning");
+            return;
+        }
+
+        showLoader("Checking server for updates..."); // Sundar loader dikhega
+
+        try {
+            // Force server scan
+            await swRegistration.update();
+            
+            // 1.5 second ka delay taaki server response scan ho sake
+            setTimeout(() => {
+                hideLoader();
+                // Agar koi naya code nahi aaya:
+                if (!swRegistration.installing && !swRegistration.waiting) {
+                    showCustomPopup("Up to Date! 🎉", "You are already using the latest premium version of the portal.", "success");
+                } 
+                // Agar update waiting mein fasa hua hai:
+                else if (swRegistration.waiting) {
+                    newWorker = swRegistration.waiting;
+                    showUpdatePopup();
+                }
+                // (Agar naya update mil gaya, toh upar wala 'updatefound' event automatic popup dikha dega)
+            }, 1500); 
+
+        } catch (err) {
+            hideLoader();
+            showCustomPopup("Network Error", "Could not check for updates. Please check your internet connection.", "danger");
+        }
+    });
+}
+
+// Foreground In-App Notification Handler
 messaging.onMessage((payload) => {
     console.log('[Firebase] Foreground Message Received: ', payload);
     showCustomPopup(
@@ -882,7 +922,10 @@ messaging.onMessage((payload) => {
         payload.notification.body, 
         "info"
     );
-});
+}); 
+
+
+
 
 // ==========================================
 // 9. PREMIUM LEADERBOARD ENGINE
