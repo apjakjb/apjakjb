@@ -530,7 +530,7 @@ function startDashboardLiveEngine() {
             if (now < startTime) {
                 badge.innerHTML = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
                 timeText.innerHTML = `Starts: <strong>${new Date(startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</strong>`;
-                btn.innerText = "Locked";
+                btn.innerText = "🔏 Locked";
                 btn.disabled = true;
                 btn.style.opacity = "0.5";
             } 
@@ -821,10 +821,22 @@ let newWorker;
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./firebase-messaging-sw.js')
+        // ✅ FIX 1: "updateViaCache: 'none'" browser ko force karega ki SW ko hamesha server se live check kare
+        navigator.serviceWorker.register('./firebase-messaging-sw.js', { updateViaCache: 'none' })
             .then((registration) => {
                 console.log('[PWA Engine] Firebase SW registered beautifully.');
                 messaging.useServiceWorker(registration); 
+
+                // ✅ FIX 2: App khulte hi forcefully server par naya update check karega
+                registration.update();
+
+                // ✅ FIX 3: Agar pichli baar app band karne se update atak gaya tha, toh turant popup dikhao
+                if (registration.waiting) {
+                    newWorker = registration.waiting;
+                    showUpdatePopup();
+                }
+
+                // ✅ FIX 4: Jab app use karte waqt naya update server par aaye
                 registration.addEventListener('updatefound', () => {
                     newWorker = registration.installing;
                     newWorker.addEventListener('statechange', () => {
@@ -837,6 +849,8 @@ if ('serviceWorker' in navigator) {
             .catch((error) => {
                 console.error('[PWA Engine] Firebase SW registration failed: ', error);
             });
+
+        // App reloads automatically when new SW activates
         let refreshing;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (refreshing) return;
