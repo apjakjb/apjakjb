@@ -191,29 +191,36 @@ function navigate(screenId, pushToHistory = true) {
     }
 }
 
-
-
 window.addEventListener('popstate', (e) => {
     const activeScreen = document.querySelector('.screen.active');
     
+    // 1. Agar Live Test ke beech mein back dabaya
     if (activeScreen && activeScreen.id === 'test-screen' && isTestActive) {
         history.pushState({ screen: 'test-screen' }, "", `#test-screen`);
         showCustomPopup("Blocked", "Back disabled in <strong style='color: var(--danger);'>LIVE</strong> tests. Please submit.", "danger");
         return;
     }
 
-    if (e.state && e.state.screen === 'test-screen' && !isTestActive) {
-        history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
+    // 2. Identify the target screen (kahan jaa raha hai)
+    let targetScreen = e.state && e.state.screen ? e.state.screen : (loggedInUser ? 'main-app-shell' : 'login-screen');
+
+    // 3. ✅ THE FIX: Agar piche aakar wapas Dashboard par jaa raha hai, toh data refresh karo
+    if (targetScreen === 'main-app-shell' && loggedInUser) {
         navigate('main-app-shell', false);
+        loadDashboard(); // 🔥 Server se naya result sync karega aur buttons lock kar dega
         return;
     }
 
-    if (e.state && e.state.screen) {
-        navigate(e.state.screen, false);
-    } else {
-        if (loggedInUser) navigate('main-app-shell', false);
-        else navigate('login-screen', false);
+    // 4. Test khatam hone ke baad wala normal case
+    if (targetScreen === 'test-screen' && !isTestActive) {
+        history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
+        navigate('main-app-shell', false);
+        loadDashboard(); 
+        return;
     }
+
+    // Default Fallback
+    navigate(targetScreen, false);
 });
 
 // ==========================================
@@ -809,17 +816,49 @@ document.getElementById('close-analysis-btn').addEventListener('click', () => {
 // ==========================================
 // 8. ADVANCED FIREBASE SERVICE WORKER (PWA)
 // ==========================================
+
+let newWorker;
+
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./firebase-messaging-sw.js')
             .then((registration) => {
                 console.log('[PWA Engine] Firebase SW registered beautifully.');
-                messaging.useServiceWorker(registration); // Tell Firebase to use this specific SW
+                messaging.useServiceWorker(registration); 
+                registration.addEventListener('updatefound', () => {
+                    newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            showUpdatePopup();
+                        }
+                    });
+                });
             })
             .catch((error) => {
                 console.error('[PWA Engine] Firebase SW registration failed: ', error);
             });
+        let refreshing;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+        });
     });
+}
+
+function showUpdatePopup() {
+    showCustomPopup(
+        "🚀 Update Available", 
+        "A new premium version of the portal is ready. Click update to get the latest features!", 
+        "success", 
+        () => {
+            showLoader("Installing Update...");
+            if (newWorker) {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
+        }, 
+        false
+    );
 }
 
 messaging.onMessage((payload) => {
