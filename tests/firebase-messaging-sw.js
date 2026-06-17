@@ -7,7 +7,6 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
 // 2. Initialize Firebase in Service Worker
-// (Yahan wahi same keys aayengi jo tumne app.js mein daali thi)
 firebase.initializeApp({
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
     authDomain: "testportal-9562c.firebaseapp.com",
@@ -36,8 +35,7 @@ messaging.onBackgroundMessage((payload) => {
 // =========================================================================
 // PWA CACHING LOGIC STARTS HERE (Tumhara purana code neeche rahega)
 // =========================================================================
-// IMPORT ONESIGNAL SDK
-const CACHE_VERSION = 'premium-portal-v3';
+const CACHE_VERSION = 'premium-portal-v4';
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
@@ -53,9 +51,16 @@ const ASSETS_TO_CACHE = [
     'https://fonts.googleapis.com/icon?family=Material+Icons'
 ];
 
-// 1. INSTALL EVENT: Pre-cache all premium app shell assets
+// =========================================================================
+// 🚀 IN-APP UPDATE LISTENER (app.js se signal receive karega)
+// =========================================================================
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') { 
+        self.skipWaiting();
+    }
+});
+
 self.addEventListener('install', (event) => {
-    self.skipWaiting();
     event.waitUntil(
         caches.open(STATIC_CACHE_NAME).then((cache) => {
             console.log('[Service Worker] Pre-caching Premium App Shell');
@@ -64,7 +69,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// 2. ACTIVATE EVENT: Automatic cache version purging
+
 self.addEventListener('activate', (event) => {
     event.waitUntil(self.clients.claim());
     event.waitUntil(
@@ -85,12 +90,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const requestUrl = new URL(event.request.url);
 
-    // BANNED FROM CACHE: Google Apps Script API POST requests
     if (event.request.method === 'POST' || requestUrl.href.includes('script.google.com')) {
         return; 
     }
 
-    // STRATEGY A: SPA Navigation Fallback (CRITICAL FOR OFFLINE ROUTING)
     if (event.request.mode === 'navigate') {
         event.respondWith(
             fetch(event.request).catch(() => {
@@ -100,7 +103,6 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // STRATEGY B: Google Fonts & Material Icons (Cache First -> Network Fallback)
     if (requestUrl.origin === 'https://fonts.googleapis.com' || requestUrl.origin === 'https://fonts.gstatic.com') {
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
@@ -116,7 +118,6 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // STRATEGY C: Core App Files (Stale-While-Revalidate pattern)
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             const fetchPromise = fetch(event.request).then((networkResponse) => {
@@ -127,10 +128,7 @@ self.addEventListener('fetch', (event) => {
                 }
                 return networkResponse;
             }).catch(() => {
-                // Return nothing silently if offline
             });
-
-            // Deliver cached version instantly, let network update silently
             return cachedResponse || fetchPromise;
         })
     );
