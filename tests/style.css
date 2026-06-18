@@ -168,17 +168,29 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
     to { opacity: 1; transform: translateY(0); } 
 }
 
-.screen-content { 
+/* ✅ UPGRADED SCREEN CONTENT LOGIC (90px Bottom Padding Built-in) */
+.screen-content, .leaderboard-container, .test-content { 
     flex: 1; 
     overflow-y: auto; 
     min-height: 0; 
-    padding: 20px 16px 32px 16px; 
+    padding: 20px 16px 90px 16px; 
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch; 
 }
-.screen-content::-webkit-scrollbar { width: 4px; }
-.screen-content::-webkit-scrollbar-track { background: transparent; }
-.screen-content::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 10px; }
+/* 📱 NATIVE APP FEEL: Hide Scrollbars completely */
+.screen-content::-webkit-scrollbar, 
+.leaderboard-container::-webkit-scrollbar, 
+.test-content::-webkit-scrollbar,
+.drawer-menu::-webkit-scrollbar { 
+    display: none; /* Safely hides the scrollbar */
+    width: 0px; 
+    background: transparent;
+}
+
+/* Firefox ke liye hide karne ka logic */
+.screen-content, .leaderboard-container, .test-content, .drawer-menu {
+    scrollbar-width: none; 
+}
 
 .center-content { display: flex; flex-direction: column; justify-content: center; }
 
@@ -198,32 +210,6 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
 .app-header h3 { font-size: 17px; font-weight: 750; color: var(--text-main); letter-spacing: -0.3px; }
 .test-header-left { display: flex; align-items: center; gap: 8px; }
 .full-lock-header { border-bottom: 2px solid var(--border-dark); }
-
-/* Static Bottom Navigation Bar Template */
-.app-bottom-nav {
-    height: var(--footer-height);
-    background: var(--card-bg);
-    border-top: 1px solid var(--border-dark);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 10;
-}
-.nav-tab-btn {
-    background: transparent;
-    flex-direction: column;
-    gap: 4px;
-    color: var(--nav-inactive);
-    padding: 8px;
-    flex: 1;
-    border-radius: 0;
-    height: 100%;
-}
-.nav-tab-btn .material-icons { font-size: 22px; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.nav-tab-btn .tab-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; }
-.nav-tab-btn.active { color: var(--primary); }
-[data-theme="dark"] .nav-tab-btn.active { color: #818CF8; }
-.nav-tab-btn.active .material-icons { transform: translateY(-2px) scale(1.08); }
 
 /* Native Content Scaffolding Layout */
 .shell-content-container {
@@ -595,7 +581,6 @@ button {
 .lb-card-bronze h4 { color: #92400E; }
 .lb-card-bronze .lb-score { background: #FDE68A; border-color: #FBCFE8; }
 
-/* Dark Mode Overrides for Winners */
 [data-theme="dark"] .lb-card-gold { 
     background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%); 
     border-color: #D97706; 
@@ -617,26 +602,194 @@ button {
 [data-theme="dark"] .lb-card-bronze .lb-score { background: rgba(180, 83, 9, 0.3); border-color: #B45309; }
 [data-theme="dark"] .lb-card-bronze h4 { color: #FDE68A; }
 
+
 /* ========================================== */
-/* 🚫 HIDE SCROLLBARS FOR NATIVE APP FEEL     */
+/* 🎯 THE DYNAMIC BHIM UPI STYLE CURVED NAV   */
 /* ========================================== */
 
-/* Chrome, Safari, iOS, Android browsers ke liye */
-*::-webkit-scrollbar {
-    display: none !important;
+.app-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 65px;
+    background: var(--card-bg) !important;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    border: none;
+    padding: 0;
 }
 
-/* Firefox aur older Edge browsers ke liye */
-* {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
+[data-theme='dark'] .app-bottom-nav {
+    background: #1E293B !important;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+}
+
+.nav-tab-btn {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: none;
+    z-index: 1;
+}
+
+.nav-tab-btn .material-icons {
+    font-size: 24px;
+    color: var(--nav-inactive);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-radius: 50%;
+    padding: 12px;
+    background: transparent;
+    border: 6px solid transparent;
+    z-index: 2;
+    transform: translateY(-6px);
+}
+
+.nav-tab-btn .tab-label {
+    font-size: 11px;
+    font-weight: 750;
+    color: var(--nav-inactive);
+    position: absolute;
+    bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+/* ========================================== */
+/* 🔥 THE MAGIC: ACTIVE STATE (MOVING NOTCH)  */
+/* ========================================== */
+.nav-tab-btn.active .material-icons {
+    transform: translateY(-32px);
+    background: var(--primary);
+    color: #fff !important;
+    border: 6px solid var(--bg-color); 
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+}
+
+[data-theme='dark'] .nav-tab-btn.active .material-icons {
+    border-color: #0F172A; 
+}
+
+.nav-tab-btn.active .tab-label {
+    color: var(--primary);
+    transform: translateY(-2px);
+}
+
+
+/* ========================================== */
+/* 🎯 PREMIUM QUESTION PALETTE (JUMP UI)      */
+/* ========================================== */
+.question-palette-wrapper {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 4px 15px; 
+    position: sticky;
+    top: 0; 
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+}
+
+.question-palette {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none; 
+    scroll-behavior: smooth;
+    padding: 12px 4px; 
+    align-items: center;
+}
+
+.question-palette::-webkit-scrollbar {
+    display: none; 
+}
+
+.q-bubble {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    background: var(--bg-color);
+    color: var(--text-muted);
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.q-bubble.answered {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.q-bubble.active {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--card-bg);
+    transform: scale(1.15);
+    box-shadow: 0 0 12px rgba(79, 70, 229, 0.2);
+}
+
+.q-bubble.answered.active {
+    background: var(--success);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
 }
 
 
 
+/* ========================================== */
+/* 📱 SIDE DRAWER PREMIUM UPDATES             */
+/* ========================================== */
+
+/* WhatsApp Item Color */
+.whatsapp-item {
+    color: #25D366 !important; 
+    font-weight: 700;
+}
+/* Original SVG alignment (Replaces material-icons CSS) */
+.whatsapp-svg-icon {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+
+.whatsapp-item:active .whatsapp-svg-icon {
+    transform: scale(0.95);
+}
 
 
 
-
-
-
+/* Dark mode mein WhatsApp button ka look */
+[data-theme="dark"] .whatsapp-item {
+    background: rgba(37, 211, 102, 0.1);
+}
+/* App Version Text ko bilkul Bottom Center mein push karne ka logic */
+.drawer-version-info {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 20px 10px 10px;
+    margin-top: auto; /* ✅ THE MAGIC: Yeh isko automatically bottom mein dhakel dega */
+    opacity: 0.6;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
