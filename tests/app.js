@@ -149,22 +149,51 @@ document.getElementById('profile-dark-toggle-row').addEventListener('click', tog
 // Feature Grid Category Switcher (Home Tab)
 const gridLive = document.getElementById('grid-action-live');
 const gridPractice = document.getElementById('grid-action-practice');
-const sectionLive = document.getElementById('live-tests-section-wrapper');
-const sectionPractice = document.getElementById('practice-tests-section-wrapper');
+const gridNotes = document.getElementById('grid-action-notes'); 
 
-if(gridLive && gridPractice) {
+// 🎯 PREMIUM UI ENGINE: Card highlight aur section toggle logic
+function handleGridSwitch(activeBtnId, sectionToShowId) {
+    // 1. Saare cards se active state hatao aur clicked wale par lagao
+    document.querySelectorAll('.grid-card').forEach(card => card.classList.remove('active-card'));
+    const activeBtn = document.getElementById(activeBtnId);
+    if (activeBtn) activeBtn.classList.add('active-card');
+
+    // 2. Bottom sections ko pehle hide karo (Clean UI)
+    const practiceSection = document.getElementById('practice-tests-section-wrapper');
+    const notesSection = document.getElementById('pdf-notes-section-wrapper');
+    if (practiceSection) practiceSection.style.display = 'none';
+    if (notesSection) notesSection.style.display = 'none';
+
+    // 3. Target section ko Un-hide karo aur smoothly scroll karo
+    if (sectionToShowId) {
+        const targetSection = document.getElementById(sectionToShowId);
+        if (targetSection) {
+            targetSection.style.display = 'block'; // ✅ FIX: Hidden list ko show karega!
+            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+}
+
+// Event Listeners
+if(gridLive) {
     gridLive.addEventListener('click', () => {
-        gridLive.classList.add('active-card');
-        gridPractice.classList.remove('active-card');
-        sectionLive.style.display = 'block';
-        sectionPractice.style.display = 'none';
+        handleGridSwitch('grid-action-live', null); 
+        switchTab('live-tests-tab', 'Live Tests');
+        history.pushState({ screen: 'main-app-shell', tab: 'live-tests-tab' }, "", "#live-tests");
     });
+}
 
+if(gridPractice) {
     gridPractice.addEventListener('click', () => {
-        gridPractice.classList.add('active-card');
-        gridLive.classList.remove('active-card');
-        sectionPractice.style.display = 'block';
-        sectionLive.style.display = 'none';
+        // Practice card ko active karega aur Practice list ko show karega
+        handleGridSwitch('grid-action-practice', 'practice-tests-section-wrapper');
+    });
+}
+
+if(gridNotes) {
+    gridNotes.addEventListener('click', () => {
+        // Notes card ko active karega aur Notes list ko show karega
+        handleGridSwitch('grid-action-notes', 'pdf-notes-section-wrapper');
     });
 }
 
@@ -403,26 +432,21 @@ function handleLogout() {
 document.getElementById('drawer-logout-btn').addEventListener('click', handleLogout);
 document.getElementById('profile-logout-btn').addEventListener('click', handleLogout);
 
-
-
-
-
 // ==========================================
 // 5. DASHBOARD, DATA & LIVE ENGINE
 // ==========================================
-let dashboardTimerInterval; // Background UI updater engine
+let dashboardTimerInterval;
 
 async function loadDashboard() {
     navigate('main-app-shell');
     switchTab('home-tab', 'Home Dashboard');
     
-    const liveTestContainer = document.getElementById('dynamic-live-list');
     const practiceTestContainer = document.getElementById('dynamic-practice-list');
     const pastResultsContainer = document.getElementById('past-results-list');
     
-    // Reset View to Live Tab
-    const liveGridBtn = document.getElementById('grid-action-live');
-    if(liveGridBtn) liveGridBtn.click();
+    // ✅ NAYE CONTAINERS: Upcoming aur Expired ke liye
+    const upcomingContainer = document.getElementById('upcoming-live-list');
+    const expiredContainer = document.getElementById('expired-live-list');
 
     showLoader("Syncing Live Portal...");
     clearInterval(dashboardTimerInterval); // Reset engine
@@ -436,12 +460,15 @@ async function loadDashboard() {
         const result = JSON.parse(await response.text());
 
         if (result.success) {
-            liveTestContainer.innerHTML = "";
-            practiceTestContainer.innerHTML = "";
-            pastResultsContainer.innerHTML = "";
+            if(practiceTestContainer) practiceTestContainer.innerHTML = "";
+            if(pastResultsContainer) pastResultsContainer.innerHTML = "";
+            if(upcomingContainer) upcomingContainer.innerHTML = "";
+            if(expiredContainer) expiredContainer.innerHTML = "";
+            
             testHistoryData = result.history || {}; 
 
-            let liveCount = 0, practiceCount = 0, completedCount = 0;
+            let practiceCount = 0, completedCount = 0, upcomingCount = 0, expiredCount = 0;
+            const nowMs = Date.now();
 
             // --- RENDER PRACTICE TESTS ---
             (result.practiceTests || []).forEach(test => {
@@ -461,13 +488,15 @@ async function loadDashboard() {
                 }
             });
 
-            // --- RENDER LIVE TESTS ---
+            // --- RENDER LIVE TESTS (PREMIUM TABS LOGIC) ---
             (result.liveTests || []).forEach(test => {
                 if (test.status === "completed") {
                     completedCount++; renderCompletedCard(test, pastResultsContainer);
                 } else {
-                    liveCount++;
-                    liveTestContainer.insertAdjacentHTML('beforeend', `
+                    const endTimeMs = new Date(test.endTime).getTime();
+                    const isExpired = nowMs > endTimeMs; // ✅ Time Logic check
+
+                    const cardHTML = `
                         <div class="test-card live-test-card" 
                              data-test="${test.testId}" 
                              data-duration="${test.duration}" 
@@ -480,25 +509,37 @@ async function loadDashboard() {
                             </div>
                             <button class="btn-primary test-action-btn" disabled>Wait...</button>
                         </div>
-                    `);
+                    `;
+
+                    // ✅ Smart Separation
+                    if (isExpired) {
+                        expiredCount++;
+                        if (expiredContainer) expiredContainer.insertAdjacentHTML('beforeend', cardHTML);
+                    } else {
+                        upcomingCount++;
+                        if (upcomingContainer) upcomingContainer.insertAdjacentHTML('beforeend', cardHTML);
+                    }
                 }
             });
 
-            if (liveCount === 0) liveTestContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No scheduled live tests right now.</div>`;
-            if (practiceCount === 0) practiceTestContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No practice tests available.</div>`;
-            if (completedCount === 0) pastResultsContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">You haven't attempted any tests yet.</div>`;
+            // Empty States
+            if (upcomingCount === 0 && upcomingContainer) upcomingContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No upcoming or live tests right now.</div>`;
+            if (expiredCount === 0 && expiredContainer) expiredContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No expired tests available.</div>`;
+            if (practiceCount === 0 && practiceTestContainer) practiceTestContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No practice tests available.</div>`;
+            if (completedCount === 0 && pastResultsContainer) pastResultsContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">You haven't attempted any tests yet.</div>`;
 
             attachTestCardListeners();
-            startDashboardLiveEngine(); // 🚀 Ignite the Real-Time UI Engine
+            startDashboardLiveEngine(); 
         } else {
-            liveTestContainer.innerHTML = `<p class='error'>${result.message}</p>`;
+            if(upcomingContainer) upcomingContainer.innerHTML = `<p class='error'>${result.message}</p>`;
         }
     } catch (e) {
-        liveTestContainer.innerHTML = "<p class='error' style='text-align:center;'>Failed to sync dashboard. Check internet.</p>";
+        if(upcomingContainer) upcomingContainer.innerHTML = "<p class='error' style='text-align:center;'>Failed to sync dashboard. Check internet.</p>";
     } finally {
         hideLoader();
     }
 }
+
 
 function renderCompletedCard(test, container) {
     const pastData = testHistoryData[test.testId];
@@ -688,6 +729,10 @@ function updateTimerDisplay() {
     document.getElementById('timer').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
+
+
+
+// ✅ NAYA: Question Render Engine with Palette Sync
 function renderQuestion() {
     const qData = currentQuestions[currentQuestionIndex];
     document.getElementById('question-counter').innerText = `${currentQuestionIndex + 1}/${currentQuestions.length}`;
@@ -706,6 +751,9 @@ function renderQuestion() {
             document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             userAnswers[qData.id] = opt;
+            
+            // ✅ Answer click karte hi bubble automatically Green ho jayega
+            renderQuestionPalette(); 
         });
         container.appendChild(btn);
     });
@@ -720,7 +768,50 @@ function renderQuestion() {
         nextBtn.innerHTML = `Next <span class="material-icons btn-inline-icon">arrow_forward</span>`;
         nextBtn.style.backgroundColor = "var(--primary)";
     }
+
+    // ✅ Question Load hote hi palette update aur scroll karega
+    renderQuestionPalette();
 }
+
+// ✅ NAYA LOGIC: Quick Jump System Engine
+function renderQuestionPalette() {
+    const palette = document.getElementById('question-palette');
+    if (!palette) return;
+    
+    palette.innerHTML = '';
+    
+    currentQuestions.forEach((q, index) => {
+        const bubble = document.createElement('div');
+        bubble.className = 'q-bubble';
+        bubble.innerText = index + 1; // 1, 2, 3...
+        
+        // Agar student pehle answer de chuka hai toh Green color
+        if (userAnswers[q.id]) {
+            bubble.classList.add('answered');
+        }
+        
+        // Agar yeh question abhi screen par active hai
+        if (index === currentQuestionIndex) {
+            bubble.classList.add('active');
+            // Auto-scroll logic: Active bubble hamesha center mein move hoga
+            setTimeout(() => {
+                bubble.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }, 50);
+        }
+        
+        // Click karte hi seedha uss question par jump
+        bubble.addEventListener('click', () => {
+            currentQuestionIndex = index;
+            renderQuestion();
+        });
+        
+        palette.appendChild(bubble);
+    });
+}
+
+
+
+
 
 document.getElementById('prev-btn').addEventListener('click', () => {
     if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); }
@@ -997,4 +1088,58 @@ async function fetchAndRenderLeaderboard(testId) {
     } catch (err) {
         listContainer.innerHTML = `<p class="error" style="text-align:center; padding:30px;">Failed to connect to ranking server.</p>`;
     }
+}
+
+
+// ==========================================
+// 10. PREMIUM LIVE TESTS TABS ENGINE
+// ==========================================
+const tabUpcoming = document.getElementById('tab-upcoming');
+const tabExpired = document.getElementById('tab-expired');
+const listUpcoming = document.getElementById('upcoming-live-list');
+const listExpired = document.getElementById('expired-live-list');
+
+if (tabUpcoming && tabExpired && listUpcoming && listExpired) {
+    tabUpcoming.addEventListener('click', () => {
+        tabUpcoming.classList.add('active');
+        tabExpired.classList.remove('active');
+        tabUpcoming.style.color = 'var(--primary)';
+        tabUpcoming.style.borderBottom = '3px solid var(--primary)';
+        tabExpired.style.color = 'var(--text-muted)';
+        tabExpired.style.borderBottom = '3px solid transparent';
+        listUpcoming.style.display = 'block';
+        listExpired.style.display = 'none';
+    });
+
+    tabExpired.addEventListener('click', () => {
+        tabExpired.classList.add('active');
+        tabUpcoming.classList.remove('active');
+        tabExpired.style.color = 'var(--primary)';
+        tabExpired.style.borderBottom = '3px solid var(--primary)';
+        tabUpcoming.style.color = 'var(--text-muted)';
+        tabUpcoming.style.borderBottom = '3px solid transparent';
+        listExpired.style.display = 'block';
+        listUpcoming.style.display = 'none';
+    });
+}
+
+
+
+// ==========================================
+// 11. WHATSAPP SUPPORT ENGINE
+// ==========================================
+const contactBtn = document.getElementById('menu-contact-btn');
+
+if (contactBtn) {
+    contactBtn.addEventListener('click', () => {
+        toggleDrawer(); // Click karte hi pehle side menu smoothly band hoga
+        
+        // Tumhara Contact Number aur pre-filled automatic message
+        const phoneNumber = "918822778233"; 
+        const message = "Hello Sir, I need some help regarding the Premium Test Portal.";
+        
+        // Makkhan ki tarah naye tab mein WhatsApp open karega
+        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+    });
 }
