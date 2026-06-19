@@ -793,3 +793,69 @@ button {
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
+
+
+
+
+/* ========================================== */
+/* 🌟 LOGIN SCREEN TRUST STATS UI             */
+/* ========================================== */
+.trust-stats-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.trust-stat-box {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border-dark);
+    border-radius: 14px;
+    padding: 12px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    transition: transform 0.2s ease;
+}
+
+[data-theme="dark"] .trust-stat-box {
+    background: rgba(30, 41, 59, 0.5); /* Dark mode mein aur premium transparent look */
+}
+
+.trust-stat-box:active {
+    transform: scale(0.95);
+}
+
+.trust-stat-box .material-icons {
+    font-size: 20px;
+    margin-bottom: 6px;
+    background: rgba(79, 70, 229, 0.1); /* Primary icon background */
+    padding: 8px;
+    border-radius: 10px;
+}
+
+/* Alag alag icons ke liye alag pastel background */
+.trust-stat-box:nth-child(2) .material-icons { background: rgba(16, 185, 129, 0.1); }
+.trust-stat-box:nth-child(3) .material-icons { background: rgba(245, 158, 11, 0.1); }
+
+.trust-stat-box h4 {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+}
+
+.trust-stat-box p {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
