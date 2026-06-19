@@ -19,7 +19,9 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
-const database = firebase.database(); // ✅ Initialize Database
+const database = firebase.database();
+const auth = firebase.auth(); 
+const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 // ==========================================
 // DOM ELEMENTS & GLOBAL STATE
@@ -420,10 +422,43 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     }
 });
 
+
+// ==========================================
+// 🚀 NAYA: PREMIUM GOOGLE LOGIN ENGINE
+// ==========================================
+const googleLoginBtn = document.getElementById('google-login-btn');
+
+if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', async () => {
+        showLoader("Connecting to Google Securely...");
+        try {
+            const result = await auth.signInWithPopup(googleProvider);
+            const user = result.user;
+            loggedInUser = user.email; 
+            localStorage.setItem('student_username', loggedInUser);
+            updateProfileUI();
+            loadDashboard();
+            triggerSmartPushPrompt(); 
+            
+        } catch (error) {
+            console.error("Google Login Error:", error);
+            if (error.code !== 'auth/popup-closed-by-user') {
+                showCustomPopup("Login Failed", "Could not sign in with Google. Please try again.", "danger");
+            }
+        } finally {
+            hideLoader();
+        }
+    });
+}
+
+
+
+
 function handleLogout() {
     showCustomPopup("Secure Logout", "Are you sure you want to end your session?", "warning", () => {
         loggedInUser = "";
         localStorage.removeItem('student_username');
+        if(auth) auth.signOut();
         if(drawer.classList.contains('open')) toggleDrawer();
         navigate('login-screen');
     }, true);
