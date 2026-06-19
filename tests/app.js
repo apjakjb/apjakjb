@@ -31,12 +31,12 @@ const loaderTextElement = document.getElementById('loader-text');
 const popupOverlay = document.getElementById('custom-popup');
 
 let loggedInUser = "";
+let loggedInUserName = ""; 
 let currentQuestions = [];
 let currentQuestionIndex = 0;
 let userAnswers = {};
 let activeTestName = "";
 let testHistoryData = {}; 
-
 let timerInterval;
 let timeRemaining = 0;
 let testEndTime = 0;
@@ -366,8 +366,10 @@ function triggerSmartPushPrompt() {
 // ==========================================
 function checkAuthSession() {
     const cachedUser = localStorage.getItem('student_username');
+    const cachedName = localStorage.getItem('student_name');
     if (cachedUser) {
         loggedInUser = cachedUser;
+        loggedInUserName = cachedName || cachedUser.split('@')[0]; 
         updateProfileUI();
         history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
         loadDashboard(); 
@@ -380,9 +382,9 @@ function checkAuthSession() {
 document.addEventListener("DOMContentLoaded", checkAuthSession);
 
 function updateProfileUI() {
-    document.getElementById('welcome-text').innerText = `Hello Dear, ${loggedInUser}`;
-    document.getElementById('drawer-username').innerText = loggedInUser;
-    document.getElementById('profile-student-name').innerText = loggedInUser;
+    document.getElementById('welcome-text').innerText = `Hello Dear, ${loggedInUserName}`;
+    document.getElementById('drawer-username').innerText = loggedInUserName;
+    document.getElementById('profile-student-name').innerText = loggedInUserName;
     document.getElementById('profile-meta-username').innerText = loggedInUser;
 }
 
@@ -406,7 +408,9 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
         if (result.success) {
             loggedInUser = usernameInput;
+            loggedInUserName = "Admin";
             localStorage.setItem('student_username', loggedInUser);
+            localStorage.setItem('student_name', loggedInUserName);
             updateProfileUI();
             document.getElementById('login-form').reset();
             errorMsg.innerText = "";
@@ -435,7 +439,10 @@ if (googleLoginBtn) {
             const result = await auth.signInWithPopup(googleProvider);
             const user = result.user;
             loggedInUser = user.email; 
+            loggedInUserName = user.displayName || user.email.split('@')[0]; 
+            
             localStorage.setItem('student_username', loggedInUser);
+            localStorage.setItem('student_name', loggedInUserName);
             updateProfileUI();
             loadDashboard();
             triggerSmartPushPrompt(); 
@@ -1093,13 +1100,16 @@ async function fetchAndRenderLeaderboard(testId) {
                 let cardClass = "lb-card-normal";
                 let trophy = "";
                 
-
                 if (student.rank === 1) { rankDisplay = `🥇`; cardClass = "lb-card-gold"; trophy = `<span class="material-icons star-icon">star</span>`; }
                 else if (student.rank === 2) { rankDisplay = `🥈`; cardClass = "lb-card-silver"; }
                 else if (student.rank === 3) { rankDisplay = `🥉`; cardClass = "lb-card-bronze"; }
-
+                let displayRankName = student.username;
+                if(displayRankName.includes('@')) {
+                    displayRankName = displayRankName.split('@')[0];
+                }
 
                 let mins = Math.floor(student.timeTaken / 60);
+
                 let secs = student.timeTaken % 60;
                 let timeStr = `${mins}m ${secs}s`;
 
@@ -1107,7 +1117,7 @@ async function fetchAndRenderLeaderboard(testId) {
                     <div class="lb-card ${cardClass}">
                         <div class="lb-rank">${rankDisplay}</div>
                         <div class="lb-details">
-                            <h4>${student.username} ${trophy}</h4>
+                            <h4>${displayRankName} ${trophy}</h4>
                             <p><span class="material-icons">timer</span> ${timeStr}</p>
                         </div>
                         <div class="lb-score">
