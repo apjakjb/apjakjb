@@ -98,7 +98,7 @@
             </button>
 
             <div class="drawer-version-info">
-                App Version: v15
+                App Version: v1.5
             </div>
         </nav>
     </aside>
@@ -111,15 +111,7 @@
                     <span class="material-icons app-logo-icon" aria-hidden="true">menu_book</span>
                 </div>
                 <h2 id="login-title">Student Testing Portal</h2>
-                <label style="text-align: center; margin-top: -20px; margin-bottom: 25px; font-size: 12px; color: var(--text-muted); display: block;">Welcome to the Premium Testing Portal of APJAKJB</label>
-
-
-
-
-
-
-                <label style="text-align: center; margin-top: -20px; margin-bottom: 25px; font-size: 12px; color: var(--text-muted); display: block;">Welcome to the Premium Testing Portal of APJAKJB</label>
-                
+                <label style="text-align: center; margin-top: -20px; margin-bottom: 25px; font-size: 12px; color: var(--text-muted); display: block;">Welcome to the <label style="color: blue; font-weight: bold;">Test</label><label style="color: red; font-weight: bold;">Portal</label> of APJAKJB</label>                
                 <div class="trust-stats-container">
                     <div class="trust-stat-box">
                         <span class="material-icons" style="color: var(--primary);">groups</span>
@@ -144,16 +136,7 @@
                     </div>
                 </div>
 
-
-
-
-
-
-
-
-
-                
-                <button type="button" id="google-login-btn" class="btn-primary" style="background-color: #FFFFFF; color: #3C4043; border: 1px solid #DADCE0; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 25px;">
+                <button type="button" id="google-login-btn" class="btn-primary" style="background-color: indigo; color: white; border: 1px solid #DADCE0; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 25px;">
                     <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
                         <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20c11 0 19.878-8.547 20-19.199C44 23.491 43.834 22.25 43.611 20.083z"/>
                         <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"/>
@@ -172,14 +155,14 @@
                 <form id="login-form">
                     <div class="input-wrapper">
                         <span class="material-icons input-icon" aria-hidden="true">admin_panel_settings</span>
-                        <input type="text" id="username" placeholder="Admin ID" required maxlength="30" pattern="[a-zA-Z0-9_]+" autocomplete="username" aria-label="Admin ID">
+                        <input type="text" id="username" placeholder="Username" required maxlength="30" pattern="[a-zA-Z0-9_]+" autocomplete="username" aria-label="Admin ID">
                     </div>
                     <div class="input-wrapper">
                         <span class="material-icons input-icon" aria-hidden="true">lock</span>
-                        <input type="password" id="password" placeholder="Passcode" required autocomplete="current-password" aria-label="Password">
+                        <input type="password" id="password" placeholder="Password" required autocomplete="current-password" aria-label="Password">
                     </div>
                     <p id="error-message" class="error" aria-live="polite"></p>
-                    <button type="submit" id="login-btn" class="btn-secondary" style="border: 1px solid var(--border-dark); background: transparent;">Admin Log In</button>
+                    <button type="submit" id="login-btn" class="btn-secondary" style="border: 1px solid var(--border-dark); background: blue; color: white;">Admin Log In</button>
                 </form>
             </div>
         </section>
