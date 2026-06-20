@@ -230,7 +230,7 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
 .tab-view.active { display: flex; }
 
 /* Form Field Styling Core */
-.login-logo-area { text-align: center; margin-bottom: 16px; }
+.login-logo-area { text-align: center; margin-bottom: 10px; margin-top: 110px; }
 /* ========================================== */
 /* 🌟 PREMIUM IMAGE LOGO STYLING              */
 /* ========================================== */
