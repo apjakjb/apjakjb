@@ -231,7 +231,27 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
 
 /* Form Field Styling Core */
 .login-logo-area { text-align: center; margin-bottom: 16px; }
-.app-logo-icon { font-size: 52px; color: var(--primary); }
+/* ========================================== */
+/* 🌟 PREMIUM IMAGE LOGO STYLING              */
+/* ========================================== */
+.app-logo-image {
+    width: 76px; /* Ekdum perfect size */
+    height: 76px;
+    object-fit: contain;
+    border-radius: 18px; /* Apple/iOS style smooth corners */
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15); /* Primary color ki soft glowing shadow */
+    margin-bottom: 8px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Hover/Touch karne par thoda sa pop hoga */
+.app-logo-image:active {
+    transform: scale(0.95);
+}
+
+[data-theme="dark"] .app-logo-image {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Dark mode ki shadow */
+}
 #login-title { font-size: 22px; font-weight: 800; text-align: center; color: var(--text-main); margin-bottom: 24px; letter-spacing: -0.5px; }
 
 .input-wrapper { position: relative; width: 100%; margin-bottom: 14px; }
@@ -858,4 +878,56 @@ button {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 4px;
+}
+
+
+
+/* ========================================== */
+/* 🛡️ LOGIN SCREEN TRUST FOOTER               */
+/* ========================================== */
+.login-trust-footer {
+    margin-top: 35px;
+    text-align: center;
+    width: 100%;
+}
+
+.privacy-promise {
+    color: var(--success);
+    font-size: 11px;
+    font-weight: 750;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: inline-flex;
+}
+
+.privacy-promise .material-icons {
+    font-size: 14px;
+}
+
+.made-with-love {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 0.2px;
+}
+
+.legal-links a {
+    color: var(--nav-inactive);
+    font-size: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.2s ease;
+}
+
+.legal-links a:hover {
+    color: var(--primary);
 }
