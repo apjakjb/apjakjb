@@ -1168,8 +1168,6 @@ if (tabUpcoming && tabExpired && listUpcoming && listExpired) {
     });
 }
 
-
-
 // ==========================================
 // 11. WHATSAPP SUPPORT ENGINE
 // ==========================================
