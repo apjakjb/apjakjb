@@ -662,7 +662,7 @@ function startDashboardLiveEngine() {
             if (now < startTime) {
                 badge.innerHTML = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
                 timeText.innerHTML = `Starts: <strong>${new Date(startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</strong>`;
-                btn.innerText = "🔒 Inactive";
+                btn.innerText = "🔒 Inactive"; 
                 btn.disabled = true;
                 btn.style.opacity = "0.5";
                 btn.style.padding = "12px 24px";
