@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxjJ6ROcsZktgYFccxBRfT_vkSTjCXGPfguumkGyE3Zctz35tnTgi-3LITPZv-qnGbuAA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzKok_fpRnnp7Z99LkYKoyOE3yt3KLow3tiA9MQeDL5y_TY3eLfiOnNp7APmU58dxY43g/exec";
 
 // ==========================================
 // FIREBASE ENGINE & DATABASE
@@ -512,6 +512,25 @@ async function loadDashboard() {
             let practiceCount = 0, completedCount = 0, upcomingCount = 0, expiredCount = 0;
             const nowMs = Date.now();
 
+            // ✅ NAYA: Sirf Date show karne ke liye helper function (Practice Test ke liye)
+            const formatOnlyDate = (isoString) => {
+                if(!isoString) return 'TBA';
+                return new Date(isoString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            };
+
+            // 🔥 FIX: Live Test ke date & time format karne ke liye missing function (Isko add karna zaroori tha)
+            const formatShortDate = (isoString) => {
+                if (!isoString) return 'TBA';
+                // Output example: "15 Aug, 10:30 AM"
+                return new Date(isoString).toLocaleString('en-IN', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            };
+
             // --- RENDER PRACTICE TESTS ---
             (result.practiceTests || []).forEach(test => {
                 if (test.status === "completed") {
@@ -519,12 +538,21 @@ async function loadDashboard() {
                 } else {
                     practiceCount++;
                     practiceTestContainer.insertAdjacentHTML('beforeend', `
-                        <div class="test-card" data-test="${test.testId}" data-duration="${test.duration}" data-type="practice">
-                            <div class="test-info">
-                                <h4>${test.title} <span class="new-badge" style="background:var(--primary)">NEW</span></h4>
-                                <p><span class="material-icons" style="font-size: 13px; vertical-align: middle;">schedule</span> ${test.duration} Mins Duration</p>
+                        <div class="premium-test-card" data-test="${test.testId}" data-duration="${test.duration}" data-type="practice">
+                            <div class="ptc-header">
+                                <span class="ptc-subject">${test.subject}</span>
+                                <span class="ptc-class">Class ${test.classLvl}</span>
                             </div>
-                            <button class="btn-primary test-action-btn">Attend Now</button>
+                            <h4 class="ptc-title">${test.title} <span class="new-badge" style="background:var(--primary); color:white;">NEW</span></h4>
+                            <div class="ptc-details">
+                                <!-- ✅ FIX: Sirf published date show karega, time nahi -->
+                                <p><span class="material-icons">event</span> <strong>Published:</strong> ${formatOnlyDate(test.publishedDate)}</p>
+                                <p><span class="material-icons">menu_book</span> <strong>Syllabus:</strong> ${test.syllabus}</p>
+                                <p><span class="material-icons">schedule</span> <strong>Duration:</strong> ${test.duration} Mins</p>
+                            </div>
+                            <div class="ptc-footer">
+                                <button class="btn-primary test-action-btn">Attempt Practice Test</button>
+                            </div>
                         </div>
                     `);
                 }
@@ -536,24 +564,41 @@ async function loadDashboard() {
                     completedCount++; renderCompletedCard(test, pastResultsContainer);
                 } else {
                     const endTimeMs = new Date(test.endTime).getTime();
-                    const isExpired = nowMs > endTimeMs; // ✅ Time Logic check
+                    const isExpired = nowMs > endTimeMs; 
 
                     const cardHTML = `
-                        <div class="test-card live-test-card" 
+                        <div class="premium-test-card live-test-card" 
                              data-test="${test.testId}" 
                              data-duration="${test.duration}" 
                              data-start="${test.startTime}" 
                              data-end="${test.endTime}" 
                              data-type="live">
-                            <div class="test-info">
-                                <h4>${test.title} <span class="live-status-badge"></span></h4>
-                                <p class="live-timing-text" style="font-size: 12px; margin-top: 5px;"></p>
+                            <div class="ptc-header">
+                                <span class="ptc-subject live-subject">${test.subject}</span>
+                                <span class="ptc-class">Class ${test.classLvl}</span>
                             </div>
-                            <button class="btn-primary test-action-btn" disabled>Wait...</button>
+                            <h4 class="ptc-title">${test.title} <span class="live-status-badge"></span></h4>
+                            <div class="ptc-details">
+                                <p><span class="material-icons">menu_book</span> <strong>Syllabus:</strong> ${test.syllabus}</p>
+                                <p><span class="material-icons">schedule</span> <strong>Duration:</strong> ${test.duration} Mins</p>
+                                <div class="ptc-timings">
+                                    <div class="time-block">
+                                        <span class="material-icons" style="color:var(--success)">event_available</span>
+                                        <div><small>Starts</small><br><b>${formatShortDate(test.startTime)}</b></div>
+                                    </div>
+                                    <div class="time-block">
+                                        <span class="material-icons" style="color:var(--danger)">event_busy</span>
+                                        <div><small>Ends</small><br><b>${formatShortDate(test.endTime)}</b></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ptc-footer" style="flex-direction: column; gap: 8px;">
+                                <p class="live-timing-text" style="font-size: 13px; text-align:center; width:100%;"></p>
+                                <button class="btn-primary test-action-btn" disabled>Wait...</button>
+                            </div>
                         </div>
                     `;
 
-                    // ✅ Smart Separation
                     if (isExpired) {
                         expiredCount++;
                         if (expiredContainer) expiredContainer.insertAdjacentHTML('beforeend', cardHTML);
@@ -563,6 +608,10 @@ async function loadDashboard() {
                     }
                 }
             });
+
+
+
+
 
             // Empty States
             if (upcomingCount === 0 && upcomingContainer) upcomingContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No upcoming or live tests right now.</div>`;
@@ -1167,6 +1216,8 @@ if (tabUpcoming && tabExpired && listUpcoming && listExpired) {
         listUpcoming.style.display = 'none';
     });
 }
+
+
 
 // ==========================================
 // 11. WHATSAPP SUPPORT ENGINE
