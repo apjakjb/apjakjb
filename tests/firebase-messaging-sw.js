@@ -35,7 +35,7 @@ messaging.onBackgroundMessage((payload) => {
 // =========================================================================
 // PWA CACHING LOGIC STARTS HERE (Tumhara purana code neeche rahega)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v22';
+const CACHE_VERSION = 'premium-portal-v23';
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
