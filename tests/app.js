@@ -4,7 +4,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzKok_fpRnnp7Z99LkYKoyOE3yt3KLow3tiA9MQeDL5y_TY3eLfiOnNp7APmU58dxY43g/exec";
 
 // ==========================================
-// FIREBASE ENGINE & DATABASE 
+// FIREBASE ENGINE & DATABASE
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
@@ -665,9 +665,10 @@ function startDashboardLiveEngine() {
                 btn.innerText = "Inactive";
                 btn.disabled = true;
                 btn.style.opacity = "0.5";
+                btn.style.padding = "12px 24px";
             } 
             else if (now >= startTime && now <= endTime) {
-                badge.innerHTML = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🟢 LIVE NOW</span>`;
+                badge.innerHTML = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🛑 LIVE NOW</span>`;
                 const diffMs = endTime - now;
                 const hrs = Math.floor(diffMs / 3600000);
                 const mins = Math.floor((diffMs % 3600000) / 60000);
@@ -677,6 +678,7 @@ function startDashboardLiveEngine() {
                 btn.disabled = false;
                 btn.style.opacity = "1";
                 btn.style.backgroundColor = "var(--danger)"; // Striking Red for Live
+                btn.style.padding = "12px 24px";
                 btn.style.color = "white";
             } 
             else {
@@ -686,6 +688,7 @@ function startDashboardLiveEngine() {
                 btn.disabled = true;
                 btn.style.opacity = "0.3";
                 btn.style.backgroundColor = "transparent";
+                btn.style.padding = "12px 24px";
                 btn.style.color = "var(--text-muted)";
             }
         });
