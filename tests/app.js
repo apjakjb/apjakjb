@@ -4,7 +4,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzKok_fpRnnp7Z99LkYKoyOE3yt3KLow3tiA9MQeDL5y_TY3eLfiOnNp7APmU58dxY43g/exec";
 
 // ==========================================
-// FIREBASE ENGINE & DATABASE 
+// FIREBASE ENGINE & DATABASE
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
@@ -695,10 +695,15 @@ function startDashboardLiveEngine() {
     dashboardTimerInterval = setInterval(updateLiveCards, 30000); // UI Updates every 30 seconds
 }
 
+
+
 function attachTestCardListeners() {
     document.querySelectorAll('.test-action-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            const testCard = e.target.closest('.test-card');
+            const testCard = e.target.closest('.test-card, .premium-test-card');
+            
+            if (!testCard) return; // Fallback safety
+            
             const isCompleted = testCard.getAttribute('data-completed') === "true";
             const testType = testCard.getAttribute('data-type');
             activeTestName = testCard.getAttribute('data-test');
@@ -713,7 +718,6 @@ function attachTestCardListeners() {
             } else {
                 const duration = parseInt(testCard.getAttribute('data-duration'));
                 
-                // 🔒 SMART LOCK: Final Security Check before backend call
                 if (testType === 'live') {
                     const start = new Date(testCard.getAttribute('data-start')).getTime();
                     const end = new Date(testCard.getAttribute('data-end')).getTime();
