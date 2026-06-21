@@ -1069,3 +1069,35 @@ button {
 .ptc-footer .btn-primary { 
     width: 100%; 
 }
+
+
+/* ========================================== */
+/* 🌟 PREMIUM CATEGORY BANNER UI              */
+/* ========================================== */
+.category-banner-card {
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 20px; /* Banner aur pehle card ke beech ka gap */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    border: 1.5px solid var(--border);
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Banner image ko screen ke hisaab se perfectly fit karega */
+.category-banner-img {
+    width: 100%;
+    height: auto;
+    max-height: 180px; /* Jyaada lamba hokar screen na bhare */
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+/* Dark mode mein thodi deep shadow */
+[data-theme="dark"] .category-banner-card {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
