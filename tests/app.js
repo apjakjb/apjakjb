@@ -153,51 +153,45 @@ const gridLive = document.getElementById('grid-action-live');
 const gridPractice = document.getElementById('grid-action-practice');
 const gridNotes = document.getElementById('grid-action-notes'); 
 
+
+
 // 🎯 PREMIUM UI ENGINE: Card highlight aur section toggle logic
 function handleGridSwitch(activeBtnId, sectionToShowId) {
-    // 1. Saare cards se active state hatao aur clicked wale par lagao
     document.querySelectorAll('.grid-card').forEach(card => card.classList.remove('active-card'));
     const activeBtn = document.getElementById(activeBtnId);
     if (activeBtn) activeBtn.classList.add('active-card');
 
-    // 2. Bottom sections ko pehle hide karo (Clean UI)
-    const practiceSection = document.getElementById('practice-tests-section-wrapper');
-    const notesSection = document.getElementById('pdf-notes-section-wrapper');
-    if (practiceSection) practiceSection.style.display = 'none';
-    if (notesSection) notesSection.style.display = 'none';
+    // Sabko pehle hide karo (Naye 4 containers)
+    const wrappers = ['practice-tests-910-wrapper', 'pdf-notes-910-wrapper', 'practice-tests-1112-wrapper', 'pdf-notes-1112-wrapper'];
+    wrappers.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+    });
 
-    // 3. Target section ko Un-hide karo aur smoothly scroll karo
     if (sectionToShowId) {
         const targetSection = document.getElementById(sectionToShowId);
         if (targetSection) {
-            targetSection.style.display = 'block'; // ✅ FIX: Hidden list ko show karega!
+            targetSection.style.display = 'block'; 
             targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 }
 
-// Event Listeners
-if(gridLive) {
-    gridLive.addEventListener('click', () => {
-        handleGridSwitch('grid-action-live', null); 
-        switchTab('live-tests-tab', 'Live Tests');
-        history.pushState({ screen: 'main-app-shell', tab: 'live-tests-tab' }, "", "#live-tests");
-    });
-}
+// 🎯 SMART LISTENERS FOR ROUTING (IX-X & XI-XII)
+document.getElementById('grid-action-live-910')?.addEventListener('click', () => {
+    handleGridSwitch('grid-action-live-910', null); 
+    switchTab('live-tests-tab-910', 'Live Tests (IX & X)');
+});
+document.getElementById('grid-action-live-1112')?.addEventListener('click', () => {
+    handleGridSwitch('grid-action-live-1112', null); 
+    switchTab('live-tests-tab-1112', 'Live Tests (XI & XII)');
+});
 
-if(gridPractice) {
-    gridPractice.addEventListener('click', () => {
-        // Practice card ko active karega aur Practice list ko show karega
-        handleGridSwitch('grid-action-practice', 'practice-tests-section-wrapper');
-    });
-}
+document.getElementById('grid-action-practice-910')?.addEventListener('click', () => handleGridSwitch('grid-action-practice-910', 'practice-tests-910-wrapper'));
+document.getElementById('grid-action-practice-1112')?.addEventListener('click', () => handleGridSwitch('grid-action-practice-1112', 'practice-tests-1112-wrapper'));
 
-if(gridNotes) {
-    gridNotes.addEventListener('click', () => {
-        // Notes card ko active karega aur Notes list ko show karega
-        handleGridSwitch('grid-action-notes', 'pdf-notes-section-wrapper');
-    });
-}
+document.getElementById('grid-action-notes-910')?.addEventListener('click', () => handleGridSwitch('grid-action-notes-910', 'pdf-notes-910-wrapper'));
+document.getElementById('grid-action-notes-1112')?.addEventListener('click', () => handleGridSwitch('grid-action-notes-1112', 'pdf-notes-1112-wrapper'));
 
 // ==========================================
 // 2. CORE SPA ROUTING (FULL SCREENS)
@@ -479,19 +473,23 @@ document.getElementById('profile-logout-btn').addEventListener('click', handleLo
 // ==========================================
 let dashboardTimerInterval;
 
+
 async function loadDashboard() {
     navigate('main-app-shell');
     switchTab('home-tab', 'Home Dashboard');
     
-    const practiceTestContainer = document.getElementById('dynamic-practice-list');
+    // 🛑 SABSE BADI FIX: Saare naye containers ko variables mein exactly bind kiya
+    const practiceList910 = document.getElementById('practice-list-910');
+    const practiceList1112 = document.getElementById('practice-list-1112');
     const pastResultsContainer = document.getElementById('past-results-list');
     
-    // ✅ NAYE CONTAINERS: Upcoming aur Expired ke liye
-    const upcomingContainer = document.getElementById('upcoming-live-list');
-    const expiredContainer = document.getElementById('expired-live-list');
+    const upcoming910 = document.getElementById('upcoming-live-list-910');
+    const expired910 = document.getElementById('expired-live-list-910');
+    const upcoming1112 = document.getElementById('upcoming-live-list-1112');
+    const expired1112 = document.getElementById('expired-live-list-1112');
 
     showLoader("Syncing Live Portal...");
-    clearInterval(dashboardTimerInterval); // Reset engine
+    clearInterval(dashboardTimerInterval); 
 
     try {
         const response = await fetch(API_URL, {
@@ -502,33 +500,31 @@ async function loadDashboard() {
         const result = JSON.parse(await response.text());
 
         if (result.success) {
-            if(practiceTestContainer) practiceTestContainer.innerHTML = "";
-            if(pastResultsContainer) pastResultsContainer.innerHTML = "";
-            if(upcomingContainer) upcomingContainer.innerHTML = "";
-            if(expiredContainer) expiredContainer.innerHTML = "";
+            // 🧹 MAGIC CLEANER: Purane duplicate test cards ko screen se hamesha ke liye saaf karega
+            [practiceList910, practiceList1112, pastResultsContainer, upcoming910, expired910, upcoming1112, expired1112].forEach(el => {
+                if(el) el.innerHTML = "";
+            });
             
             testHistoryData = result.history || {}; 
 
-            let practiceCount = 0, completedCount = 0, upcomingCount = 0, expiredCount = 0;
+            let practiceCount910 = 0, practiceCount1112 = 0, completedCount = 0;
+            let upCount910 = 0, expCount910 = 0, upCount1112 = 0, expCount1112 = 0;
             const nowMs = Date.now();
 
-            // ✅ NAYA: Sirf Date show karne ke liye helper function (Practice Test ke liye)
             const formatOnlyDate = (isoString) => {
                 if(!isoString) return 'TBA';
                 return new Date(isoString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
             };
 
-            // 🔥 FIX: Live Test ke date & time format karne ke liye missing function (Isko add karna zaroori tha)
             const formatShortDate = (isoString) => {
                 if (!isoString) return 'TBA';
-                // Output example: "15 Aug, 10:30 AM"
-                return new Date(isoString).toLocaleString('en-IN', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                });
+                return new Date(isoString).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+            };
+
+            // 🎯 Class Filter Engine (Sirf 11, 12 aur XI, XII ko filter karega)
+            const isSeniorClass = (classStr) => {
+                const str = String(classStr).toUpperCase();
+                return str.includes('11') || str.includes('12') || str.includes('XI');
             };
 
             // --- RENDER PRACTICE TESTS ---
@@ -536,8 +532,10 @@ async function loadDashboard() {
                 if (test.status === "completed") {
                     completedCount++; renderCompletedCard(test, pastResultsContainer);
                 } else {
-                    practiceCount++;
-                    practiceTestContainer.insertAdjacentHTML('beforeend', `
+                    const isSenior = isSeniorClass(test.classLvl);
+                    if (isSenior) practiceCount1112++; else practiceCount910++;
+
+                    const cardHTML = `
                         <div class="premium-test-card" data-test="${test.testId}" data-duration="${test.duration}" data-type="practice">
                             <div class="ptc-header">
                                 <span class="ptc-subject">${test.subject}</span>
@@ -545,7 +543,6 @@ async function loadDashboard() {
                             </div>
                             <h4 class="ptc-title">${test.title} <span class="new-badge" style="background:var(--primary); color:white;">NEW</span></h4>
                             <div class="ptc-details">
-                                <!-- ✅ FIX: Sirf published date show karega, time nahi -->
                                 <p><span class="material-icons">event</span> <strong>Published:</strong> ${formatOnlyDate(test.publishedDate)}</p>
                                 <p><span class="material-icons">menu_book</span> <strong>Syllabus:</strong> ${test.syllabus}</p>
                                 <p><span class="material-icons">schedule</span> <strong>Duration:</strong> ${test.duration} Mins</p>
@@ -554,17 +551,21 @@ async function loadDashboard() {
                                 <button class="btn-primary test-action-btn">Attempt Practice Test</button>
                             </div>
                         </div>
-                    `);
+                    `;
+                    
+                    if(isSenior && practiceList1112) practiceList1112.insertAdjacentHTML('beforeend', cardHTML);
+                    else if (!isSenior && practiceList910) practiceList910.insertAdjacentHTML('beforeend', cardHTML);
                 }
             });
 
-            // --- RENDER LIVE TESTS (PREMIUM TABS LOGIC) ---
+            // --- RENDER LIVE TESTS ---
             (result.liveTests || []).forEach(test => {
                 if (test.status === "completed") {
                     completedCount++; renderCompletedCard(test, pastResultsContainer);
                 } else {
                     const endTimeMs = new Date(test.endTime).getTime();
                     const isExpired = nowMs > endTimeMs; 
+                    const isSenior = isSeniorClass(test.classLvl);
 
                     const cardHTML = `
                         <div class="premium-test-card live-test-card" 
@@ -599,33 +600,34 @@ async function loadDashboard() {
                         </div>
                     `;
 
-                    if (isExpired) {
-                        expiredCount++;
-                        if (expiredContainer) expiredContainer.insertAdjacentHTML('beforeend', cardHTML);
+                    // 🛡️ STRICT ROUTING: Agar test senior ka hai, toh sirf 11/12 mein jayega
+                    if (isSenior) {
+                        if (isExpired) { expCount1112++; if(expired1112) expired1112.insertAdjacentHTML('beforeend', cardHTML); }
+                        else { upCount1112++; if(upcoming1112) upcoming1112.insertAdjacentHTML('beforeend', cardHTML); }
                     } else {
-                        upcomingCount++;
-                        if (upcomingContainer) upcomingContainer.insertAdjacentHTML('beforeend', cardHTML);
+                        if (isExpired) { expCount910++; if(expired910) expired910.insertAdjacentHTML('beforeend', cardHTML); }
+                        else { upCount910++; if(upcoming910) upcoming910.insertAdjacentHTML('beforeend', cardHTML); }
                     }
                 }
             });
 
-
-
-
-
-            // Empty States
-            if (upcomingCount === 0 && upcomingContainer) upcomingContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No upcoming or live tests right now.</div>`;
-            if (expiredCount === 0 && expiredContainer) expiredContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No expired tests available.</div>`;
-            if (practiceCount === 0 && practiceTestContainer) practiceTestContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">No practice tests available.</div>`;
-            if (completedCount === 0 && pastResultsContainer) pastResultsContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 30px;">You haven't attempted any tests yet.</div>`;
+            // 🎨 NEW EMPTY STATES
+            const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
+            if (upCount910 === 0 && upcoming910) upcoming910.innerHTML = emptyMsg("No upcoming live tests for IX & X.");
+            if (expCount910 === 0 && expired910) expired910.innerHTML = emptyMsg("No expired tests for IX & X.");
+            if (upCount1112 === 0 && upcoming1112) upcoming1112.innerHTML = emptyMsg("No upcoming live tests for XI & XII.");
+            if (expCount1112 === 0 && expired1112) expired1112.innerHTML = emptyMsg("No expired tests for XI & XII.");
+            if (practiceCount910 === 0 && practiceList910) practiceList910.innerHTML = emptyMsg("No practice tests for IX & X.");
+            if (practiceCount1112 === 0 && practiceList1112) practiceList1112.innerHTML = emptyMsg("No practice tests for XI & XII.");
+            if (completedCount === 0 && pastResultsContainer) pastResultsContainer.innerHTML = emptyMsg("You haven't attempted any tests yet.");
 
             attachTestCardListeners();
             startDashboardLiveEngine(); 
         } else {
-            if(upcomingContainer) upcomingContainer.innerHTML = `<p class='error'>${result.message}</p>`;
+            showCustomPopup("Error", result.message, "danger");
         }
     } catch (e) {
-        if(upcomingContainer) upcomingContainer.innerHTML = "<p class='error' style='text-align:center;'>Failed to sync dashboard. Check internet.</p>";
+        showCustomPopup("Network Error", "Failed to sync dashboard. Check internet.", "danger");
     } finally {
         hideLoader();
     }
@@ -662,7 +664,7 @@ function startDashboardLiveEngine() {
             if (now < startTime) {
                 badge.innerHTML = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
                 timeText.innerHTML = `Starts: <strong>${new Date(startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</strong>`;
-                btn.innerText = "🔒 Inactive"; 
+                btn.innerText = "🔒 Inactive";
                 btn.disabled = true;
                 btn.style.opacity = "0.5";
                 btn.style.padding = "12px 24px";
@@ -1113,9 +1115,6 @@ messaging.onMessage((payload) => {
     );
 }); 
 
-
-
-
 // ==========================================
 // 9. PREMIUM LEADERBOARD ENGINE
 // ==========================================
@@ -1191,42 +1190,35 @@ async function fetchAndRenderLeaderboard(testId) {
     }
 }
 
-
 // ==========================================
-// 10. PREMIUM LIVE TESTS TABS ENGINE
+// 10. DUAL LIVE TESTS TABS ENGINE (IX-X & XI-XII)
 // ==========================================
-const tabUpcoming = document.getElementById('tab-upcoming');
-const tabExpired = document.getElementById('tab-expired');
-const listUpcoming = document.getElementById('upcoming-live-list');
-const listExpired = document.getElementById('expired-live-list');
+function setupLiveTabs(target) {
+    const tabUp = document.getElementById(`tab-upcoming-${target}`);
+    const tabExp = document.getElementById(`tab-expired-${target}`);
+    const listUp = document.getElementById(`upcoming-live-list-${target}`);
+    const listExp = document.getElementById(`expired-live-list-${target}`);
 
-if (tabUpcoming && tabExpired && listUpcoming && listExpired) {
-    tabUpcoming.addEventListener('click', () => {
-        tabUpcoming.classList.add('active');
-        tabExpired.classList.remove('active');
-        tabUpcoming.style.color = 'var(--primary)';
-        tabUpcoming.style.borderBottom = '3px solid var(--primary)';
-        tabExpired.style.color = 'var(--text-muted)';
-        tabExpired.style.borderBottom = '3px solid transparent';
-        listUpcoming.style.display = 'block';
-        listExpired.style.display = 'none';
-    });
+    if (tabUp && tabExp && listUp && listExp) {
+        tabUp.addEventListener('click', () => {
+            tabUp.classList.add('active'); tabExp.classList.remove('active');
+            tabUp.style.color = 'var(--primary)'; tabUp.style.borderBottom = '3px solid var(--primary)';
+            tabExp.style.color = 'var(--text-muted)'; tabExp.style.borderBottom = '3px solid transparent';
+            listUp.style.display = 'block'; listExp.style.display = 'none';
+        });
 
-    tabExpired.addEventListener('click', () => {
-        tabExpired.classList.add('active');
-        tabUpcoming.classList.remove('active');
-        tabExpired.style.color = 'var(--primary)';
-        tabExpired.style.borderBottom = '3px solid var(--primary)';
-        tabUpcoming.style.color = 'var(--text-muted)';
-        tabUpcoming.style.borderBottom = '3px solid transparent';
-        listExpired.style.display = 'block';
-        listUpcoming.style.display = 'none';
-    });
+        tabExp.addEventListener('click', () => {
+            tabExp.classList.add('active'); tabUp.classList.remove('active');
+            tabExp.style.color = 'var(--primary)'; tabExp.style.borderBottom = '3px solid var(--primary)';
+            tabUp.style.color = 'var(--text-muted)'; tabUp.style.borderBottom = '3px solid transparent';
+            listExp.style.display = 'block'; listUp.style.display = 'none';
+        });
+    }
 }
+setupLiveTabs('910');
+setupLiveTabs('1112');
 
-
-
-// ==========================================
+// =========================================
 // 11. WHATSAPP SUPPORT ENGINE
 // ==========================================
 const contactBtn = document.getElementById('menu-contact-btn');
