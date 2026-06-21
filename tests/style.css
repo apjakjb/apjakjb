@@ -1104,13 +1104,13 @@ button {
 
 
 /* ========================================== */
-/* 🌟 PREMIUM AUTO IMAGE SLIDER UI            */
+/* 🌟 PREMIUM AUTO IMAGE SLIDER UI (NO CROP)  */
 /* ========================================== */
 .premium-image-slider {
     position: relative;
     width: 100%;
-    height: 120px; /* Same height as your old text banner */
-    border-radius: 18px; /* Smooth iOS style corners */
+    height: auto; /* 🎯 NAYA FIX: Fixed height hata di, ab height image ke hisaab se adjust hogi */
+    border-radius: 18px; 
     overflow: hidden;
     margin-bottom: 22px;
     box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
@@ -1121,17 +1121,19 @@ button {
 .slider-track {
     display: flex;
     width: 100%;
-    height: 100%;
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); /* Smooth slide animation */
+    align-items: center; /* 🎯 NAYA FIX: Images hamesha vertically center mein rahengi */
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
 }
 
 .slide-img {
-    min-width: 100%; /* Ek baar mein ek hi image dikhegi */
-    height: 100%;
-    object-fit: cover; /* Image fatega nahi, perfectly center mein fit hoga */
+    flex: 0 0 100%; /* 🎯 NAYA FIX: Har image theek screen jitni jagah legi */
+    width: 100%;
+    height: auto; /* 🎯 NAYA FIX: Image apni natural shape retain karegi */
+    object-fit: contain; /* 🎯 NAYA MAGIC FIX: Image ab kabhi cut/crop nahi hogi, poori dikhegi */
     display: block;
 }
 
+/* Dots aur dark mode ki design waise hi rahegi */
 .slider-dots {
     position: absolute;
     bottom: 10px;
@@ -1152,7 +1154,7 @@ button {
 
 .dot.active {
     background: #ffffff;
-    width: 16px; /* Active dot thoda lamba dikhega (premium feel) */
+    width: 16px; 
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
@@ -1161,3 +1163,7 @@ button {
     box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
     border-color: var(--border-dark);
 }
+
+
+
+
