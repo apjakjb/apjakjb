@@ -1101,3 +1101,63 @@ button {
 [data-theme="dark"] .category-banner-card {
     box-shadow: 0 6px 16px rgba(0,0,0,0.3);
 }
+
+
+/* ========================================== */
+/* 🌟 PREMIUM AUTO IMAGE SLIDER UI            */
+/* ========================================== */
+.premium-image-slider {
+    position: relative;
+    width: 100%;
+    height: 120px; /* Same height as your old text banner */
+    border-radius: 18px; /* Smooth iOS style corners */
+    overflow: hidden;
+    margin-bottom: 22px;
+    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
+    background: var(--card-bg); 
+    border: 1.5px solid var(--border);
+}
+
+.slider-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); /* Smooth slide animation */
+}
+
+.slide-img {
+    min-width: 100%; /* Ek baar mein ek hi image dikhegi */
+    height: 100%;
+    object-fit: cover; /* Image fatega nahi, perfectly center mein fit hoga */
+    display: block;
+}
+
+.slider-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 5;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background: #ffffff;
+    width: 16px; /* Active dot thoda lamba dikhega (premium feel) */
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+[data-theme="dark"] .premium-image-slider {
+    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
+    border-color: var(--border-dark);
+}
