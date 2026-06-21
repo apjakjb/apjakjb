@@ -4,7 +4,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzKok_fpRnnp7Z99LkYKoyOE3yt3KLow3tiA9MQeDL5y_TY3eLfiOnNp7APmU58dxY43g/exec";
 
 // ==========================================
-// FIREBASE ENGINE & DATABASE 
+// FIREBASE ENGINE & DATABASE
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
@@ -1236,3 +1236,49 @@ if (contactBtn) {
         window.open(whatsappUrl, '_blank');
     });
 }
+
+
+
+// ==========================================
+// 🌟 PREMIUM AUTO IMAGE SLIDER ENGINE
+// ==========================================
+function initPremiumSlider() {
+    const track = document.getElementById('slider-track');
+    const dotsContainer = document.getElementById('slider-dots');
+    
+    // Agar screen par slider nahi hai, toh kuch mat karo
+    if (!track || !dotsContainer) return;
+
+    const slides = track.querySelectorAll('.slide-img');
+    if (slides.length === 0) return;
+
+    let currentIndex = 0;
+    const slideCount = slides.length;
+
+    // 1. Automatically dots create karo jitni images hain
+    slides.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.classList.add('dot');
+        if (i === 0) dot.classList.add('active');
+        dotsContainer.appendChild(dot);
+    });
+
+    const dots = dotsContainer.querySelectorAll('.dot');
+
+    // 2. Slide change karne ka main function
+    function goToSlide(index) {
+        track.style.transform = `translateX(-${index * 100}%)`;
+        dots.forEach(dot => dot.classList.remove('active'));
+        dots[index].classList.add('active');
+        currentIndex = index;
+    }
+
+    // 3. Har 3.5 seconds mein automatic agle slide par jao
+    setInterval(() => {
+        let nextIndex = (currentIndex + 1) % slideCount;
+        goToSlide(nextIndex);
+    }, 3500);
+}
+
+// App khulte hi slider engine ko start kar do
+document.addEventListener('DOMContentLoaded', initPremiumSlider);
