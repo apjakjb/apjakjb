@@ -1165,5 +1165,144 @@ button {
 }
 
 
+/* ========================================== */
+/* 🌟 VIP PREMIUM GRID CARD UI (GOLD LOOK)    */
+/* ========================================== */
+.premium-glow-card {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    border: 1.5px solid #FCD34D;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
+    position: relative;
+    overflow: hidden; /* Shine effect ko card ke andar rakhne ke liye */
+}
+
+/* Card dabne par smooth animation */
+.premium-glow-card:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+}
+
+/* 🔥 THE MAGIC: Chamakti hui Shine Animation */
+.premium-glow-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg);
+    animation: goldShine 3.5s infinite;
+}
+
+@keyframes goldShine {
+    0% { left: -100%; }
+    20% { left: 200%; }
+    100% { left: 200%; }
+}
+
+/* Premium Icon Box Gold Theme */
+.premium-box {
+    background: rgba(245, 158, 11, 0.2);
+    color: #D97706;
+}
+
+/* 🌙 Dark Mode Support for Premium Card */
+[data-theme="dark"] .premium-glow-card {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%);
+    border-color: #D97706;
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.2);
+}
+[data-theme="dark"] .premium-box {
+    background: rgba(245, 158, 11, 0.2);
+    color: #FBBF24;
+}
+[data-theme="dark"] .premium-glow-card::after {
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+}
+
+
+
+/* ========================================== */
+/* 💎 PREMIUM PACKAGE DETAILS SCREEN UI       */
+/* ========================================== */
+.premium-pkg-banner {
+    position: relative;
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 1.5px solid var(--border);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+}
+.pkg-banner-img {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    display: block;
+    object-fit: cover;
+}
+.pkg-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #EF4444;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    z-index: 2;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+}
+
+.pkg-header-info { margin-bottom: 24px; }
+.pkg-header-info h2 { font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 12px; line-height: 1.3; }
+
+/* Pricing Row with Gold Theme */
+.pkg-price-row { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    background: #FEFCE8; 
+    border: 1.5px solid #FEF08A; 
+    padding: 12px 16px; 
+    border-radius: 14px; 
+}
+[data-theme="dark"] .pkg-price-row { background: rgba(250, 204, 21, 0.1); border-color: rgba(250, 204, 21, 0.2); }
+
+.price-block { display: flex; align-items: baseline; gap: 8px; }
+.current-price { font-size: 24px; font-weight: 900; color: #16A34A; }
+.deleted-price { font-size: 14px; font-weight: 600; color: var(--text-muted); text-decoration: line-through; } /* Real price cut */
+
+/* Offer Badge with rotating Star */
+.offer-badge { display: flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; }
+.offer-badge .star-icon { font-size: 14px; animation: spinGlow 3s linear infinite; }
+@keyframes spinGlow { 
+    0% { transform: rotate(0deg) scale(1); } 
+    50% { transform: rotate(180deg) scale(1.2); } 
+    100% { transform: rotate(360deg) scale(1); } 
+}
+
+/* Stats Grid */
+.pkg-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+.stat-item { display: flex; align-items: center; gap: 12px; background: var(--card-bg); border: 1.5px solid var(--border); padding: 12px; border-radius: 14px; }
+.stat-item .material-icons { font-size: 22px; color: var(--primary); background: rgba(79, 70, 229, 0.1); padding: 8px; border-radius: 10px; }
+.stat-text label { display: block; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px; }
+.stat-text p { font-size: 13px; font-weight: 700; color: var(--text-main); }
+
+/* Bottom Action Area */
+.pkg-bottom-actions { 
+    position: absolute; /* Navigation shell ke upar fix rahega */
+    bottom: 0; left: 0; width: 100%; 
+    padding: 16px; background: var(--card-bg); 
+    display: flex; gap: 12px; 
+    border-top: 1px solid var(--border-dark); 
+    z-index: 100; 
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.05); 
+}
+[data-theme="dark"] .pkg-bottom-actions { box-shadow: 0 -4px 15px rgba(0,0,0,0.3); }
+
+.buy-btn-glow { background: linear-gradient(135deg, #10B981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+.buy-btn-glow:active { background: #059669; }
 
 
