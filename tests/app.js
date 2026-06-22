@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbzKok_fpRnnp7Z99LkYKoyOE3yt3KLow3tiA9MQeDL5y_TY3eLfiOnNp7APmU58dxY43g/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyZ0I7rnS75wXu67tWG3Q8xwV1W-yXZ3s_F0tQ0oPFNLcysD0DeF1_q854hA_dV4LF63Q/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -154,15 +154,14 @@ const gridPractice = document.getElementById('grid-action-practice');
 const gridNotes = document.getElementById('grid-action-notes'); 
 
 
-
 // 🎯 PREMIUM UI ENGINE: Card highlight aur section toggle logic
 function handleGridSwitch(activeBtnId, sectionToShowId) {
     document.querySelectorAll('.grid-card').forEach(card => card.classList.remove('active-card'));
     const activeBtn = document.getElementById(activeBtnId);
     if (activeBtn) activeBtn.classList.add('active-card');
 
-    // Sabko pehle hide karo (Naye 4 containers)
-    const wrappers = ['practice-tests-910-wrapper', 'pdf-notes-910-wrapper', 'practice-tests-1112-wrapper', 'pdf-notes-1112-wrapper'];
+    // Sabko pehle hide karo (Sirf 2 containers bache hain)
+    const wrappers = ['practice-tests-910-wrapper', 'practice-tests-1112-wrapper'];
     wrappers.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = 'none';
@@ -182,16 +181,21 @@ document.getElementById('grid-action-live-910')?.addEventListener('click', () =>
     handleGridSwitch('grid-action-live-910', null); 
     switchTab('live-tests-tab-910', 'Live Tests (IX & X)');
 });
-document.getElementById('grid-action-live-1112')?.addEventListener('click', () => {
-    handleGridSwitch('grid-action-live-1112', null); 
-    switchTab('live-tests-tab-1112', 'Live Tests (XI & XII)');
+
+
+// 🌟 FIXED: Premium Live Test ke click par ab NAYA Premium Tab khulega
+document.getElementById('grid-action-premium-1112')?.addEventListener('click', () => {
+    handleGridSwitch('grid-action-premium-1112', null); 
+    switchTab('premium-tests-tab', 'Premium Test Series');
+});
+
+// About Screen se wapas aane ka logic
+document.getElementById('close-about-screen-btn')?.addEventListener('click', () => {
+    navigate('main-app-shell', false);
 });
 
 document.getElementById('grid-action-practice-910')?.addEventListener('click', () => handleGridSwitch('grid-action-practice-910', 'practice-tests-910-wrapper'));
 document.getElementById('grid-action-practice-1112')?.addEventListener('click', () => handleGridSwitch('grid-action-practice-1112', 'practice-tests-1112-wrapper'));
-
-document.getElementById('grid-action-notes-910')?.addEventListener('click', () => handleGridSwitch('grid-action-notes-910', 'pdf-notes-910-wrapper'));
-document.getElementById('grid-action-notes-1112')?.addEventListener('click', () => handleGridSwitch('grid-action-notes-1112', 'pdf-notes-1112-wrapper'));
 
 // ==========================================
 // 2. CORE SPA ROUTING (FULL SCREENS)
@@ -355,13 +359,16 @@ function triggerSmartPushPrompt() {
         }
     });
 }
+
+
 // ==========================================
 // 4. AUTHENTICATION
 // ==========================================
 function checkAuthSession() {
     const cachedUser = localStorage.getItem('student_username');
     const cachedName = localStorage.getItem('student_name');
-    if (cachedUser) {
+    const cachedToken = localStorage.getItem('auth_token');
+    if (cachedUser && cachedToken) {
         loggedInUser = cachedUser;
         loggedInUserName = cachedName || cachedUser.split('@')[0]; 
         updateProfileUI();
@@ -374,14 +381,12 @@ function checkAuthSession() {
     }
 }
 document.addEventListener("DOMContentLoaded", checkAuthSession);
-
 function updateProfileUI() {
     document.getElementById('welcome-text').innerText = `Hello Dear, ${loggedInUserName}`;
     document.getElementById('drawer-username').innerText = loggedInUserName;
     document.getElementById('profile-student-name').innerText = loggedInUserName;
     document.getElementById('profile-meta-username').innerText = loggedInUser;
 }
-
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const errorMsg = document.getElementById('error-message');
@@ -389,7 +394,6 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const passwordInput = document.getElementById('password').value.trim();
     
     showLoader("Authenticating Session...");
-
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -397,14 +401,15 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             redirect: "follow",
             body: JSON.stringify({ action: "login", username: usernameInput, password: passwordInput })
         });
-        
         const result = JSON.parse(await response.text());
 
         if (result.success) {
             loggedInUser = usernameInput;
-            loggedInUserName = "Admin";
+            loggedInUserName = usernameInput;
             localStorage.setItem('student_username', loggedInUser);
             localStorage.setItem('student_name', loggedInUserName);
+            localStorage.setItem('auth_token', result.token); 
+            
             updateProfileUI();
             document.getElementById('login-form').reset();
             errorMsg.innerText = "";
@@ -452,13 +457,13 @@ if (googleLoginBtn) {
     });
 }
 
-
-
-
 function handleLogout() {
     showCustomPopup("Secure Logout", "Are you sure you want to end your session?", "warning", () => {
         loggedInUser = "";
         localStorage.removeItem('student_username');
+        localStorage.removeItem('student_name');
+        localStorage.removeItem('auth_token'); 
+        
         if(auth) auth.signOut();
         if(drawer.classList.contains('open')) toggleDrawer();
         navigate('login-screen');
@@ -478,8 +483,7 @@ async function loadDashboard() {
     navigate('main-app-shell');
     switchTab('home-tab', 'Home Dashboard');
     
-    // 🛑 SABSE BADI FIX: Saare naye containers ko variables mein exactly bind kiya
-    const practiceList910 = document.getElementById('practice-list-910');
+const practiceList910 = document.getElementById('practice-list-910');
     const practiceList1112 = document.getElementById('practice-list-1112');
     const pastResultsContainer = document.getElementById('past-results-list');
     
@@ -487,20 +491,25 @@ async function loadDashboard() {
     const expired910 = document.getElementById('expired-live-list-910');
     const upcoming1112 = document.getElementById('upcoming-live-list-1112');
     const expired1112 = document.getElementById('expired-live-list-1112');
+    
+    // 💎 NAYA: Premium Test List Container
+    const premiumTestList = document.getElementById('premium-test-list');
 
     showLoader("Syncing Live Portal...");
     clearInterval(dashboardTimerInterval); 
 
+
     try {
+        const authToken = localStorage.getItem('auth_token');
+        
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "getDashboard", username: loggedInUser })
+            body: JSON.stringify({ action: "getDashboard", username: loggedInUser, token: authToken })
         });
         const result = JSON.parse(await response.text());
 
         if (result.success) {
-            // 🧹 MAGIC CLEANER: Purane duplicate test cards ko screen se hamesha ke liye saaf karega
             [practiceList910, practiceList1112, pastResultsContainer, upcoming910, expired910, upcoming1112, expired1112].forEach(el => {
                 if(el) el.innerHTML = "";
             });
@@ -558,7 +567,13 @@ async function loadDashboard() {
                 }
             });
 
-            // --- RENDER LIVE TESTS ---
+
+            // 💎 PREMIUM CONTAINER LINK (Agar HTML mein hai toh)
+            const premiumTestList = document.getElementById('premium-test-list');
+
+
+
+            // 🟢 --- 1. RENDER FREE LIVE TESTS ---
             (result.liveTests || []).forEach(test => {
                 if (test.status === "completed") {
                     completedCount++; renderCompletedCard(test, pastResultsContainer);
@@ -600,7 +615,6 @@ async function loadDashboard() {
                         </div>
                     `;
 
-                    // 🛡️ STRICT ROUTING: Agar test senior ka hai, toh sirf 11/12 mein jayega
                     if (isSenior) {
                         if (isExpired) { expCount1112++; if(expired1112) expired1112.insertAdjacentHTML('beforeend', cardHTML); }
                         else { upCount1112++; if(upcoming1112) upcoming1112.insertAdjacentHTML('beforeend', cardHTML); }
@@ -610,6 +624,51 @@ async function loadDashboard() {
                     }
                 }
             });
+
+            // 💎 --- 2. RENDER PREMIUM BUNDLES (Test Series) ---
+            (result.premiumBundles || []).forEach(bundle => {
+                const premiumCardHTML = `
+                    <div class="premium-detail-card" style="background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1.5px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase;">${bundle.subject}</span>
+                            ${bundle.offerBadge ? `<span style="background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800;"><span class="material-icons" style="font-size: 12px; vertical-align: middle;">auto_awesome</span> ${bundle.offerBadge}</span>` : ''}
+                        </div>
+                        
+                        <h3 style="font-size: 18px; color: var(--text-main); margin-bottom: 12px; line-height: 1.3;">${bundle.title}</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 13px; color: var(--text-muted);">
+                            <div><span class="material-icons" style="font-size: 16px; vertical-align: middle; color: var(--primary);">menu_book</span> <b>Syllabus:</b> ${bundle.syllabus}</div>
+                            <div><span class="material-icons" style="font-size: 16px; vertical-align: middle; color: var(--success);">format_list_numbered</span> <b>Mocks:</b> ${bundle.totalMocks}</div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px 12px; background: rgba(0,0,0,0.02); border-radius: 8px;">
+                            <div>
+                                <span style="font-size: 13px; text-decoration: line-through; color: var(--text-muted);">₹${bundle.originalPrice || 999}</span>
+                                <span style="font-size: 22px; font-weight: 900; color: #10B981; margin-left: 8px;">₹${bundle.offerPrice || 199}</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-secondary premium-about-btn" onclick="showCustomPopup('About Test Series', '${bundle.aboutTest || 'Complete test series for your preparation.'}', 'info')" style="flex: 1; padding: 10px; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">
+                                <span class="material-icons" style="font-size: 18px;">info</span> About
+                            </button>
+                            
+                            ${!bundle.isBought ? 
+                                `<button class="btn-primary premium-buy-btn" data-testid="${bundle.bundleId}" data-amount="${bundle.offerPrice}" style="flex: 1.5; background: #F59E0B; border:none; color:white; padding: 10px; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">
+                                    <span class="material-icons" style="font-size: 18px;">shopping_cart_checkout</span> Buy Now
+                                </button>` 
+                                : 
+                                `<button class="btn-primary premium-open-series-btn" data-series="${bundle.bundleId}" data-title="${bundle.title}" style="flex: 1.5; background: var(--success); border:none; color:white; padding: 10px; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">
+                                    <span class="material-icons" style="font-size: 18px;">folder_open</span> Open Series
+                                </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+                if (premiumTestList) premiumTestList.insertAdjacentHTML('beforeend', premiumCardHTML);
+            });
+
+
 
             // 🎨 NEW EMPTY STATES
             const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
@@ -660,38 +719,55 @@ function startDashboardLiveEngine() {
             const badge = card.querySelector('.live-status-badge');
             const timeText = card.querySelector('.live-timing-text');
             const btn = card.querySelector('.test-action-btn');
+            const isPremium = card.getAttribute('data-premium') === "true";
+            const isBought = card.getAttribute('data-bought') === "true";
+            const offerPrice = card.getAttribute('data-newprice');
 
-            if (now < startTime) {
-                badge.innerHTML = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
-                timeText.innerHTML = `Starts: <strong>${new Date(startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</strong>`;
-                btn.innerText = "🔒 Inactive";
-                btn.disabled = true;
-                btn.style.opacity = "0.5";
-                btn.style.padding = "12px 24px";
-            } 
-            else if (now >= startTime && now <= endTime) {
-                badge.innerHTML = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🛑 LIVE NOW</span>`;
-                const diffMs = endTime - now;
-                const hrs = Math.floor(diffMs / 3600000);
-                const mins = Math.floor((diffMs % 3600000) / 60000);
-                timeText.innerHTML = `<span style="color:var(--danger); font-weight:600;">Closes in: ${hrs}h ${mins}m</span>`;
-                
-                btn.innerText = "Start Live Test";
-                btn.disabled = false;
-                btn.style.opacity = "1";
-                btn.style.backgroundColor = "var(--danger)"; // Striking Red for Live
-                btn.style.padding = "12px 24px";
-                btn.style.color = "white";
-            } 
-            else {
+            // Agar Test Expire Ho Gaya Hai
+            if (now > endTime) {
                 badge.innerHTML = `<span style="color:var(--danger); font-size:11px; font-weight:bold;">🔴 CLOSED</span>`;
                 timeText.innerText = `Missed: ${new Date(endTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}`;
                 btn.innerText = "Expired";
                 btn.disabled = true;
                 btn.style.opacity = "0.3";
                 btn.style.backgroundColor = "transparent";
-                btn.style.padding = "12px 24px";
                 btn.style.color = "var(--text-muted)";
+            } 
+            else { // Test Upcoming hai ya Live Now hai
+                if (now < startTime) {
+                    badge.innerHTML = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
+                    timeText.innerHTML = `Starts: <strong>${new Date(startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</strong>`;
+                } else {
+                    badge.innerHTML = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🛑 LIVE NOW</span>`;
+                    const diffMs = endTime - now;
+                    const hrs = Math.floor(diffMs / 3600000);
+                    const mins = Math.floor((diffMs % 3600000) / 60000);
+                    timeText.innerHTML = `<span style="color:var(--danger); font-weight:600;">Closes in: ${hrs}h ${mins}m</span>`;
+                }
+                
+                // 💎 SMART BUTTON TEXT LOGIC
+                btn.disabled = false;
+                btn.style.opacity = "1";
+                btn.style.padding = "12px 24px";
+                
+                if (isPremium && !isBought) {
+                    // Paid hai aur kharida nahi hai -> "Buy Test" dikhao
+                    btn.innerHTML = `Buy Test - ₹${offerPrice} <span class="material-icons" style="font-size:16px;">shopping_cart</span>`;
+                    btn.style.backgroundColor = "#F59E0B"; // Gold color for buying
+                    btn.style.color = "white";
+                } else {
+                    // Free hai ya phir Kharid liya hai -> "Open Test" logic
+                    if (now < startTime) {
+                        btn.innerText = isPremium && isBought ? "Purchased (Wait to start)" : "🔒 Inactive";
+                        btn.disabled = true;
+                        btn.style.opacity = "0.5";
+                        btn.style.backgroundColor = "var(--primary)";
+                    } else {
+                        btn.innerText = isPremium && isBought ? "Open Premium Test" : "Start Live Test";
+                        btn.style.backgroundColor = "var(--danger)"; // Striking Red for Live
+                        btn.style.color = "white";
+                    }
+                }
             }
         });
     }
@@ -720,9 +796,45 @@ function attachTestCardListeners() {
                 } else {
                     showCustomPopup("Unavailable", "Analysis data is corrupted or unavailable for this test.", "danger");
                 }
-            } else {
+
+                } else {
                 const duration = parseInt(testCard.getAttribute('data-duration'));
                 
+                // 💎 NAYA: Premium Checks (Data Attributes se read karna)
+                const isPremium = testCard.getAttribute('data-premium') === "true";
+                const isBought = testCard.getAttribute('data-bought') === "true";
+
+
+
+
+                // 🌟 SCENARIO 1: Agar Premium hai aur BOUGHT NAHI HAI -> Detail Screen kholo
+                if (isPremium && !isBought) {
+                    document.getElementById('pkg-detail-title').innerText = testCard.getAttribute('data-title');
+                    document.getElementById('pkg-old-price').innerText = `₹${testCard.getAttribute('data-oldprice')}`;
+                    document.getElementById('pkg-new-price').innerText = `₹${testCard.getAttribute('data-newprice')}`;
+                    document.getElementById('pkg-offer-text').innerText = testCard.getAttribute('data-badge');
+                    document.getElementById('pkg-detail-syllabus').innerText = testCard.getAttribute('data-syllabus');
+                    document.getElementById('pkg-detail-duration').innerText = `${duration} Mins`;
+                    
+                    // 🎯 THE FIX: Buy Button ko exactly batao ki kya kharidna hai
+                    const buyBtn = document.getElementById('pkg-buy-btn');
+                    buyBtn.setAttribute('data-testid', testCard.getAttribute('data-test'));
+                    buyBtn.setAttribute('data-amount', testCard.getAttribute('data-newprice'));
+                    
+                    // About Test popup set karna
+                    document.getElementById('pkg-about-btn').onclick = () => {
+                        showCustomPopup("About This Test", testCard.getAttribute('data-about'), "info");
+                    };
+                    
+                    navigate('premium-package-screen', true); // Seedha Premium Detail Screen pe bhejo
+                    return; // Yahin ruk jao, aage live test start nahi hoga
+                }
+
+
+
+
+
+                // 🌟 SCENARIO 2: Free test hai, ya phir Kharida hua Premium test hai (Normal flow)
                 if (testType === 'live') {
                     const start = new Date(testCard.getAttribute('data-start')).getTime();
                     const end = new Date(testCard.getAttribute('data-end')).getTime();
@@ -771,16 +883,18 @@ document.addEventListener("visibilitychange", () => {
 });
 
 
-
 async function startLiveTest(testId, durationMins) {
     showLoader("Initializing Secure Environment...");
     try {
+        const authToken = localStorage.getItem('auth_token');   
+        
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             redirect: "follow",
-            body: JSON.stringify({ action: "fetchTest", testName: testId })
+            body: JSON.stringify({ action: "fetchTest", username: loggedInUser, token: authToken, testName: testId })
         });
+
         const result = JSON.parse(await response.text());
 
         if (result.success && result.questions.length > 0) {
@@ -943,12 +1057,14 @@ async function processSubmission() {
     const timeTaken = totalTestSeconds - timeRemaining;
 
     try {
+        const authToken = localStorage.getItem('auth_token'); // 🔥 NAYA: Secret token nikalo
+        
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             redirect: "follow",
-            // Payload mein timeTaken add kar diya
-            body: JSON.stringify({ action: "submitTest", username: loggedInUser, testName: activeTestName, answers: userAnswers, timeTaken: timeTaken })
+            // 🔥 NAYA: Payload mein token add kar diya taaki fake submission na ho ske
+            body: JSON.stringify({ action: "submitTest", username: loggedInUser, token: authToken, testName: activeTestName, answers: userAnswers, timeTaken: timeTaken })
         });
         const result = JSON.parse(await response.text());
 
@@ -1282,3 +1398,211 @@ function initPremiumSlider() {
 
 // App khulte hi slider engine ko start kar do
 document.addEventListener('DOMContentLoaded', initPremiumSlider);
+
+// ==========================================
+// 💎 PREMIUM SCREEN ENGINE & PHASE 4 SETUP
+// ==========================================
+const closePremiumBtn = document.getElementById('close-premium-pkg-btn');
+if (closePremiumBtn) {
+    closePremiumBtn.addEventListener('click', () => {
+        navigate('main-app-shell', false);
+    });
+}
+
+
+
+// ==========================================
+// 💳 PREMIUM RAZORPAY PAYMENT ENGINE (100% SECURE FOR BUNDLES)
+// ==========================================
+document.addEventListener('click', async (e) => {
+    const buyBtn = e.target.closest('.premium-buy-btn');
+    if (buyBtn) {
+        const bundleId = buyBtn.getAttribute('data-testid');
+
+        if (!bundleId) {
+            showCustomPopup("Error", "Invalid Bundle ID.", "danger");
+            return;
+        }
+
+        // 🛡️ SECURITY CHECK: Ensure Razorpay is loaded properly
+        if (typeof Razorpay === 'undefined') {
+            showCustomPopup("Connection Error", "Payment gateway is loading. Please check your internet connection and try again.", "warning");
+            return;
+        }
+
+        showLoader("Generating Secure Bank Order...");
+        try {
+
+            // 🛡️ ANTI-HACK: Frontend sirf ID bhejega. Backend khud Google Sheet se real price fetch karega.
+            const authToken = localStorage.getItem('auth_token'); // 🔥 NAYA: Token nikalo
+            const orderRes = await fetch(API_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "createOrder", username: loggedInUser, token: authToken, testId: bundleId }) 
+            });
+
+            const orderResult = JSON.parse(await orderRes.text());
+
+            hideLoader();
+
+            if (!orderResult.success) {
+                showCustomPopup("Bank Error", orderResult.message || "Failed to connect with bank gateway.", "danger");
+                return;
+            }
+
+            // 💳 RAZORPAY POPUP OPTIONS
+            var options = {
+                "key": "rzp_live_T4XNIDMRFQbzpL", // Tumhari test key
+                "amount": orderResult.amount * 100, // Secure amount strictly from backend
+                "currency": "INR",
+                "name": "Test Portal",
+                "description": "Purchase Test Bundle",
+                "image": "./icon-512x512.png", 
+                "order_id": orderResult.orderId,
+                "handler": async function (response) {
+                    
+                    // ✅ SUCCESS LOGIC: Payment done! Verify & Unlock in Backend
+                    showLoader("Verifying Payment & Unlocking Bundle...");
+
+
+                    try {
+                        const verifyRes = await fetch(API_URL, {
+                            method: 'POST',
+                            headers: { "Content-Type": "text/plain;charset=utf-8" },
+                            body: JSON.stringify({ 
+                                action: "savePayment", 
+                                username: loggedInUser, 
+                                token: authToken, // 🔥 NAYA: Token attach karo
+                                testId: bundleId,
+                                paymentId: response.razorpay_payment_id,
+                                amount: orderResult.amount 
+                            })
+                        });
+
+
+
+                        const verifyResult = JSON.parse(await verifyRes.text());
+
+                        hideLoader();
+                        if (verifyResult.success) {
+                            // Payment verified securely
+                            showCustomPopup("Payment Successful! 🎉", "Premium Test Bundle has been permanently unlocked for your account.", "success", () => {
+                                // Background mein data refresh karo taaki "Buy Now" automatically "Open Series" ban jaye!
+                                loadDashboard(); 
+                            });
+                        } else {
+                            showCustomPopup("Verification Error", "Payment received but failed to unlock bundle. Please contact admin.", "warning");
+                        }
+                    } catch (e) {
+                        hideLoader();
+                        showCustomPopup("Network Error", "Payment successful, but verification timed out. Don't worry, contact support with your email.", "danger");
+                    }
+                },
+                "prefill": {
+                    "email": loggedInUser 
+                },
+                "theme": {
+                    "color": "#F59E0B" // Premium Gold Color
+                }
+            };
+
+            // 4. OPEN RAZORPAY SECURE GATEWAY
+            var rzp1 = new Razorpay(options);
+            
+            // ❌ FAILED PAYMENT LOGIC
+            rzp1.on('payment.failed', function (response){
+                showCustomPopup("Payment Failed ❌", `Transaction declined: ${response.error.description}`, "danger");
+            });
+            
+            rzp1.open();
+
+        } catch (error) {
+            hideLoader();
+            showCustomPopup("Network Error", "Could not connect to secure payment server.", "danger");
+        }
+    }
+});
+
+
+
+// ==========================================
+// 📂 PREMIUM SERIES FOLDER ENGINE (DYNAMIC FETCH)
+// ==========================================
+document.addEventListener('click', async (e) => {
+    const openBtn = e.target.closest('.premium-open-series-btn');
+    if (openBtn) {
+        const seriesTitle = openBtn.getAttribute('data-title');
+        const bundleId = openBtn.getAttribute('data-series'); 
+        
+        // Setup Screen Title and Loading State
+        document.getElementById('series-screen-title').innerText = seriesTitle;
+        const innerList = document.getElementById('series-inner-tests-list');
+        innerList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--primary);"><span class="material-icons" style="font-size: 30px; animation: spinGlow 1s linear infinite;">autorenew</span><br><b style="display:block; margin-top:10px;">Fetching Mock Tests...</b></div>`;
+        
+        navigate('premium-series-screen', true);
+
+
+        try {
+            const authToken = localStorage.getItem('auth_token');
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "getBundleTests", username: loggedInUser, token: authToken, bundleId: bundleId })
+            });
+
+            const data = JSON.parse(await res.text());
+
+            if (data.success && data.bundleTests.length > 0) {
+                innerList.innerHTML = ""; // Clear loader
+                
+                data.bundleTests.forEach(test => {
+                    const isCompleted = test.status === "completed";
+                    const testDuration = parseInt(test.duration) || 60;
+                    
+                    const now = Date.now();
+                    const startTime = test.startTime ? new Date(test.startTime).getTime() : 0;
+                    const endTime = test.endTime ? new Date(test.endTime).getTime() : Infinity;
+                    
+                    let statusBadge = "";
+                    let actionBtn = "";
+                    
+                    // Button Logic: Completed > Upcoming > Expired > Active
+                    if (isCompleted) {
+                        statusBadge = `<span style="color:var(--success); font-size:11px; font-weight:bold;">✅ ATTEMPTED</span>`;
+                        actionBtn = `<button class="btn-secondary test-action-btn" data-test="${test.testId}" data-completed="true" style="width:100%; margin-top:10px;">View Analysis</button>`;
+                        testHistoryData[test.testId] = { score: test.score, total: test.total }; // Sync analysis info
+                    } else if (now < startTime) {
+                        statusBadge = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
+                        actionBtn = `<button class="btn-primary" disabled style="width:100%; margin-top:10px; opacity:0.5;">Starts ${new Date(startTime).toLocaleDateString()}</button>`;
+                    } else if (now > endTime) {
+                        statusBadge = `<span style="color:var(--danger); font-size:11px; font-weight:bold;">🔴 MISSED</span>`;
+                        actionBtn = `<button class="btn-secondary" disabled style="width:100%; margin-top:10px; opacity:0.5;">Expired</button>`;
+                    } else {
+                        statusBadge = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🟢 ACTIVE</span>`;
+                        actionBtn = `<button class="btn-primary test-action-btn" data-test="${test.testId}" data-duration="${testDuration}" data-type="live" style="width:100%; margin-top:10px; background:var(--danger); color:white; border:none; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">Start Test</button>`;
+                    }
+
+                    innerList.insertAdjacentHTML('beforeend', `
+                        <div class="test-card premium-test-card" style="border-left: 4px solid var(--primary); margin-bottom: 12px; padding: 12px; background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <h4 style="margin: 0; font-size: 15px; color: var(--text-main); font-weight: 700;">${test.title}</h4>
+                                ${statusBadge}
+                            </div>
+                            <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-muted);"><span class="material-icons" style="font-size:14px; vertical-align:middle;">schedule</span> ${testDuration} Mins</p>
+                            ${actionBtn}
+                        </div>
+                    `);
+                });
+            } else {
+                innerList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">No mock tests have been uploaded in this series yet.</div>`;
+            }
+        } catch (err) {
+            innerList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--danger);">Failed to connect to server.</div>`;
+        }
+    }
+});
+
+// Back button logic for Series Screen
+document.getElementById('close-series-screen-btn')?.addEventListener('click', () => {
+    navigate('main-app-shell', false);
+});
