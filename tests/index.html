@@ -6,34 +6,30 @@
     <meta name="theme-color" content="#4F46E5">
     <meta name="description" content="Premium Android-Style Test Series & Learning Portal">
     <meta name="apple-mobile-web-app-title" content="Premium Portal">
-    <meta name="apple-touch-fullscreen" content="yes">
-    
+    <meta name="apple-touch-fullscreen" content="yes">    
     <link rel="icon" href="data:," /> 
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
     <title>Student Testing Portal</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>    
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body oncontextmenu="return false;" onkeydown="if(event.keyCode==123) return false;">
-
     <noscript>
         <div style="background: #EF4444; color: white; padding: 20px; text-align: center; font-family: sans-serif; position: relative; z-index: 9999;">
             Please enable JavaScript in your browser settings to use the Test Series Portal.
         </div>
     </noscript>
-
     <div id="wave-loader" class="loader-overlay" style="display: none;" aria-hidden="true">
         <div class="wave-container">
             <div class="wave-bar"></div>
@@ -44,7 +40,6 @@
         </div>
         <p id="loader-text">Loading Session...</p>
     </div>
-
     <div id="custom-popup" class="popup-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="popup-title">
         <div class="popup-card">
             <div class="popup-icon-wrapper" id="popup-icon-container">
@@ -58,9 +53,7 @@
             </div>
         </div>
     </div>
-
     <div id="drawer-overlay" class="drawer-overlay" style="display: none;"></div>
-
     <aside id="side-drawer" class="side-drawer">
         <div class="drawer-header">
             <span class="material-icons drawer-avatar">account_circle</span>
@@ -82,35 +75,28 @@
             <button class="drawer-item" id="menu-update-btn">
                 <span class="material-icons" style="color: var(--primary);">system_update_alt</span> Check for Updates
             </button>
-
-
             <button class="drawer-item whatsapp-item" id="menu-contact-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="whatsapp-svg-icon">
                     <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
                 </svg>
                 WhatsApp Support
             </button>
-
-
             <div class="drawer-divider"></div>
             <button class="drawer-item logout-item" id="drawer-logout-btn">
                 <span class="material-icons">logout</span> Sign Out
             </button>
-
             <div class="drawer-version-info">
                 App Version: v16
             </div>
         </nav>
     </aside>
-
     <main id="app-frame" aria-label="Main Application Frame">
-
         <section id="login-screen" class="screen active" aria-labelledby="login-title">
             <div class="screen-content center-content">
                 <div class="login-logo-area">
                     <img src="./icon-512x512.png" alt="Portal Logo" class="app-logo-image">
                 </div> <br>
-                <label style="text-align: center; margin-top: -20px; margin-bottom: 25px; font-size: 15px; color: var(--text-muted); display: block;">Welcome to the <label style="color: blue; font-weight: bold;">Test</label><label style="color: red; font-weight: bold;">Portal</label> of APJAKJB</label>                
+                <span style="text-align: center; margin-top: -20px; margin-bottom: 25px; font-size: 15px; color: var(--text-muted); display: block;">Welcome to the <span style="color: blue; font-weight: bold;">Test</span><span style="color: red; font-weight: bold;">Portal</span> of APJAKJB</span>               
                 <div class="trust-stats-container">
                     <div class="trust-stat-box">
                         <span class="material-icons" style="color: var(--primary);">groups</span>
@@ -134,7 +120,6 @@
                         </div>
                     </div>
                 </div>
-
                 <button type="button" id="google-login-btn" class="btn-primary" style="background-color: indigo; color: white; border: 1px solid #DADCE0; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 25px;">
                     <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
                         <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20c11 0 19.878-8.547 20-19.199C44 23.491 43.834 22.25 43.611 20.083z"/>
@@ -144,13 +129,11 @@
                     </svg>
                     Continue with Google
                 </button>
-
                 <div style="display: flex; align-items: center; text-align: center; margin-bottom: 20px;">
                     <div style="flex: 1; border-bottom: 1px solid var(--border-dark);"></div>
                     <span style="padding: 0 12px; color: var(--text-muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Admin Access</span>
                     <div style="flex: 1; border-bottom: 1px solid var(--border-dark);"></div>
                 </div>
-
                 <form id="login-form">
                     <div class="input-wrapper">
                         <span class="material-icons input-icon" aria-hidden="true">admin_panel_settings</span>
@@ -163,8 +146,6 @@
                     <p id="error-message" class="error" aria-live="polite"></p>
                     <button type="submit" id="login-btn" class="btn-secondary" style="border: 1px solid var(--border-dark); background: blue; color: white;">Admin Log In</button>
                 </form>
-
-
                 <!-- 🛡️ NAYA: PREMIUM TRUST FOOTER -->
                 <div class="login-trust-footer">
                     <p class="privacy-promise">
@@ -179,11 +160,8 @@
                         <a href="#">Terms of Service</a>
                     </div>
                 </div>
-
-
             </div>
         </section>
-
         <section id="main-app-shell" class="screen" style="display: none;">
             <header class="app-header">
                 <div class="header-left">
@@ -198,18 +176,13 @@
                     </button>
                 </div>
             </header>
-
             <div class="shell-content-container">
-                
                 <div id="home-tab" class="tab-view active">
                     <div class="screen-content">
                         <div class="welcome-section">
                             <h3 id="welcome-text">Hello Dear, Student</h3>
                             <p>Ready to sharpen your knowledge today?</p>
                         </div>
-
-
-
                         <div class="premium-image-slider">
                             <div class="slider-track" id="slider-track">
                                 <img src="./assets/slider1.jpg" alt="Slide 1" class="slide-img">
@@ -218,106 +191,50 @@
                             </div>
                             <div class="slider-dots" id="slider-dots"></div>
                         </div>
-
-
                         <p class="section-title">Explore Categories for IX & X</p>
                         <div class="features-grid">
                             <div class="grid-card active-card" id="grid-action-live-910">
                                 <div class="grid-icon-box danger-box">
                                     <span class="material-icons">alarm_on</span>
                                 </div>
-                                <h4>Live Tests</h4>
-                                <p>Scheduled Exams</p>
+                                <h4><label style="color: green;">Free</label> <label style="color: red; font-weight: bold;">Live</label> Test</h4>
+                                <p>Scheduled Exams <b>Science</b></p>
                             </div>
-                            
                             <div class="grid-card" id="grid-action-practice-910">
                                 <div class="grid-icon-box primary-box">
                                     <span class="material-icons">assignment</span>
                                 </div>
-                                <h4>Practice</h4>
-                                <p>Mock Tests</p>
-                            </div>
-                            
-                            <div class="grid-card" id="grid-action-notes-910">
-                                <div class="grid-icon-box success-box">
-                                    <span class="material-icons">description</span>
-                                </div>
-                                <h4>PDF Notes</h4>
-                                <p>Revision E-Books</p>
-                            </div>
-                            
-                            <div class="grid-card" id="grid-action-papers-910">
-                                <div class="grid-icon-box warning-box">
-                                    <span class="material-icons">history_edu</span>
-                                </div>
-                                <h4>PYQs Bank</h4>
-                                <p>Previous Papers</p>
+                                <h4>Practice Test</h4>
+                                <p>Topic Wise</p>
                             </div>
                         </div>
-
                         <p class="section-title" style="margin-top: 25px;">Explore Categories for XI & XII</p>
                         <div class="features-grid">
                             <div class="grid-card" id="grid-action-live-1112">
                                 <div class="grid-icon-box danger-box">
                                     <span class="material-icons">alarm_on</span>
                                 </div>
-                                <h4>Live Tests</h4>
-                                <p>Scheduled Exams</p>
-                            </div>
-                            
-                            <div class="grid-card" id="grid-action-practice-1112">
-                                <div class="grid-icon-box primary-box">
-                                    <span class="material-icons">assignment</span>
+                                <h4><label style="color: green;">Free</label> <label style="color: red; font-weight: bold;">Live</label> Test</h4>
+                                <p>Scheduled Exams for <b>Biology</b></p>
+                            </div>  
+                            <div class="grid-card premium-glow-card" id="grid-action-premium-1112">
+                                <div class="grid-icon-box premium-box">
+                                    <span class="material-icons">workspace_premium</span> 
                                 </div>
-                                <h4>Practice</h4>
-                                <p>Mock Tests</p>
-                            </div>
-                            
-                            <div class="grid-card" id="grid-action-notes-1112">
-                                <div class="grid-icon-box success-box">
-                                    <span class="material-icons">description</span>
-                                </div>
-                                <h4>PDF Notes</h4>
-                                <p>Revision E-Books</p>
-                            </div>
-                            
-                            <div class="grid-card" id="grid-action-papers-1112">
-                                <div class="grid-icon-box warning-box">
-                                    <span class="material-icons">history_edu</span>
-                                </div>
-                                <h4>PYQs Bank</h4>
-                                <p>Previous Papers</p>
+                                <h4>Premium <label style="color: var(--danger); font-weight: bold;">Live</label> Test</h4>
+                                <p>Biology | Physics | Chemistry</p>
                             </div>
                         </div>
-
-
-
                         <div id="practice-tests-910-wrapper" style="display: none;">
                             <p class="section-title">Practice Tests (Class IX & X)</p>
                             <div id="practice-list-910" aria-live="polite"></div>
                         </div>
-                        <div id="pdf-notes-910-wrapper" style="display: none;">
-                            <p class="section-title">Premium PDF Notes (Class IX & X)</p>
-                            <div id="notes-list-910" class="notes-list-container"></div>
-                        </div>
-
                         <div id="practice-tests-1112-wrapper" style="display: none;">
                             <p class="section-title">Practice Tests (Class XI & XII)</p>
                             <div id="practice-list-1112" aria-live="polite"></div>
                         </div>
-                        <div id="pdf-notes-1112-wrapper" style="display: none;">
-                            <p class="section-title">Premium PDF Notes (Class XI & XII)</p>
-                            <div id="notes-list-1112" class="notes-list-container"></div>
-                        </div>
-
-
-
                     </div>
                 </div>
-
-
-
-
                 <div id="live-tests-tab-910" class="tab-view" style="display: none;">
                     <div class="premium-tabs-wrapper" style="position: sticky; top: 0; z-index: 10; background: var(--card-bg); display: flex; border-bottom: 1px solid var(--border);">
                         <button class="premium-tab active" id="tab-upcoming-910" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Upcoming (IX-X)</button>
@@ -328,9 +245,6 @@
                         <div id="expired-live-list-910" class="test-list-container" style="display: none;"></div>
                     </div>
                 </div>
-
-
-
                 <div id="live-tests-tab-1112" class="tab-view" style="display: none;">
                     <div class="premium-tabs-wrapper" style="position: sticky; top: 0; z-index: 10; background: var(--card-bg); display: flex; border-bottom: 1px solid var(--border);">
                         <button class="premium-tab active" id="tab-upcoming-1112" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Upcoming (XI-XII)</button>
@@ -339,17 +253,19 @@
                     <div class="screen-content" style="padding-top: 15px; padding-bottom: 80px;">
                         
                         <div class="category-banner-card">
-                            <img src="./assets/image1.jpg" alt="Class 11 & 12 Test Series" class="category-banner-img">
+                            <img src="image1.jpg" alt="Class 11 & 12 Test Series" class="category-banner-img">
                         </div>
 
                         <div id="upcoming-live-list-1112" class="test-list-container"></div>
                         <div id="expired-live-list-1112" class="test-list-container" style="display: none;"></div>
                     </div>
                 </div>
-
-
-
-
+                <div id="premium-tests-tab" class="tab-view" style="display: none;">
+                    <div class="screen-content" style="padding-top: 15px; padding-bottom: 80px;">
+                        <h3 style="margin-bottom: 15px; color: var(--text-main);">Premium Packages</h3>
+                        <div id="premium-test-list" class="test-list-container"></div>
+                    </div>
+                </div>
                 <div id="results-tab" class="tab-view" style="display: none;">
                     <div class="screen-content">
                         <div class="tab-header-block">
@@ -360,7 +276,6 @@
                             </div>
                     </div>
                 </div>
-
                 <div id="profile-tab" class="tab-view" style="display: none;">
                     <div class="screen-content">
                         <div class="profile-card-premium">
@@ -386,7 +301,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <p class="section-title">Preferences</p>
                         <div class="profile-details-list">
                             <div class="profile-detail-item actionable-item" id="profile-dark-toggle-row">
@@ -407,9 +321,7 @@
                         </div>
                     </div>
                 </div>
-
             </div>
-
             <footer class="app-bottom-nav">
                 <button class="nav-tab-btn active" id="tab-btn-home">
                     <span class="material-icons">home</span>
@@ -425,10 +337,6 @@
                 </button>
             </footer>
         </section>
-
-
-
-
         <!-- ========================================== -->
         <!-- 📝 TEST SESSION SCREEN                     -->
         <!-- ========================================== -->
@@ -443,20 +351,17 @@
                     <div id="timer" class="timer-badge" aria-label="Time Remaining">00:00</div>
                 </div>
             </header>
-            
             <!-- ✅ PREMIUM QUESTION JUMP PALETTE -->
             <div class="question-palette-wrapper">
                 <div id="question-palette" class="question-palette">
                     <!-- JS automatically yahan bubbles inject karega -->
                 </div>
             </div>
-
             <div class="screen-content test-content">
                 <h3 id="question-text" aria-live="polite">Loading Question...</h3>
                 <div id="options-container" role="radiogroup" aria-label="Answer Options">
                 </div>
             </div>
-
             <footer class="app-footer">
                 <button id="prev-btn" class="btn-secondary" disabled aria-label="Previous Question">
                     <span class="material-icons btn-inline-icon" aria-hidden="true">arrow_back</span> Back
@@ -466,11 +371,6 @@
                 </button>
             </footer>
         </section>
-
-
-
-
-
         <section id="analysis-screen" class="screen" aria-labelledby="analysis-title">
             <header class="app-header">
                 <div class="header-title-wrapper">
@@ -510,7 +410,6 @@
                     <span class="material-icons" aria-hidden="true">close</span>
                 </button>
             </header>
-            
             <div class="screen-content">
                 <div style="text-align: center; padding: 10px 0 20px;">
                     <h4 id="leaderboard-test-name" style="color: var(--primary);">Test Name</h4>
@@ -520,6 +419,134 @@
                 <!-- RANKING LIST CONTAINER -->
                 <div id="leaderboard-list" class="leaderboard-container">
                     <!-- JS will inject ranks here -->
+                </div>
+            </div>
+        </section>
+        <section id="premium-package-screen" class="screen" style="display: none;">
+            <header class="app-header">
+                <div class="header-left">
+                    <button id="close-premium-pkg-btn" class="btn-icon-nav" aria-label="Go Back">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <h3>Package Details</h3>
+                </div>
+            </header>
+            <div class="screen-content" style="padding-bottom: 100px;">
+                
+                <div class="premium-pkg-banner">
+                    <div class="pkg-badge">🔥 Bestseller</div>
+                    <img src="./assets/XII%20banner.jpg" alt="Premium Test Cover" class="pkg-banner-img" id="pkg-detail-banner">
+                </div>
+
+                <div class="pkg-header-info">
+                    <h2 id="pkg-detail-title">Premium Complete Mock Series</h2>
+                    <div class="pkg-price-row">
+                        <div class="price-block">
+                            <span class="deleted-price" id="pkg-old-price">₹1999</span>
+                            <span class="current-price" id="pkg-new-price">₹499</span>
+                        </div>
+                        <div class="offer-badge">
+                            <span class="material-icons star-icon">auto_awesome</span>
+                            <span id="pkg-offer-text">75% OFF Dhamaka</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="section-title">Package Features</p>
+                <div class="pkg-stats-grid">
+                    <div class="stat-item">
+                        <span class="material-icons">library_books</span>
+                        <div class="stat-text">
+                            <label>Syllabus</label>
+                            <p id="pkg-detail-syllabus">Full Syllabus</p>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="material-icons">format_list_numbered</span>
+                        <div class="stat-text">
+                            <label>Total Tests</label>
+                            <p id="pkg-detail-count">10 Mocks</p>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="material-icons">schedule</span>
+                        <div class="stat-text">
+                            <label>Duration</label>
+                            <p id="pkg-detail-duration">180 Mins</p>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="material-icons">event</span>
+                        <div class="stat-text">
+                            <label>Validity</label>
+                            <p id="pkg-detail-date">Till Exams</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pkg-bottom-actions">
+                <button class="btn-secondary" id="pkg-about-btn"><span class="material-icons">info</span> About Test</button>
+                <button class="btn-primary buy-btn-glow" id="pkg-buy-btn">Buy Now <span class="material-icons">shopping_cart_checkout</span></button>
+            </div>
+        </section>
+        <section id="premium-about-screen" class="screen" style="display: none;">
+            <header class="app-header">
+                <div class="header-left">
+                    <button id="close-about-screen-btn" class="btn-icon-nav" aria-label="Go Back">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <h3>Test Details</h3>
+                </div>
+            </header>
+            <div class="screen-content" style="padding-bottom: 40px;">
+                <div class="analytics-card" style="margin-bottom: 20px;">
+                    <h2 id="about-test-title" style="color: var(--text-main); margin-bottom: 10px;">Test Title</h2>
+                    <p id="about-test-desc" style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Test description will load here...</p>
+                </div>
+                
+                <h4 style="margin-bottom: 15px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                    <span class="material-icons">science</span> Demo Tests (Free)
+                </h4>
+                <div class="demo-test-list">
+                    <div class="test-card" style="border-left: 4px solid var(--success);">
+                        <div class="test-info">
+                            <h4>Demo Paper 1</h4>
+                            <p>Basic Level</p>
+                        </div>
+                        <button class="btn-secondary" style="color: var(--success); border-color: var(--success);" onclick="showCustomPopup('Demo', 'Demo test logic will start here.', 'info')">Attempt</button>
+                    </div>
+                    <div class="test-card" style="border-left: 4px solid var(--success); margin-top: 10px;">
+                        <div class="test-info">
+                            <h4>Demo Paper 2</h4>
+                            <p>Advanced Level</p>
+                        </div>
+                        <button class="btn-secondary" style="color: var(--success); border-color: var(--success);" onclick="showCustomPopup('Demo', 'Demo test logic will start here.', 'info')">Attempt</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- ========================================== -->
+        <!-- 📂 PREMIUM SERIES INSIDE SCREEN            -->
+        <!-- ========================================== -->
+        <section id="premium-series-screen" class="screen" style="display: none;">
+            <header class="app-header">
+                <div class="header-left">
+                    <button id="close-series-screen-btn" class="btn-icon-nav" aria-label="Go Back">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <h3 id="series-screen-title">Test Series</h3>
+                </div>
+            </header>
+            <div class="screen-content" style="padding-bottom: 40px;">
+                <div class="category-banner-card" style="margin-bottom: 20px;">
+                    <!-- Banner image for the series -->
+                    <img src="./assets/image1.jpg" alt="Series Banner" class="category-banner-img" style="height: 120px;">
+                </div>
+                <p class="section-title">Available Mock Tests</p>
+                <div id="series-inner-tests-list" class="test-list-container">
+                    <!-- JS yahan par is series ke andar wale tests inject karega -->
+                    <div style="text-align:center; padding: 30px; color: var(--text-muted);">
+                        Fetching tests for this series...
+                    </div>
                 </div>
             </div>
         </section>
