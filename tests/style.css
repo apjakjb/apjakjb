@@ -272,7 +272,7 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
 button { 
     border: none; 
     border-radius: 14px; 
-    font-size: 14px; 
+    font-size: 12px; 
     font-weight: 700; 
     cursor: pointer; 
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
@@ -1315,13 +1315,13 @@ button {
 .bpc-class { font-size: 10px; font-weight: 750; color: var(--text-muted); background: var(--bg-color); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); }
 .bpc-offer-badge { display: inline-flex; align-items: center; gap: 3px; background: linear-gradient(135deg, #2D0082 0%, #F00068 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2); }
 
-.bpc-title { font-size: 16px; /* Size kam kiya premium balance ke liye */ font-weight: 800; color: var(--text-main); margin-bottom: 12px; line-height: 1.3; }
+.bpc-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 12px; line-height: 1.3; text-align: center; font-family: Helvetica; text-transform: uppercase; }
 
 /* Stats Grid ko aur compact aur clean kiya */
-.bpc-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; background: var(--bg-color); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); }
+.bpc-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-bottom: 14px; background: var(--bg-color); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); }
 .bpc-stat { display: flex; align-items: center; gap: 8px; }
-.bpc-stat .primary-icon { color: var(--primary); font-size: 16px; background: rgba(79, 70, 229, 0.1); padding: 5px; border-radius: 6px; }
-.bpc-stat .success-icon { color: var(--success); font-size: 16px; background: rgba(16, 185, 129, 0.1); padding: 5px; border-radius: 6px; }
+.bpc-stat .primary-icon { color: var(--primary); font-size: 16px; background: rgba(79, 70, 229, 0.1); padding: 8px; border-radius: 6px; }
+.bpc-stat .success-icon { color: var(--success); font-size: 16px; background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 6px; }
 .bpc-stat small { display: block; font-size: 9px; font-weight: 750; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1px; }
 .bpc-stat p { font-size: 12px; font-weight: 800; color: var(--text-main); }
 
