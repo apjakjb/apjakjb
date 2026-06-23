@@ -66,9 +66,6 @@
             <button class="drawer-item active" id="menu-home-btn">
                 <span class="material-icons">home</span> Home Dashboard
             </button>
-            <button class="drawer-item" id="menu-notes-btn">
-                <span class="material-icons">description</span> PDF Notes & Study Material
-            </button>
             <button class="drawer-item" id="menu-dark-toggle">
                 <span class="material-icons">dark_mode</span> Dark Theme
             </button>
@@ -86,7 +83,7 @@
                 <span class="material-icons">logout</span> Sign Out
             </button>
             <div class="drawer-version-info">
-                App Version: v16
+                App Version: v16.1
             </div>
         </nav>
     </aside>
@@ -191,6 +188,27 @@
                             </div>
                             <div class="slider-dots" id="slider-dots"></div>
                         </div>
+
+
+
+
+                        <p class="section-title" style="margin-top: 25px;">Explore Categories for XI & XII</p>
+                        <div class="features-grid">
+                            <div class="grid-card premium-glow-card" id="grid-action-premium-1112">
+                                <div class="grid-icon-box premium-box">
+                                    <span class="material-icons">workspace_premium</span> 
+                                </div>
+                                <h4>Premium <label style="color: var(--danger); font-weight: bold;">Live</label> Test</h4>
+                                <p>Biology | Physics | Chemistry</p>
+                            </div> 
+                            <div class="grid-card" id="grid-action-live-1112">
+                                <div class="grid-icon-box danger-box">
+                                    <span class="material-icons">alarm_on</span>
+                                </div>
+                                <h4><label style="color: green;">Free</label> <label style="color: red; font-weight: bold;">Live</label> Test</h4>
+                                <p>Scheduled Exams for <b>Biology</b></p>
+                            </div> 
+                        </div>
                         <p class="section-title">Explore Categories for IX & X</p>
                         <div class="features-grid">
                             <div class="grid-card active-card" id="grid-action-live-910">
@@ -208,30 +226,10 @@
                                 <p>Topic Wise</p>
                             </div>
                         </div>
-                        <p class="section-title" style="margin-top: 25px;">Explore Categories for XI & XII</p>
-                        <div class="features-grid">
-                            <div class="grid-card" id="grid-action-live-1112">
-                                <div class="grid-icon-box danger-box">
-                                    <span class="material-icons">alarm_on</span>
-                                </div>
-                                <h4><label style="color: green;">Free</label> <label style="color: red; font-weight: bold;">Live</label> Test</h4>
-                                <p>Scheduled Exams for <b>Biology</b></p>
-                            </div>  
-                            <div class="grid-card premium-glow-card" id="grid-action-premium-1112">
-                                <div class="grid-icon-box premium-box">
-                                    <span class="material-icons">workspace_premium</span> 
-                                </div>
-                                <h4>Premium <label style="color: var(--danger); font-weight: bold;">Live</label> Test</h4>
-                                <p>Biology | Physics | Chemistry</p>
-                            </div>
-                        </div>
+
                         <div id="practice-tests-910-wrapper" style="display: none;">
                             <p class="section-title">Practice Tests (Class IX & X)</p>
                             <div id="practice-list-910" aria-live="polite"></div>
-                        </div>
-                        <div id="practice-tests-1112-wrapper" style="display: none;">
-                            <p class="section-title">Practice Tests (Class XI & XII)</p>
-                            <div id="practice-list-1112" aria-live="polite"></div>
                         </div>
                     </div>
                 </div>
@@ -253,7 +251,7 @@
                     <div class="screen-content" style="padding-top: 15px; padding-bottom: 80px;">
                         
                         <div class="category-banner-card">
-                            <img src="image1.jpg" alt="Class 11 & 12 Test Series" class="category-banner-img">
+                            <img src="./assets/image1.jpg" alt="Class 11 & 12 Test Series" class="category-banner-img">
                         </div>
 
                         <div id="upcoming-live-list-1112" class="test-list-container"></div>
@@ -322,6 +320,142 @@
                     </div>
                 </div>
             </div>
+
+
+                <!-- ========================================== -->
+                <!-- 📝 1. TEST SESSION TAB (NO BACK BUTTON)    -->
+                <!-- ========================================== -->
+                <div id="test-tab" class="tab-view" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: var(--card-bg); border-bottom: 1px solid var(--border);">
+                        <span id="question-counter" class="badge" style="font-size: 14px; font-weight: 800;">0/0</span>
+                        <div class="timer-wrapper">
+                            <span class="material-icons timer-icon" style="font-size:18px;">schedule</span>
+                            <div id="timer" class="timer-badge" style="font-size:15px;">00:00</div>
+                        </div>
+                    </div>
+                    <div class="question-palette-wrapper">
+                        <div id="question-palette" class="question-palette"></div>
+                    </div>
+                    <div class="screen-content test-content" style="padding-bottom: 20px;">
+                        <h3 id="question-text" aria-live="polite">Loading Question...</h3>
+                        <div id="options-container" role="radiogroup"></div>
+                    </div>
+                    <div style="padding: 14px 16px; display: flex; justify-content: space-between; gap:12px; background: var(--card-bg); border-top: 1px solid var(--border-dark);">
+                        <button id="prev-btn" class="btn-secondary" disabled>Previous</button>
+                        <button id="next-btn" class="btn-primary">Next</button>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- 📊 2. ANALYSIS TAB (NO BACK BUTTON)        -->
+                <!-- ========================================== -->
+                <div id="analysis-tab" class="tab-view" style="display: none;">
+                    <div class="screen-content">
+                        <div class="analytics-card premium-results-card">
+                            <div class="score-summary">
+                                <h2 id="score-text" aria-live="polite">Loading...</h2>
+                                <p id="percentage-text" class="accuracy-badge">0% Accuracy</p>
+                            </div>
+                            <button id="view-leaderboard-btn" class="btn-primary" style="margin-top: 15px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; background-color: #F59E0B; color: #fff; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                                <span class="material-icons">emoji_events</span> View Live Leaderboard
+                            </button>
+                        </div>
+                        <p class="section-title">Question Breakdown</p>
+                        <div id="breakdown-list" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- 🏆 3. LEADERBOARD TAB (NO BACK BUTTON)     -->
+                <!-- ========================================== -->
+                <div id="leaderboard-tab" class="tab-view" style="display: none;">
+                    <div class="screen-content">
+                        <div style="text-align: center; padding: 10px 0 20px;">
+                            <h4 id="leaderboard-test-name" style="color: var(--primary);">Test Name</h4>
+                            <p style="font-size: 12px; color: var(--text-muted);">Top Performers All India</p>
+                        </div>
+                        <div id="leaderboard-list" class="leaderboard-container"></div>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- 💎 4. PREMIUM PACKAGE DETAILS TAB          -->
+                <!-- ========================================== -->
+                <div id="premium-package-tab" class="tab-view" style="display: none;">
+                    <div class="screen-content" style="padding-bottom: 20px;">
+                        <div class="premium-pkg-banner">
+                            <div class="pkg-badge">🔥 Bestseller</div>
+                            <img src="./assets/XII%20banner.jpg" alt="Premium Test Cover" class="pkg-banner-img" id="pkg-detail-banner">
+                        </div>
+                        <div class="pkg-header-info">
+                            <h2 id="pkg-detail-title">Premium Complete Mock Series</h2>
+                            <div class="pkg-price-row">
+                                <div class="price-block">
+                                    <span class="deleted-price" id="pkg-old-price">₹1999</span>
+                                    <span class="current-price" id="pkg-new-price">₹499</span>
+                                </div>
+                                <div class="offer-badge">
+                                    <span class="material-icons star-icon">auto_awesome</span>
+                                    <span id="pkg-offer-text">75% OFF Dhamaka</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="section-title">Package Features</p>
+                        <div class="pkg-stats-grid">
+                            <div class="stat-item"><span class="material-icons">library_books</span><div class="stat-text"><label>Syllabus</label><p id="pkg-detail-syllabus">Full Syllabus</p></div></div>
+                            <div class="stat-item"><span class="material-icons">format_list_numbered</span><div class="stat-text"><label>Total Tests</label><p id="pkg-detail-count">10 Mocks</p></div></div>
+                            <div class="stat-item"><span class="material-icons">schedule</span><div class="stat-text"><label>Duration</label><p id="pkg-detail-duration">180 Mins</p></div></div>
+                            <div class="stat-item"><span class="material-icons">event</span><div class="stat-text"><label>Validity</label><p id="pkg-detail-date">Till Exams</p></div></div>
+                        </div>
+                        <!-- Native Button layout (Removed fixed bottom bar for smooth tab feel) -->
+                        <div style="display: flex; gap: 12px; margin-top: 20px;">
+                            <button class="btn-secondary" id="pkg-about-btn" style="flex: 1;"><span class="material-icons">info</span> About</button>
+                            <button class="btn-primary buy-btn-glow" id="pkg-buy-btn" style="flex: 2;">Buy Now <span class="material-icons">shopping_cart_checkout</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- ℹ️ 5. PREMIUM ABOUT TAB                    -->
+                <!-- ========================================== -->
+                <div id="premium-about-tab" class="tab-view" style="display: none;">
+                    <div class="screen-content">
+                        <div class="analytics-card" style="margin-bottom: 20px;">
+                            <h2 id="about-test-title" style="color: var(--text-main); margin-bottom: 10px;">Test Title</h2>
+                            <p id="about-test-desc" style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Test description will load here...</p>
+                        </div>
+                        <h4 style="margin-bottom: 15px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons">science</span> Demo Tests (Free)
+                        </h4>
+                        <div class="demo-test-list">
+                            <div class="test-card" style="border-left: 4px solid var(--success);">
+                                <div class="test-info"><h4>Demo Paper 1</h4><p>Basic Level</p></div>
+                                <button class="btn-secondary" style="color: var(--success); border-color: var(--success);" onclick="showCustomPopup('Demo', 'Demo test logic will start here.', 'info')">Attempt</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- 📂 6. PREMIUM SERIES FOLDER TAB            -->
+                <!-- ========================================== -->
+                <div id="premium-series-tab" class="tab-view" style="display: none;">
+                    <div class="premium-tabs-wrapper" style="position: sticky; top: 0; z-index: 10; background: var(--card-bg); display: flex; border-bottom: 1px solid var(--border);">
+                        <button class="premium-tab active" id="tab-upcoming-series" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Upcoming & Live</button>
+                        <button class="premium-tab" id="tab-expired-series" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.3s ease;">Expired</button>
+                    </div>
+                    <div class="screen-content">
+                        <div class="category-banner-card" style="margin-bottom: 20px;">
+                            <img src="./assets/image1.jpg" alt="Series Banner" class="category-banner-img" style="height: 120px; width: 100%; object-fit: cover;">
+                        </div>
+                        <div id="upcoming-live-list-series" class="test-list-container"></div>
+                        <div id="expired-live-list-series" class="test-list-container" style="display: none;"></div>
+                    </div>
+                </div>
+
+            </div> <!-- 🛑 END OF SHELL CONTENT CONTAINER 🛑 -->
+            
+            <!-- FIXED BOTTOM NAVIGATION (Hamesha yahi dikhega) -->
             <footer class="app-bottom-nav">
                 <button class="nav-tab-btn active" id="tab-btn-home">
                     <span class="material-icons">home</span>
@@ -337,220 +471,9 @@
                 </button>
             </footer>
         </section>
-        <!-- ========================================== -->
-        <!-- 📝 TEST SESSION SCREEN                     -->
-        <!-- ========================================== -->
-        <section id="test-screen" class="screen" aria-labelledby="test-title">
-            <header class="app-header full-lock-header">
-                <div class="test-header-left">
-                    <h3 id="test-title">Test Session</h3>
-                    <span id="question-counter" class="badge" aria-label="Question Counter">0/0</span>
-                </div>
-                <div class="timer-wrapper">
-                    <span class="material-icons timer-icon" aria-hidden="true">schedule</span>
-                    <div id="timer" class="timer-badge" aria-label="Time Remaining">00:00</div>
-                </div>
-            </header>
-            <!-- ✅ PREMIUM QUESTION JUMP PALETTE -->
-            <div class="question-palette-wrapper">
-                <div id="question-palette" class="question-palette">
-                    <!-- JS automatically yahan bubbles inject karega -->
-                </div>
-            </div>
-            <div class="screen-content test-content">
-                <h3 id="question-text" aria-live="polite">Loading Question...</h3>
-                <div id="options-container" role="radiogroup" aria-label="Answer Options">
-                </div>
-            </div>
-            <footer class="app-footer">
-                <button id="prev-btn" class="btn-secondary" disabled aria-label="Previous Question">
-                    <span class="material-icons btn-inline-icon" aria-hidden="true">arrow_back</span> Back
-                </button>
-                <button id="next-btn" class="btn-primary" aria-label="Next Question">
-                    Next <span class="material-icons btn-inline-icon" aria-hidden="true">arrow_forward</span>
-                </button>
-            </footer>
-        </section>
-        <section id="analysis-screen" class="screen" aria-labelledby="analysis-title">
-            <header class="app-header">
-                <div class="header-title-wrapper">
-                    <span class="material-icons insights-icon" aria-hidden="true">analytics</span>
-                    <h3 id="analysis-title">Performance Insights</h3>
-                </div>
-                <button id="close-analysis-btn" class="btn-icon close-btn" aria-label="Return to Dashboard">
-                    <span class="material-icons" aria-hidden="true">arrow_back</span>
-                </button>
-            </header>            
-            <div class="screen-content">
-                <div class="analytics-card premium-results-card">
-                    <div class="score-summary">
-                        <h2 id="score-text" aria-live="polite">Loading...</h2>
-                        <p id="percentage-text" class="accuracy-badge">0% Accuracy</p>
-                    </div>
-                    <!-- 🏆 NEW LEADERBOARD BUTTON -->
-                    <button id="view-leaderboard-btn" class="btn-primary" style="margin-top: 15px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; background-color: #F59E0B; color: #fff; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
-                        <span class="material-icons">emoji_events</span> View Live Leaderboard
-                    </button>
-                </div>
-                <p class="section-title">Question Breakdown</p>
-                <div id="breakdown-list" aria-live="polite">
-                    </div>
-            </div>
-        </section>
-        <!-- ========================================== -->
-        <!-- 🏆 LEADERBOARD SCREEN -->
-        <!-- ========================================== -->
-        <section id="leaderboard-screen" class="screen" aria-labelledby="leaderboard-title" style="display: none;">
-            <header class="app-header">
-                <div class="header-title-wrapper">
-                    <span class="material-icons" style="color: #F59E0B;" aria-hidden="true">emoji_events</span>
-                    <h3 id="leaderboard-title">Live Rankings</h3>
-                </div>
-                <button id="close-leaderboard-btn" class="btn-icon close-btn" aria-label="Return to Analysis">
-                    <span class="material-icons" aria-hidden="true">close</span>
-                </button>
-            </header>
-            <div class="screen-content">
-                <div style="text-align: center; padding: 10px 0 20px;">
-                    <h4 id="leaderboard-test-name" style="color: var(--primary);">Test Name</h4>
-                    <p style="font-size: 12px; color: var(--text-muted);">Top Performers All India</p>
-                </div>
-
-                <!-- RANKING LIST CONTAINER -->
-                <div id="leaderboard-list" class="leaderboard-container">
-                    <!-- JS will inject ranks here -->
-                </div>
-            </div>
-        </section>
-        <section id="premium-package-screen" class="screen" style="display: none;">
-            <header class="app-header">
-                <div class="header-left">
-                    <button id="close-premium-pkg-btn" class="btn-icon-nav" aria-label="Go Back">
-                        <span class="material-icons">arrow_back</span>
-                    </button>
-                    <h3>Package Details</h3>
-                </div>
-            </header>
-            <div class="screen-content" style="padding-bottom: 100px;">
-                
-                <div class="premium-pkg-banner">
-                    <div class="pkg-badge">🔥 Bestseller</div>
-                    <img src="./assets/XII%20banner.jpg" alt="Premium Test Cover" class="pkg-banner-img" id="pkg-detail-banner">
-                </div>
-
-                <div class="pkg-header-info">
-                    <h2 id="pkg-detail-title">Premium Complete Mock Series</h2>
-                    <div class="pkg-price-row">
-                        <div class="price-block">
-                            <span class="deleted-price" id="pkg-old-price">₹1999</span>
-                            <span class="current-price" id="pkg-new-price">₹499</span>
-                        </div>
-                        <div class="offer-badge">
-                            <span class="material-icons star-icon">auto_awesome</span>
-                            <span id="pkg-offer-text">75% OFF Dhamaka</span>
-                        </div>
-                    </div>
-                </div>
-                <p class="section-title">Package Features</p>
-                <div class="pkg-stats-grid">
-                    <div class="stat-item">
-                        <span class="material-icons">library_books</span>
-                        <div class="stat-text">
-                            <label>Syllabus</label>
-                            <p id="pkg-detail-syllabus">Full Syllabus</p>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="material-icons">format_list_numbered</span>
-                        <div class="stat-text">
-                            <label>Total Tests</label>
-                            <p id="pkg-detail-count">10 Mocks</p>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="material-icons">schedule</span>
-                        <div class="stat-text">
-                            <label>Duration</label>
-                            <p id="pkg-detail-duration">180 Mins</p>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="material-icons">event</span>
-                        <div class="stat-text">
-                            <label>Validity</label>
-                            <p id="pkg-detail-date">Till Exams</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="pkg-bottom-actions">
-                <button class="btn-secondary" id="pkg-about-btn"><span class="material-icons">info</span> About Test</button>
-                <button class="btn-primary buy-btn-glow" id="pkg-buy-btn">Buy Now <span class="material-icons">shopping_cart_checkout</span></button>
-            </div>
-        </section>
-        <section id="premium-about-screen" class="screen" style="display: none;">
-            <header class="app-header">
-                <div class="header-left">
-                    <button id="close-about-screen-btn" class="btn-icon-nav" aria-label="Go Back">
-                        <span class="material-icons">arrow_back</span>
-                    </button>
-                    <h3>Test Details</h3>
-                </div>
-            </header>
-            <div class="screen-content" style="padding-bottom: 40px;">
-                <div class="analytics-card" style="margin-bottom: 20px;">
-                    <h2 id="about-test-title" style="color: var(--text-main); margin-bottom: 10px;">Test Title</h2>
-                    <p id="about-test-desc" style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Test description will load here...</p>
-                </div>
-                
-                <h4 style="margin-bottom: 15px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                    <span class="material-icons">science</span> Demo Tests (Free)
-                </h4>
-                <div class="demo-test-list">
-                    <div class="test-card" style="border-left: 4px solid var(--success);">
-                        <div class="test-info">
-                            <h4>Demo Paper 1</h4>
-                            <p>Basic Level</p>
-                        </div>
-                        <button class="btn-secondary" style="color: var(--success); border-color: var(--success);" onclick="showCustomPopup('Demo', 'Demo test logic will start here.', 'info')">Attempt</button>
-                    </div>
-                    <div class="test-card" style="border-left: 4px solid var(--success); margin-top: 10px;">
-                        <div class="test-info">
-                            <h4>Demo Paper 2</h4>
-                            <p>Advanced Level</p>
-                        </div>
-                        <button class="btn-secondary" style="color: var(--success); border-color: var(--success);" onclick="showCustomPopup('Demo', 'Demo test logic will start here.', 'info')">Attempt</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <!-- ========================================== -->
-        <!-- 📂 PREMIUM SERIES INSIDE SCREEN            -->
-        <!-- ========================================== -->
-        <section id="premium-series-screen" class="screen" style="display: none;">
-            <header class="app-header">
-                <div class="header-left">
-                    <button id="close-series-screen-btn" class="btn-icon-nav" aria-label="Go Back">
-                        <span class="material-icons">arrow_back</span>
-                    </button>
-                    <h3 id="series-screen-title">Test Series</h3>
-                </div>
-            </header>
-            <div class="screen-content" style="padding-bottom: 40px;">
-                <div class="category-banner-card" style="margin-bottom: 20px;">
-                    <!-- Banner image for the series -->
-                    <img src="./assets/image1.jpg" alt="Series Banner" class="category-banner-img" style="height: 120px;">
-                </div>
-                <p class="section-title">Available Mock Tests</p>
-                <div id="series-inner-tests-list" class="test-list-container">
-                    <!-- JS yahan par is series ke andar wale tests inject karega -->
-                    <div style="text-align:center; padding: 30px; color: var(--text-muted);">
-                        Fetching tests for this series...
-                    </div>
-                </div>
-            </div>
-        </section>
+        
     </main>
+
     <script src="app.js"></script>
 </body>
 </html>
