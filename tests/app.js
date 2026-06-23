@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbyZ0I7rnS75wXu67tWG3Q8xwV1W-yXZ3s_F0tQ0oPFNLcysD0DeF1_q854hA_dV4LF63Q/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwT29x9mgP_ZAA6aViEGAoq0TT9EKfXnrmJmxkjOXlJTqkv_6j1EnLX4E3vJWtTkMaFlQ/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -42,8 +42,14 @@ let timeRemaining = 0;
 let testEndTime = 0;
 let isTestActive = false;
 let totalTestSeconds = 0;
+let serverTimeOffset = 0; // 🛡️ NAYA: Real Server Time Tracker
 
 const optionPrefixes = ['(a) ', '(b) ', '(c) ', '(d) '];
+
+// 🛡️ NAYA: Time Travel Hack Preventer Function
+function getSecureTime() {
+    return Date.now() + serverTimeOffset;
+}
 
 // ==========================================
 // 1. APP SHELL UI MECHANICS (NATIVE FEEL)
@@ -92,28 +98,32 @@ function toggleDrawer() {
 document.getElementById('menu-toggle-btn').addEventListener('click', toggleDrawer);
 drawerOverlay.addEventListener('click', toggleDrawer);
 
-// Bottom Navigation Tab Routing
-function switchTab(tabId, headerTitle) {
-    // Hide all tabs
+
+// Bottom Navigation Tab Routing (WITH SYSTEM BACK BUTTON SYNC)
+function switchTab(tabId, headerTitle, pushToHistory = true) {
     document.querySelectorAll('.tab-view').forEach(t => {
         t.classList.remove('active');
         t.style.display = 'none';
     });
-    // Remove active state from all nav buttons
     document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
 
-    // Show target tab
     const targetTab = document.getElementById(tabId);
-    targetTab.style.display = 'flex';
-    // Small delay to trigger CSS animations if any
-    setTimeout(() => targetTab.classList.add('active'), 10);
+    if(targetTab) {
+        targetTab.style.display = 'flex';
+        setTimeout(() => targetTab.classList.add('active'), 10);
+    }
 
-    // Update Bottom Nav UI
-    const baseId = tabId.split('-')[0]; // "home", "results", "profile"
-    document.getElementById(`tab-btn-${baseId}`).classList.add('active');
+    const baseId = tabId.split('-')[0]; 
+    const navBtn = document.getElementById(`tab-btn-${baseId}`);
+    if(navBtn) navBtn.classList.add('active');
 
-    // Update Header
-    document.getElementById('app-bar-title').innerText = headerTitle;
+    const appBarTitle = document.getElementById('app-bar-title');
+    if(appBarTitle) appBarTitle.innerText = headerTitle;
+
+    // 🛡️ THE FIX: Tab switch hone par usko Browser/System History mein daal do
+    if (pushToHistory) {
+        history.pushState({ tab: tabId, title: headerTitle }, "", `#${tabId}`);
+    }
 }
 
 // Attach Event Listeners to UI Elements
@@ -124,13 +134,6 @@ document.getElementById('tab-btn-profile').addEventListener('click', () => switc
 // Map Drawer Links to Tabs
 document.getElementById('menu-home-btn').addEventListener('click', () => {
     switchTab('home-tab', 'Home Dashboard');
-    toggleDrawer();
-});
-
-document.getElementById('menu-notes-btn').addEventListener('click', () => {
-    switchTab('home-tab', 'Home Dashboard'); 
-    const notesBtn = document.getElementById('grid-action-notes');
-    if(notesBtn) notesBtn.click(); // Safe query to prevent initialization errors
     toggleDrawer();
 });
 
@@ -160,8 +163,8 @@ function handleGridSwitch(activeBtnId, sectionToShowId) {
     const activeBtn = document.getElementById(activeBtnId);
     if (activeBtn) activeBtn.classList.add('active-card');
 
-    // Sabko pehle hide karo (Sirf 2 containers bache hain)
-    const wrappers = ['practice-tests-910-wrapper', 'practice-tests-1112-wrapper'];
+// Sabko pehle hide karo (Ab sirf 1 container bacha hai)
+    const wrappers = ['practice-tests-910-wrapper'];
     wrappers.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = 'none';
@@ -176,12 +179,20 @@ function handleGridSwitch(activeBtnId, sectionToShowId) {
     }
 }
 
+
+
+
 // 🎯 SMART LISTENERS FOR ROUTING (IX-X & XI-XII)
 document.getElementById('grid-action-live-910')?.addEventListener('click', () => {
     handleGridSwitch('grid-action-live-910', null); 
     switchTab('live-tests-tab-910', 'Live Tests (IX & X)');
 });
 
+// 🛡️ NAYA FIX: Missing Free Live Test Routing Engine for Class 11 & 12
+document.getElementById('grid-action-live-1112')?.addEventListener('click', () => {
+    handleGridSwitch('grid-action-live-1112', null); 
+    switchTab('live-tests-tab-1112', 'Free Live Tests (XI & XII)');
+});
 
 // 🌟 FIXED: Premium Live Test ke click par ab NAYA Premium Tab khulega
 document.getElementById('grid-action-premium-1112')?.addEventListener('click', () => {
@@ -189,67 +200,58 @@ document.getElementById('grid-action-premium-1112')?.addEventListener('click', (
     switchTab('premium-tests-tab', 'Premium Test Series');
 });
 
-// About Screen se wapas aane ka logic
-document.getElementById('close-about-screen-btn')?.addEventListener('click', () => {
-    navigate('main-app-shell', false);
-});
-
 document.getElementById('grid-action-practice-910')?.addEventListener('click', () => handleGridSwitch('grid-action-practice-910', 'practice-tests-910-wrapper'));
-document.getElementById('grid-action-practice-1112')?.addEventListener('click', () => handleGridSwitch('grid-action-practice-1112', 'practice-tests-1112-wrapper'));
 
 // ==========================================
-// 2. CORE SPA ROUTING (FULL SCREENS)
+// 2. CORE SPA ROUTING (SINGLE SHELL ARCHITECTURE)
 // ==========================================
 function navigate(screenId, pushToHistory = true) {
-    // 1. Hide all screens completely
     document.querySelectorAll('.screen').forEach(s => {
         s.classList.remove('active');
         s.style.display = 'none'; 
     });
-    
-    // 2. Safely un-hide ONLY the target screen
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
-        targetScreen.style.display = 'flex'; // FIX: Ye line ensure karegi ki target screen hamesha visible ho!
+        targetScreen.style.display = 'flex';
         setTimeout(() => targetScreen.classList.add('active'), 10);
     }
-
-    // 3. Update Browser History
     if (pushToHistory) {
         history.pushState({ screen: screenId }, "", `#${screenId}`);
     }
 }
 
 window.addEventListener('popstate', (e) => {
-    const activeScreen = document.querySelector('.screen.active');
-    
-    // 1. Agar Live Test ke beech mein back dabaya
-    if (activeScreen && activeScreen.id === 'test-screen' && isTestActive) {
-        history.pushState({ screen: 'test-screen' }, "", `#test-screen`);
+    // 1. Agar Live Test ke beech mein back dabaya toh block kardo
+    if (isTestActive) {
+        history.pushState({ tab: 'test-tab', title: 'Test Session' }, "", `#test-tab`);
         showCustomPopup("Blocked", "Back disabled in <strong style='color: var(--danger);'>LIVE</strong> tests. Please submit.", "danger");
         return;
     }
 
-    // 2. Identify the target screen (kahan jaa raha hai)
-    let targetScreen = e.state && e.state.screen ? e.state.screen : (loggedInUser ? 'main-app-shell' : 'login-screen');
-
-    // 3. ✅ THE FIX: Agar piche aakar wapas Dashboard par jaa raha hai, toh data refresh karo
-    if (targetScreen === 'main-app-shell' && loggedInUser) {
-        navigate('main-app-shell', false);
-        loadDashboard(); // 🔥 Server se naya result sync karega aur buttons lock kar dega
-        return;
+    const state = e.state;
+    
+    // 2. Agar user kisi Tab par back aaya hai
+    if (state && state.tab) {
+        switchTab(state.tab, state.title || 'Portal', false);
+        
+        // Agar ghoom ke wapas Home ya Results par aaya hai, toh data fresh karo
+        if (state.tab === 'home-tab' || state.tab === 'results-tab') {
+            loadDashboard(); 
+        }
+    } 
+    // 3. Agar user Screen (Login ya Main Shell) par back aaya hai
+    else if (state && state.screen) {
+        navigate(state.screen, false);
+    } 
+    // 4. Default Fallback
+    else {
+        if (loggedInUser) {
+            navigate('main-app-shell', false);
+            switchTab('home-tab', 'Home Dashboard', false);
+        } else {
+            navigate('login-screen', false);
+        }
     }
-
-    // 4. Test khatam hone ke baad wala normal case
-    if (targetScreen === 'test-screen' && !isTestActive) {
-        history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
-        navigate('main-app-shell', false);
-        loadDashboard(); 
-        return;
-    }
-
-    // Default Fallback
-    navigate(targetScreen, false);
 });
 
 // ==========================================
@@ -299,14 +301,19 @@ function showCustomPopup(title, message, type = 'info', confirmCallback = null, 
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
-    newConfirmBtn.addEventListener('click', () => {
-        popupOverlay.style.display = 'none';
-        if (confirmCallback) confirmCallback();
-    });
+    // 🛡️ NAYA: Har baar naya popup khulne par button ko waapas enable rakho
+        newConfirmBtn.disabled = false;
 
-    newCancelBtn.addEventListener('click', () => {
-        popupOverlay.style.display = 'none';
-    });
+        newConfirmBtn.addEventListener('click', () => {
+            // 🛡️ ANTI-RACE CONDITION: Ek baar click hote hi button turant lock kar do!
+            newConfirmBtn.disabled = true; 
+            popupOverlay.style.display = 'none';
+            if (confirmCallback) confirmCallback();
+        });
+
+        newCancelBtn.addEventListener('click', () => {
+            popupOverlay.style.display = 'none';
+        });
 
     popupOverlay.style.display = 'flex';
 }
@@ -426,8 +433,10 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 });
 
 
+
+
 // ==========================================
-// 🚀 NAYA: PREMIUM GOOGLE LOGIN ENGINE
+// 🚀 NAYA: PREMIUM GOOGLE LOGIN ENGINE (SECURE SYNC)
 // ==========================================
 const googleLoginBtn = document.getElementById('google-login-btn');
 
@@ -437,14 +446,35 @@ if (googleLoginBtn) {
         try {
             const result = await auth.signInWithPopup(googleProvider);
             const user = result.user;
-            loggedInUser = user.email; 
-            loggedInUserName = user.displayName || user.email.split('@')[0]; 
-            
-            localStorage.setItem('student_username', loggedInUser);
-            localStorage.setItem('student_name', loggedInUserName);
-            updateProfileUI();
-            loadDashboard();
-            triggerSmartPushPrompt(); 
+            const email = user.email;
+            const name = user.displayName || email.split('@')[0];
+
+            // 🛡️ THE FIX: Backend ko inform karo aur Secure Token fetch karo
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                redirect: "follow",
+                body: JSON.stringify({ action: "googleLogin", email: email, name: name })
+            });
+            const backendResult = JSON.parse(await response.text());
+
+            if (backendResult.success) {
+                loggedInUser = email;
+                loggedInUserName = name;
+                
+                // ✅ Ab LocalStorage mein proper authentication parameters save honge
+                localStorage.setItem('student_username', loggedInUser);
+                localStorage.setItem('student_name', loggedInUserName);
+                localStorage.setItem('auth_token', backendResult.token); 
+
+                updateProfileUI();
+                document.getElementById('error-message').innerText = ""; 
+                loadDashboard();
+                triggerSmartPushPrompt(); 
+            } else {
+                showCustomPopup("Access Denied", backendResult.message, "danger");
+                if(auth) auth.signOut(); // Invalid backend response par turant Firebase session destroy karo
+            }
             
         } catch (error) {
             console.error("Google Login Error:", error);
@@ -457,8 +487,23 @@ if (googleLoginBtn) {
     });
 }
 
+
 function handleLogout() {
-    showCustomPopup("Secure Logout", "Are you sure you want to end your session?", "warning", () => {
+    showCustomPopup("Secure Logout", "Are you sure you want to end your session?", "warning", async () => {
+        showLoader("Destroying Secure Session...");
+        
+        try {
+            // 🔥 THE FIX: Backend ko signal bhejo ki Google Sheet se token uda de
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "logout", username: loggedInUser })
+            });
+        } catch (e) {
+            console.log("Server sync failed, but clearing local session.");
+        }
+        
+        hideLoader();
         loggedInUser = "";
         localStorage.removeItem('student_username');
         localStorage.removeItem('student_name');
@@ -507,9 +552,15 @@ const practiceList910 = document.getElementById('practice-list-910');
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ action: "getDashboard", username: loggedInUser, token: authToken })
         });
+
         const result = JSON.parse(await response.text());
 
         if (result.success) {
+            // 🛡️ SYNC DEVICE TIME WITH SERVER TIME
+            if (result.serverTime) {
+                serverTimeOffset = result.serverTime - Date.now();
+            }
+
             [practiceList910, practiceList1112, pastResultsContainer, upcoming910, expired910, upcoming1112, expired1112].forEach(el => {
                 if(el) el.innerHTML = "";
             });
@@ -518,7 +569,7 @@ const practiceList910 = document.getElementById('practice-list-910');
 
             let practiceCount910 = 0, practiceCount1112 = 0, completedCount = 0;
             let upCount910 = 0, expCount910 = 0, upCount1112 = 0, expCount1112 = 0;
-            const nowMs = Date.now();
+            const nowMs = getSecureTime(); // 🛡️ SECURE TIME USED HERE
 
             const formatOnlyDate = (isoString) => {
                 if(!isoString) return 'TBA';
@@ -625,41 +676,56 @@ const practiceList910 = document.getElementById('practice-list-910');
                 }
             });
 
+
             // 💎 --- 2. RENDER PREMIUM BUNDLES (Test Series) ---
             (result.premiumBundles || []).forEach(bundle => {
                 const premiumCardHTML = `
-                    <div class="premium-detail-card" style="background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1.5px solid var(--border);">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase;">${bundle.subject}</span>
-                            ${bundle.offerBadge ? `<span style="background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800;"><span class="material-icons" style="font-size: 12px; vertical-align: middle;">auto_awesome</span> ${bundle.offerBadge}</span>` : ''}
+                    <div class="bundle-premium-card premium-glow-card" data-bundle="${bundle.bundleId}">
+                        <h3 class="bpc-title">${bundle.title}</h3>
+                        <div class="bpc-header">
+                            <div class="bpc-tags">
+                                <span class="bpc-subject">${bundle.subject}</span>
+                                <span class="bpc-class">Class ${bundle.classLvl}</span>
+                            </div>
+                            ${bundle.offerBadge ? `<div class="bpc-offer-badge"><span class="material-icons star-icon">auto_awesome</span> ${bundle.offerBadge}</div>` : ''}
                         </div>
-                        
-                        <h3 style="font-size: 18px; color: var(--text-main); margin-bottom: 12px; line-height: 1.3;">${bundle.title}</h3>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 13px; color: var(--text-muted);">
-                            <div><span class="material-icons" style="font-size: 16px; vertical-align: middle; color: var(--primary);">menu_book</span> <b>Syllabus:</b> ${bundle.syllabus}</div>
-                            <div><span class="material-icons" style="font-size: 16px; vertical-align: middle; color: var(--success);">format_list_numbered</span> <b>Mocks:</b> ${bundle.totalMocks}</div>
-                        </div>
-
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px 12px; background: rgba(0,0,0,0.02); border-radius: 8px;">
-                            <div>
-                                <span style="font-size: 13px; text-decoration: line-through; color: var(--text-muted);">₹${bundle.originalPrice || 999}</span>
-                                <span style="font-size: 22px; font-weight: 900; color: #10B981; margin-left: 8px;">₹${bundle.offerPrice || 199}</span>
+                        <div class="bpc-stats-grid">
+                            <div class="bpc-stat">
+                                <span class="material-icons primary-icon">menu_book</span>
+                                <div>
+                                    <small>Syllabus</small>
+                                    <p>${bundle.syllabus}</p>
+                                </div>
+                            </div>
+                            <div class="bpc-stat">
+                                <span class="material-icons success-icon">format_list_numbered</span>
+                                <div>
+                                    <small>Total Number of Test</small>
+                                    <p>${bundle.totalMocks}</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-secondary premium-about-btn" onclick="showCustomPopup('About Test Series', '${bundle.aboutTest || 'Complete test series for your preparation.'}', 'info')" style="flex: 1; padding: 10px; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">
-                                <span class="material-icons" style="font-size: 18px;">info</span> About
+                        <div class="bpc-price-row">
+                            <div class="bpc-price-info">
+                                <span class="bpc-old-price">₹${bundle.originalPrice || 999}</span>
+                                <span class="bpc-new-price">₹${bundle.offerPrice || 199}</span>
+                            </div>
+                            <div class="bpc-discount-tag">Save Big!</div>
+                        </div>
+
+                        <div class="bpc-actions">
+                            <button class="btn-secondary bpc-about-btn" data-about="${bundle.bundleId}">
+                                Explore Demo
                             </button>
                             
                             ${!bundle.isBought ? 
-                                `<button class="btn-primary premium-buy-btn" data-testid="${bundle.bundleId}" data-amount="${bundle.offerPrice}" style="flex: 1.5; background: #F59E0B; border:none; color:white; padding: 10px; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">
-                                    <span class="material-icons" style="font-size: 18px;">shopping_cart_checkout</span> Buy Now
+                                `<button class="btn-primary bpc-buy-btn premium-buy-btn" data-testid="${bundle.bundleId}" data-amount="${bundle.offerPrice}">
+                                    <span class="material-icons" style="font-size:16px;">shopping_cart_checkout</span> Buy Now
                                 </button>` 
                                 : 
-                                `<button class="btn-primary premium-open-series-btn" data-series="${bundle.bundleId}" data-title="${bundle.title}" style="flex: 1.5; background: var(--success); border:none; color:white; padding: 10px; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">
-                                    <span class="material-icons" style="font-size: 18px;">folder_open</span> Open Series
+                                `<button class="btn-primary bpc-open-btn premium-open-series-btn" data-series="${bundle.bundleId}" data-title="${bundle.title}">
+                                    Purchased | Open Now
                                 </button>`
                             }
                         </div>
@@ -667,8 +733,6 @@ const practiceList910 = document.getElementById('practice-list-910');
                 `;
                 if (premiumTestList) premiumTestList.insertAdjacentHTML('beforeend', premiumCardHTML);
             });
-
-
 
             // 🎨 NEW EMPTY STATES
             const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
@@ -710,8 +774,8 @@ function renderCompletedCard(test, container) {
 
 // --- NATIVE LIVE ENGINE (REAL-TIME UI) ---
 function startDashboardLiveEngine() {
-    function updateLiveCards() {
-        const now = Date.now();
+function updateLiveCards() {
+        const now = getSecureTime(); // 🛡️ SECURE TIME USED HERE
         document.querySelectorAll('.live-test-card').forEach(card => {
             const startTime = new Date(card.getAttribute('data-start')).getTime();
             const endTime = new Date(card.getAttribute('data-end')).getTime();
@@ -826,7 +890,7 @@ function attachTestCardListeners() {
                         showCustomPopup("About This Test", testCard.getAttribute('data-about'), "info");
                     };
                     
-                    navigate('premium-package-screen', true); // Seedha Premium Detail Screen pe bhejo
+                    switchTab('premium-package-tab', 'Package Details'); // 🛡️ NATIVE UI FIX
                     return; // Yahin ruk jao, aage live test start nahi hoga
                 }
 
@@ -838,7 +902,7 @@ function attachTestCardListeners() {
                 if (testType === 'live') {
                     const start = new Date(testCard.getAttribute('data-start')).getTime();
                     const end = new Date(testCard.getAttribute('data-end')).getTime();
-                    const now = Date.now();
+                    const now = getSecureTime(); // 🛡️ SECURE TIME USED HERE
                     
                     if (now < start) {
                         showCustomPopup("Locked Securely", "This test hasn't started yet. Please wait.", "warning");
@@ -907,7 +971,7 @@ async function startLiveTest(testId, durationMins) {
             renderQuestion();
             totalTestSeconds = durationMins * 60;
             startTimer(durationMins * 60); 
-            navigate('test-screen'); 
+            switchTab('test-tab', 'Test Session'); // 🛡️ NATIVE UI FIX
         } else {
             showCustomPopup("Coming Soon", "Questions for this test are not uploaded yet.", "danger");
         }
@@ -920,11 +984,15 @@ async function startLiveTest(testId, durationMins) {
 
 function startTimer(seconds) {
     clearInterval(timerInterval);
-    testEndTime = Date.now() + (seconds * 1000);
+    timeRemaining = seconds; // 🛡️ SYSTEM TIME BYPASS: Direct seconds variable set karo
     
     function checkTime() {
-        const now = Date.now();
-        timeRemaining = Math.max(0, Math.round((testEndTime - now) / 1000));
+        timeRemaining--; // 🛡️ STRICT ENGINE: Har second exactly 1 minus karo. Device time change karne se ispe koi farq nahi padega.
+        
+        if (timeRemaining <= 0) {
+            timeRemaining = 0;
+        }
+        
         updateTimerDisplay();
         
         if (timeRemaining <= 0) {
@@ -933,8 +1001,8 @@ function startTimer(seconds) {
         }
     }
     
-    checkTime(); 
-    timerInterval = setInterval(checkTime, 1000);
+    updateTimerDisplay(); // Start hote hi UI par time dikhao
+    timerInterval = setInterval(checkTime, 1000); // Har 1 second mein tick karo
 }
 
 function updateTimerDisplay() {
@@ -1044,43 +1112,70 @@ document.getElementById('next-btn').addEventListener('click', () => {
     }
 });
 
+
 // ==========================================
-// 7. ANALYSIS & RESULTS SCREEN
+// 7. ANALYSIS & RESULTS SCREEN (WITH OFFLINE RETRY)
 // ==========================================
 async function processSubmission() {
     if (!isTestActive) return; 
-    isTestActive = false; 
+    isTestActive = false; // Double-click ko rokne ke liye turant lock karo
 
     clearInterval(timerInterval);
-    showLoader("Grading your test & Calculating Rank...");
 
+    // 🛡️ ANTI-CHEAT FIX: Screen ko turant freeze kar do taaki offline mode mein answers change na kar sakein
+    const optionsContainer = document.getElementById('options-container');
+    if(optionsContainer) optionsContainer.style.pointerEvents = 'none';
+    const questionPalette = document.getElementById('question-palette');
+    if(questionPalette) questionPalette.style.pointerEvents = 'none';
+    document.getElementById('prev-btn').disabled = true;
+    document.getElementById('next-btn').disabled = true;
+
+    // 🛡️ OFFLINE CHECK 1: Pata karo internet hai ya nahi
+    if (!navigator.onLine) {
+        isTestActive = true; // Wapas true karo taaki baccha retry kar sake (lekin UI ab locked rahega)
+        showCustomPopup(
+            "No Internet! 📡", 
+            "Your answers are securely locked. Please turn on your internet and tap Retry to submit.", 
+            "warning", 
+            () => { processSubmission(); }, 
+            false
+        );
+        return;
+    }
+
+    showLoader("Grading your test & Calculating Rank...");
     const timeTaken = totalTestSeconds - timeRemaining;
 
     try {
-        const authToken = localStorage.getItem('auth_token'); // 🔥 NAYA: Secret token nikalo
+        const authToken = localStorage.getItem('auth_token');
         
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             redirect: "follow",
-            // 🔥 NAYA: Payload mein token add kar diya taaki fake submission na ho ske
             body: JSON.stringify({ action: "submitTest", username: loggedInUser, token: authToken, testName: activeTestName, answers: userAnswers, timeTaken: timeTaken })
         });
         const result = JSON.parse(await response.text());
 
         if (result.success) {
-            history.replaceState({ screen: 'analysis-screen' }, "", "#analysis-screen");
+            history.replaceState({ tab: 'analysis-tab', title: 'Performance Insights' }, "", "#analysis-tab"); // 🛡️ NATIVE UI FIX
             hideLoader();
-            showCustomPopup("Submitted!", "Results processed successfully.", "success", () => {
+            showCustomPopup("Submitted! 🎉", "Results processed successfully.", "success", () => {
                 displayDeepAnalysis(result.score, result.total, result.percentage, result.analysis, false);
             });
         } else {
-            throw new Error("Grading failed");
+            throw new Error("Grading failed: " + result.message);
         }
     } catch (e) {
         hideLoader();
-        isTestActive = false; 
-        showCustomPopup("Error", "Network issue. Returning to dashboard.", "danger", () => loadDashboard());
+        isTestActive = true; // 🛡️ OFFLINE CHECK 2: Agar submit hote waqt net gaya, toh bhi retry enable karo
+        
+        showCustomPopup(
+            "Network Drop Detected! ⚠️", 
+            "We couldn't connect to the server. Don't worry, your test is safe. Reconnect internet and tap Retry.", 
+            "danger", 
+            () => { processSubmission(); } // Retry ka button (Ab dashboard pe nahi fekega!)
+        );
     }
 }
 
@@ -1111,14 +1206,11 @@ function displayDeepAnalysis(score, total, percentage, detailsArray, pushToHisto
                 ${!isCorrect ? `<p class="correct-ans">Correct Answer: ${item.correctAnswer}</p>` : ''}
             </div>
         `;
+
     });
 
-    navigate('analysis-screen', pushToHistory);
+    switchTab('analysis-tab', 'Performance Insights', pushToHistory); // 🛡️ NATIVE UI FIX
 }
-
-document.getElementById('close-analysis-btn').addEventListener('click', () => {
-    loadDashboard();
-});
 
 
 
@@ -1238,27 +1330,23 @@ document.getElementById('view-leaderboard-btn').addEventListener('click', () => 
     fetchAndRenderLeaderboard(activeTestName);
 });
 
-// ✅ UPDATE: Close karne par wapas smoothly Analysis Screen par jayega
-document.getElementById('close-leaderboard-btn').addEventListener('click', () => {
-    navigate('analysis-screen', false); 
-});
-
 async function fetchAndRenderLeaderboard(testId) {
     const listContainer = document.getElementById('leaderboard-list');
     
-    // ✅ UPDATE: Puraane display:flex ki jagah proper App Navigation use kiya
-    navigate('leaderboard-screen', false);
+    // 🛡️ NATIVE UI FIX: Tab switch use karo
+    switchTab('leaderboard-tab', 'Live Rankings');
     
     document.getElementById('leaderboard-test-name').innerText = testId.replace(/_/g, ' ').toUpperCase();
     
     // Premium loading animation
     listContainer.innerHTML = `<div style="text-align:center; padding: 40px;"><span class="material-icons" style="font-size:40px; color:var(--primary); animation: waveMotion 1.5s infinite;">emoji_events</span><p style="margin-top:10px; font-weight:600;">Fetching All India Ranks...</p></div>`;
 
-    try {
+        try {
+        const authToken = localStorage.getItem('auth_token');
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "getLeaderboard", testName: testId })
+            body: JSON.stringify({ action: "getLeaderboard", username: loggedInUser, token: authToken, testName: testId })
         });
 
         const result = JSON.parse(await response.text());
@@ -1333,6 +1421,7 @@ function setupLiveTabs(target) {
 }
 setupLiveTabs('910');
 setupLiveTabs('1112');
+setupLiveTabs('series');
 
 // =========================================
 // 11. WHATSAPP SUPPORT ENGINE
@@ -1417,6 +1506,9 @@ if (closePremiumBtn) {
 document.addEventListener('click', async (e) => {
     const buyBtn = e.target.closest('.premium-buy-btn');
     if (buyBtn) {
+        // 🛡️ ANTI-SPAM LOCK: Agar pehle se processing chal rahi hai toh click ignore karo
+        if (buyBtn.disabled) return;
+        
         const bundleId = buyBtn.getAttribute('data-testid');
 
         if (!bundleId) {
@@ -1424,17 +1516,22 @@ document.addEventListener('click', async (e) => {
             return;
         }
 
+        // 🛡️ BUTTON LOCK: Click hote hi button ko disable karo aur text change karo
+        buyBtn.disabled = true;
+        const originalBtnHTML = buyBtn.innerHTML;
+        buyBtn.innerHTML = `<span class="material-icons" style="font-size:16px; animation: spinGlow 1s linear infinite;">autorenew</span> Processing...`;
+        buyBtn.style.opacity = "0.7";
+
         // 🛡️ SECURITY CHECK: Ensure Razorpay is loaded properly
         if (typeof Razorpay === 'undefined') {
-            showCustomPopup("Connection Error", "Payment gateway is loading. Please check your internet connection and try again.", "warning");
+            buyBtn.disabled = false; buyBtn.innerHTML = originalBtnHTML; buyBtn.style.opacity = "1"; // Unlock
+            showCustomPopup("Connection Error", "Payment gateway is loading. Please check internet.", "warning");
             return;
         }
 
         showLoader("Generating Secure Bank Order...");
         try {
-
-            // 🛡️ ANTI-HACK: Frontend sirf ID bhejega. Backend khud Google Sheet se real price fetch karega.
-            const authToken = localStorage.getItem('auth_token'); // 🔥 NAYA: Token nikalo
+            const authToken = localStorage.getItem('auth_token');
             const orderRes = await fetch(API_URL, {
                 method: 'POST',
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -1442,29 +1539,24 @@ document.addEventListener('click', async (e) => {
             });
 
             const orderResult = JSON.parse(await orderRes.text());
-
             hideLoader();
 
             if (!orderResult.success) {
+                buyBtn.disabled = false; buyBtn.innerHTML = originalBtnHTML; buyBtn.style.opacity = "1"; // Unlock
                 showCustomPopup("Bank Error", orderResult.message || "Failed to connect with bank gateway.", "danger");
                 return;
             }
 
-            // 💳 RAZORPAY POPUP OPTIONS
             var options = {
-                "key": "rzp_live_T4XNIDMRFQbzpL", // Tumhari test key
-                "amount": orderResult.amount * 100, // Secure amount strictly from backend
+                "key": "rzp_live_T4XNIDMRFQbzpL", 
+                "amount": orderResult.amount * 100, 
                 "currency": "INR",
                 "name": "Test Portal",
                 "description": "Purchase Test Bundle",
                 "image": "./icon-512x512.png", 
                 "order_id": orderResult.orderId,
                 "handler": async function (response) {
-                    
-                    // ✅ SUCCESS LOGIC: Payment done! Verify & Unlock in Backend
                     showLoader("Verifying Payment & Unlocking Bundle...");
-
-
                     try {
                         const verifyRes = await fetch(API_URL, {
                             method: 'POST',
@@ -1472,58 +1564,55 @@ document.addEventListener('click', async (e) => {
                             body: JSON.stringify({ 
                                 action: "savePayment", 
                                 username: loggedInUser, 
-                                token: authToken, // 🔥 NAYA: Token attach karo
+                                token: authToken,
                                 testId: bundleId,
                                 paymentId: response.razorpay_payment_id,
                                 amount: orderResult.amount 
                             })
                         });
 
-
-
                         const verifyResult = JSON.parse(await verifyRes.text());
-
                         hideLoader();
                         if (verifyResult.success) {
-                            // Payment verified securely
-                            showCustomPopup("Payment Successful! 🎉", "Premium Test Bundle has been permanently unlocked for your account.", "success", () => {
-                                // Background mein data refresh karo taaki "Buy Now" automatically "Open Series" ban jaye!
+                            showCustomPopup("Payment Successful! 🎉", "Premium Test Bundle unlocked.", "success", () => {
                                 loadDashboard(); 
                             });
                         } else {
-                            showCustomPopup("Verification Error", "Payment received but failed to unlock bundle. Please contact admin.", "warning");
+                            buyBtn.disabled = false; buyBtn.innerHTML = originalBtnHTML; buyBtn.style.opacity = "1"; // Unlock
+                            showCustomPopup("Verification Error", "Payment received but failed to unlock bundle.", "warning");
                         }
                     } catch (e) {
                         hideLoader();
-                        showCustomPopup("Network Error", "Payment successful, but verification timed out. Don't worry, contact support with your email.", "danger");
+                        buyBtn.disabled = false; buyBtn.innerHTML = originalBtnHTML; buyBtn.style.opacity = "1"; // Unlock
+                        showCustomPopup("Network Error", "Verification timed out. Contact support.", "danger");
                     }
                 },
-                "prefill": {
-                    "email": loggedInUser 
-                },
-                "theme": {
-                    "color": "#F59E0B" // Premium Gold Color
+                "prefill": { "email": loggedInUser },
+                "theme": { "color": "#F59E0B" },
+                "modal": {
+                    "ondismiss": function() {
+                        // 🛡️ MAGIC UNLOCK: Agar user payment cancel karke popup band kare toh button waapas zinda ho jaye
+                        buyBtn.disabled = false; 
+                        buyBtn.innerHTML = originalBtnHTML; 
+                        buyBtn.style.opacity = "1";
+                    }
                 }
             };
 
-            // 4. OPEN RAZORPAY SECURE GATEWAY
             var rzp1 = new Razorpay(options);
-            
-            // ❌ FAILED PAYMENT LOGIC
             rzp1.on('payment.failed', function (response){
+                buyBtn.disabled = false; buyBtn.innerHTML = originalBtnHTML; buyBtn.style.opacity = "1"; // Unlock
                 showCustomPopup("Payment Failed ❌", `Transaction declined: ${response.error.description}`, "danger");
             });
-            
             rzp1.open();
 
         } catch (error) {
             hideLoader();
+            buyBtn.disabled = false; buyBtn.innerHTML = originalBtnHTML; buyBtn.style.opacity = "1"; // Unlock
             showCustomPopup("Network Error", "Could not connect to secure payment server.", "danger");
         }
     }
 });
-
-
 
 // ==========================================
 // 📂 PREMIUM SERIES FOLDER ENGINE (DYNAMIC FETCH)
@@ -1534,13 +1623,14 @@ document.addEventListener('click', async (e) => {
         const seriesTitle = openBtn.getAttribute('data-title');
         const bundleId = openBtn.getAttribute('data-series'); 
         
-        // Setup Screen Title and Loading State
-        document.getElementById('series-screen-title').innerText = seriesTitle;
-        const innerList = document.getElementById('series-inner-tests-list');
-        innerList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--primary);"><span class="material-icons" style="font-size: 30px; animation: spinGlow 1s linear infinite;">autorenew</span><br><b style="display:block; margin-top:10px;">Fetching Mock Tests...</b></div>`;
+        // 🛡️ NAYA FIX: Native UI Tab switch (Title aur nav bar maintain rahega)
+        const upList = document.getElementById('upcoming-live-list-series');
+        const expList = document.getElementById('expired-live-list-series');
         
-        navigate('premium-series-screen', true);
+        upList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--primary);"><span class="material-icons" style="font-size: 30px; animation: spinGlow 1s linear infinite;">autorenew</span><br><b style="display:block; margin-top:10px;">Fetching Mock Tests...</b></div>`;
+        expList.innerHTML = "";
 
+        switchTab('series-inside-tab', seriesTitle); // Yeh app ka title bar automatically update kar dega
 
         try {
             const authToken = localStorage.getItem('auth_token');
@@ -1553,56 +1643,95 @@ document.addEventListener('click', async (e) => {
             const data = JSON.parse(await res.text());
 
             if (data.success && data.bundleTests.length > 0) {
-                innerList.innerHTML = ""; // Clear loader
+                upList.innerHTML = ""; // Clear loader
+                expList.innerHTML = "";
                 
+                let upCount = 0, expCount = 0;
+
+                const formatShortDate = (isoString) => {
+                    if (!isoString) return 'TBA';
+                    return new Date(isoString).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+                };
+
                 data.bundleTests.forEach(test => {
                     const isCompleted = test.status === "completed";
                     const testDuration = parseInt(test.duration) || 60;
                     
-                    const now = Date.now();
+                    const now = getSecureTime(); 
                     const startTime = test.startTime ? new Date(test.startTime).getTime() : 0;
                     const endTime = test.endTime ? new Date(test.endTime).getTime() : Infinity;
+                    const isExpired = now > endTime;
                     
                     let statusBadge = "";
                     let actionBtn = "";
                     
-                    // Button Logic: Completed > Upcoming > Expired > Active
+                    // Button Logic & Tagging
                     if (isCompleted) {
                         statusBadge = `<span style="color:var(--success); font-size:11px; font-weight:bold;">✅ ATTEMPTED</span>`;
-                        actionBtn = `<button class="btn-secondary test-action-btn" data-test="${test.testId}" data-completed="true" style="width:100%; margin-top:10px;">View Analysis</button>`;
-                        testHistoryData[test.testId] = { score: test.score, total: test.total }; // Sync analysis info
+                        actionBtn = `<button class="btn-secondary test-action-btn" data-test="${test.testId}" data-completed="true" style="width:100%;">View Analysis</button>`;
+                        testHistoryData[test.testId] = { score: test.score, total: test.total }; 
                     } else if (now < startTime) {
                         statusBadge = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
-                        actionBtn = `<button class="btn-primary" disabled style="width:100%; margin-top:10px; opacity:0.5;">Starts ${new Date(startTime).toLocaleDateString()}</button>`;
-                    } else if (now > endTime) {
+                        actionBtn = `<button class="btn-primary" disabled style="width:100%; opacity:0.5; background:var(--primary);">Starts ${new Date(startTime).toLocaleDateString()}</button>`;
+                    } else if (isExpired) {
                         statusBadge = `<span style="color:var(--danger); font-size:11px; font-weight:bold;">🔴 MISSED</span>`;
-                        actionBtn = `<button class="btn-secondary" disabled style="width:100%; margin-top:10px; opacity:0.5;">Expired</button>`;
+                        actionBtn = `<button class="btn-secondary" disabled style="width:100%; opacity:0.5;">Expired</button>`;
                     } else {
-                        statusBadge = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🟢 ACTIVE</span>`;
-                        actionBtn = `<button class="btn-primary test-action-btn" data-test="${test.testId}" data-duration="${testDuration}" data-type="live" style="width:100%; margin-top:10px; background:var(--danger); color:white; border:none; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">Start Test</button>`;
+                        statusBadge = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🟢 LIVE NOW</span>`;
+                        actionBtn = `<button class="btn-primary test-action-btn" data-test="${test.testId}" data-duration="${testDuration}" data-type="live" style="width:100%; background:var(--danger); color:white; border:none; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">Start Premium Test</button>`;
                     }
 
-                    innerList.insertAdjacentHTML('beforeend', `
-                        <div class="test-card premium-test-card" style="border-left: 4px solid var(--primary); margin-bottom: 12px; padding: 12px; background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <h4 style="margin: 0; font-size: 15px; color: var(--text-main); font-weight: 700;">${test.title}</h4>
+                    const cardHTML = `
+                        <div class="premium-test-card live-test-card" style="border: 1.5px solid #FCD34D; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);">
+                            <div class="ptc-header" style="flex-wrap: wrap; gap: 8px;">
+                                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                    <span class="ptc-subject" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; border: none; box-shadow: 0 2px 6px rgba(245,158,11,0.3);">
+                                        <span class="material-icons" style="font-size: 12px; vertical-align: middle; margin-right: 2px;">workspace_premium</span>PREMIUM
+                                    </span>
+                                    <span class="ptc-subject" style="background: rgba(245, 158, 11, 0.1); color: #D97706; border: 1px solid rgba(245,158,11,0.2);">${test.subject}</span>
+                                    <span class="ptc-class">Class ${test.classLvl}</span>
+                                </div>
                                 ${statusBadge}
                             </div>
-                            <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-muted);"><span class="material-icons" style="font-size:14px; vertical-align:middle;">schedule</span> ${testDuration} Mins</p>
-                            ${actionBtn}
+                            <h4 class="ptc-title">${test.title}</h4>
+                            <div class="ptc-details">
+                                <p><span class="material-icons">menu_book</span> <strong>Syllabus:</strong> ${test.syllabus}</p>
+                                <p><span class="material-icons">schedule</span> <strong>Duration:</strong> ${testDuration} Mins</p>
+                                <div class="ptc-timings">
+                                    <div class="time-block">
+                                        <span class="material-icons" style="color:var(--success)">event_available</span>
+                                        <div><small>Starts</small><br><b>${formatShortDate(test.startTime)}</b></div>
+                                    </div>
+                                    <div class="time-block">
+                                        <span class="material-icons" style="color:var(--danger)">event_busy</span>
+                                        <div><small>Ends</small><br><b>${formatShortDate(test.endTime)}</b></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ptc-footer">
+                                ${actionBtn}
+                            </div>
                         </div>
-                    `);
+                    `;
+
+                    // Sort logic: Expired tests go to the expired list, everything else stays in upcoming
+                    if (isExpired && !isCompleted) {
+                        expList.insertAdjacentHTML('beforeend', cardHTML);
+                        expCount++;
+                    } else {
+                        upList.insertAdjacentHTML('beforeend', cardHTML);
+                        upCount++;
+                    }
                 });
+
+                if (upCount === 0) upList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">No upcoming or active tests here.</div>`;
+                if (expCount === 0) expList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">No expired tests in this series.</div>`;
+
             } else {
-                innerList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">No mock tests have been uploaded in this series yet.</div>`;
+                upList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">No mock tests have been uploaded in this series yet.</div>`;
             }
         } catch (err) {
-            innerList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--danger);">Failed to connect to server.</div>`;
+            upList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--danger);">Failed to connect to server.</div>`;
         }
     }
-});
-
-// Back button logic for Series Screen
-document.getElementById('close-series-screen-btn')?.addEventListener('click', () => {
-    navigate('main-app-shell', false);
 });
