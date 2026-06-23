@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbwT29x9mgP_ZAA6aViEGAoq0TT9EKfXnrmJmxkjOXlJTqkv_6j1EnLX4E3vJWtTkMaFlQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyGTgzTZXW6MQOPvMhWzCdnODHICR11RrjoLrTx3mc1iX-K3RB66l2Y7J4SIyKeOtJk7w/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -95,12 +95,45 @@ function toggleDrawer() {
     }
 }
 
-document.getElementById('menu-toggle-btn').addEventListener('click', toggleDrawer);
+document.getElementById('menu-toggle-btn').addEventListener('click', () => {
+    // 🛡️ THE FIX: Test chalte waqt side menu bar kholna bhi strictly ban hai!
+    if (isTestActive) {
+        showCustomPopup(
+            "Menu Locked 🔒", 
+            "Side drawer menu is disabled during the exam. Please focus entirely on your question paper.", 
+            "danger"
+        );
+        return;
+    }
+    toggleDrawer();
+});
 drawerOverlay.addEventListener('click', toggleDrawer);
 
 
-// Bottom Navigation Tab Routing (WITH SYSTEM BACK BUTTON SYNC)
+// Bottom Navigation Tab Routing (WITH SYSTEM BACK BUTTON SYNC & ANTI-CHEAT GUARD)
 function switchTab(tabId, headerTitle, pushToHistory = true) {
+    // 🛡️ BUG FIX: Live test ke dauran bakwaas tabs block karo, lekin 'test-tab' ko permission do
+    if (isTestActive && tabId !== 'test-tab') {
+        showCustomPopup(
+            "Exam in Progress 🚫", 
+            "Navigation is strictly locked during a live exam. You cannot leave this screen without submitting your test.", 
+            "danger"
+        );
+        return;
+    }
+
+    // 🛡️ IMMERSIVE EXAM UI: Test screen aate hi upar ka Menu aur neeche ka Nav bar hide kardo
+    const appHeader = document.querySelector('.app-header');
+    const appBottomNav = document.querySelector('.app-bottom-nav');
+    
+    if (tabId === 'test-tab') {
+        if (appHeader) appHeader.style.display = 'none';
+        if (appBottomNav) appBottomNav.style.display = 'none';
+    } else {
+        if (appHeader) appHeader.style.display = 'flex';
+        if (appBottomNav) appBottomNav.style.display = 'flex';
+    }
+
     document.querySelectorAll('.tab-view').forEach(t => {
         t.classList.remove('active');
         t.style.display = 'none';
@@ -561,7 +594,7 @@ const practiceList910 = document.getElementById('practice-list-910');
                 serverTimeOffset = result.serverTime - Date.now();
             }
 
-            [practiceList910, practiceList1112, pastResultsContainer, upcoming910, expired910, upcoming1112, expired1112].forEach(el => {
+            [practiceList910, practiceList1112, pastResultsContainer, upcoming910, expired910, upcoming1112, expired1112, premiumTestList].forEach(el => {
                 if(el) el.innerHTML = "";
             });
             
@@ -617,10 +650,6 @@ const practiceList910 = document.getElementById('practice-list-910');
                     else if (!isSenior && practiceList910) practiceList910.insertAdjacentHTML('beforeend', cardHTML);
                 }
             });
-
-
-            // 💎 PREMIUM CONTAINER LINK (Agar HTML mein hai toh)
-            const premiumTestList = document.getElementById('premium-test-list');
 
 
 
@@ -965,13 +994,25 @@ async function startLiveTest(testId, durationMins) {
             currentQuestions = result.questions;
             currentQuestionIndex = 0;
             userAnswers = {}; 
-            document.getElementById('test-title').innerText = testId.replace(/_/g, ' ');
+            const testTitleEl = document.getElementById('test-title');
+            if (testTitleEl) testTitleEl.innerText = testId.replace(/_/g, ' ');
             
             isTestActive = true; 
             renderQuestion();
             totalTestSeconds = durationMins * 60;
             startTimer(durationMins * 60); 
             switchTab('test-tab', 'Test Session'); // 🛡️ NATIVE UI FIX
+
+            // 🛡️ FULL SCREEN ENGINE: Test tab open hote hi screen maximize kardo
+            try {
+                let elem = document.documentElement;
+                if (elem.requestFullscreen) { elem.requestFullscreen(); }
+                else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); } // Safari & iOS Support
+                else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); } // Older Edge Support
+            } catch (err) { console.log("Fullscreen API Blocked"); }
+
+
+
         } else {
             showCustomPopup("Coming Soon", "Questions for this test are not uploaded yet.", "danger");
         }
@@ -1121,6 +1162,14 @@ async function processSubmission() {
     isTestActive = false; // Double-click ko rokne ke liye turant lock karo
 
     clearInterval(timerInterval);
+
+    // 🛡️ FULL SCREEN ENGINE: Test submit hote hi normal screen par wapas aao
+    try {
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            if (document.exitFullscreen) { document.exitFullscreen(); }
+            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+        }
+    } catch (err) { console.log("Exit Fullscreen Blocked"); }
 
     // 🛡️ ANTI-CHEAT FIX: Screen ko turant freeze kar do taaki offline mode mein answers change na kar sakein
     const optionsContainer = document.getElementById('options-container');
