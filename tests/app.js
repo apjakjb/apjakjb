@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbyGTgzTZXW6MQOPvMhWzCdnODHICR11RrjoLrTx3mc1iX-K3RB66l2Y7J4SIyKeOtJk7w/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx4ut7tfQY9O5GxthqEfn8EwKEjZeItUt_Km2pK4EMH6_XQ6aWUfgw0zm904pkpqfXAWA/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -43,6 +43,7 @@ let testEndTime = 0;
 let isTestActive = false;
 let totalTestSeconds = 0;
 let serverTimeOffset = 0; // 🛡️ NAYA: Real Server Time Tracker
+let isPostExamRestricted = false; // 🛡️ NAYA: Test submit ke turant baad strict mode ke liye
 
 const optionPrefixes = ['(a) ', '(b) ', '(c) ', '(d) '];
 
@@ -110,7 +111,6 @@ document.getElementById('menu-toggle-btn').addEventListener('click', () => {
 drawerOverlay.addEventListener('click', toggleDrawer);
 
 
-// Bottom Navigation Tab Routing (WITH SYSTEM BACK BUTTON SYNC & ANTI-CHEAT GUARD)
 function switchTab(tabId, headerTitle, pushToHistory = true) {
     // 🛡️ BUG FIX: Live test ke dauran bakwaas tabs block karo, lekin 'test-tab' ko permission do
     if (isTestActive && tabId !== 'test-tab') {
@@ -122,11 +122,23 @@ function switchTab(tabId, headerTitle, pushToHistory = true) {
         return;
     }
 
-    // 🛡️ IMMERSIVE EXAM UI: Test screen aate hi upar ka Menu aur neeche ka Nav bar hide kardo
+    // 🛡️ SMART IMMERSIVE UI: Nav bars control logic
     const appHeader = document.querySelector('.app-header');
     const appBottomNav = document.querySelector('.app-bottom-nav');
     
+    let hideNav = false;
     if (tabId === 'test-tab') {
+        hideNav = true; // Test ke dauran hamesha hide rahega
+    } else if ((tabId === 'analysis-tab' || tabId === 'leaderboard-tab') && isPostExamRestricted) {
+        // 🛡️ Agar test submit karne ke turant baad aaye hain, toh bhi hide rakho
+        hideNav = true;
+    } else {
+        // Agar relax mode mein Home, Profile ya Results par gaye, toh strict mode band kar do
+        isPostExamRestricted = false; 
+        hideNav = false;
+    }
+
+    if (hideNav) {
         if (appHeader) appHeader.style.display = 'none';
         if (appBottomNav) appBottomNav.style.display = 'none';
     } else {
@@ -135,6 +147,7 @@ function switchTab(tabId, headerTitle, pushToHistory = true) {
     }
 
     document.querySelectorAll('.tab-view').forEach(t => {
+
         t.classList.remove('active');
         t.style.display = 'none';
     });
@@ -262,6 +275,13 @@ window.addEventListener('popstate', (e) => {
     }
 
     const state = e.state;
+
+    // 🛡️ SMART REFRESH ENGINE: Test submit hone ke baad jab student exit karega, portal completely fresh data ke sath sync hoga
+    if (isPostExamRestricted && state && state.tab !== 'analysis-tab' && state.tab !== 'leaderboard-tab') {
+        isPostExamRestricted = false;
+        loadDashboard(); // Yeh server se latest result pull karke, live test ko permanently 'Attempted' kar dega aur Home par le aayega
+        return;
+    }
     
     // 2. Agar user kisi Tab par back aaya hai
     if (state && state.tab) {
@@ -1161,8 +1181,6 @@ async function processSubmission() {
     if (!isTestActive) return; 
     isTestActive = false; // Double-click ko rokne ke liye turant lock karo
 
-    clearInterval(timerInterval);
-
     // 🛡️ FULL SCREEN ENGINE: Test submit hote hi normal screen par wapas aao
     try {
         if (document.fullscreenElement || document.webkitFullscreenElement) {
@@ -1170,6 +1188,8 @@ async function processSubmission() {
             else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
         }
     } catch (err) { console.log("Exit Fullscreen Blocked"); }
+
+    isPostExamRestricted = true;
 
     // 🛡️ ANTI-CHEAT FIX: Screen ko turant freeze kar do taaki offline mode mein answers change na kar sakein
     const optionsContainer = document.getElementById('options-container');
