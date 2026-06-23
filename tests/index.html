@@ -188,10 +188,6 @@
                             </div>
                             <div class="slider-dots" id="slider-dots"></div>
                         </div>
-
-
-
-
                         <p class="section-title" style="margin-top: 25px;">Explore Categories for XI & XII</p>
                         <div class="features-grid">
                             <div class="grid-card premium-glow-card" id="grid-action-premium-1112">
@@ -415,45 +411,114 @@
                     </div>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- ℹ️ 5. PREMIUM ABOUT TAB                    -->
-                <!-- ========================================== -->
-                <div id="premium-about-tab" class="tab-view" style="display: none;">
-                    <div class="screen-content">
-                        <div class="analytics-card" style="margin-bottom: 20px;">
-                            <h2 id="about-test-title" style="color: var(--text-main); margin-bottom: 10px;">Test Title</h2>
-                            <p id="about-test-desc" style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">Test description will load here...</p>
+                <div id="premium-explore-tab" class="tab-view" style="display: none;">
+                    <div class="screen-content" style="padding-bottom: 70px;">
+                        
+                        <div class="analytics-card premium-glow-card" style="text-align: center; padding: 30px 15px; border: 1px solid #FCD34D;">
+                            <span class="material-icons" style="font-size: 48px; color: #F59E0B; margin-bottom: 10px;">workspace_premium</span>
+                            <h2 id="explore-title" style="color: var(--text-main); margin-bottom: 10px;">Premium Mock Series</h2>
+                            <p id="explore-desc" style="color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
+                                Stop guessing your preparation level. Unlock elite test series, compete with all-India aspirants, and secure your target rank.
+                            </p>
+                            <button id="explore-demo-start-btn" class="btn-secondary" style="border: 2px solid var(--success); color: var(--success); font-weight: bold; width: 100%;">
+                                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">play_circle</span> Attempt Free Demo Test
+                            </button>
                         </div>
-                        <h4 style="margin-bottom: 15px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                            <span class="material-icons">science</span> Demo Tests (Free)
-                        </h4>
-                        <div class="demo-test-list">
-                            <div class="test-card" style="border-left: 4px solid var(--success);">
-                                <div class="test-info"><h4>Demo Paper 1</h4><p>Basic Level</p></div>
-                                <button class="btn-secondary" style="color: var(--success); border-color: var(--success);" onclick="showCustomPopup('Demo', 'Demo test logic will start here.', 'info')">Attempt</button>
+
+                        <p class="section-title" style="margin-top: 25px;">Why Upgrade to Premium?</p>
+                        <div class="profile-details-list">
+                            <div class="profile-detail-item">
+                                <span class="material-icons" style="color: var(--primary);">radar</span>
+                                <div class="detail-text">
+                                    <label style="font-size: 14px; font-weight: 700; color: var(--text-main);">Deep Question Analytics</label>
+                                    <p style="font-size: 12px;">Track time taken per question and identify your weakest topics instantly.</p>
+                                </div>
+                            </div>
+                            <div class="profile-detail-item">
+                                <span class="material-icons" style="color: #F59E0B;">leaderboard</span>
+                                <div class="detail-text">
+                                    <label style="font-size: 14px; font-weight: 700; color: var(--text-main);">Live All-India Ranking</label>
+                                    <p style="font-size: 12px;">Know your exact position among thousands of serious competitors.</p>
+                                </div>
+                            </div>
+                            <div class="profile-detail-item">
+                                <span class="material-icons" style="color: var(--danger);">gpp_bad</span>
+                                <div class="detail-text">
+                                    <label style="font-size: 14px; font-weight: 700; color: var(--text-main);">Strict Anti-Cheat Engine</label>
+                                    <p style="font-size: 12px;">Exam UI perfectly replicates NTA/CBSE patterns to build exam temperament.</p>
+                                </div>
                             </div>
                         </div>
+
+                        <p class="section-title" style="margin-top: 25px;">Free vs Premium</p>
+                        <div style="background: var(--card-bg); border-radius: 12px; padding: 15px; border: 1px solid var(--border);">
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px;">
+                                <span style="font-size: 13px; color: var(--text-muted); flex: 2;">Features</span>
+                                <span style="font-size: 13px; font-weight: bold; color: var(--text-main); flex: 1; text-align: center;">Free</span>
+                                <span style="font-size: 13px; font-weight: bold; color: #F59E0B; flex: 1; text-align: center;">Premium</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 13px; flex: 2;">Full Syllabus Mocks</span>
+                                <span class="material-icons" style="font-size: 18px; color: var(--danger); flex: 1; text-align: center;">close</span>
+                                <span class="material-icons" style="font-size: 18px; color: var(--success); flex: 1; text-align: center;">check_circle</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 13px; flex: 2;">Detailed Solutions</span>
+                                <span class="material-icons" style="font-size: 18px; color: var(--danger); flex: 1; text-align: center;">close</span>
+                                <span class="material-icons" style="font-size: 18px; color: var(--success); flex: 1; text-align: center;">check_circle</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="font-size: 13px; flex: 2;">Rank Predictor</span>
+                                <span class="material-icons" style="font-size: 18px; color: var(--danger); flex: 1; text-align: center;">close</span>
+                                <span class="material-icons" style="font-size: 18px; color: var(--success); flex: 1; text-align: center;">check_circle</span>
+                            </div>
+                        </div>
+
+                        <p class="section-title" style="margin-top: 30px;">Detailed Syllabus Schedule</p>
+                        <div style="background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed; word-wrap: break-word;">
+                                <thead style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white;">
+                                    <tr>
+                                        <th style="padding: 10px 4px; font-size: 10px; width: 12%; border-right: 1px solid rgba(255,255,255,0.2); text-align: center;">S.No</th>
+                                        <th style="padding: 10px 4px; font-size: 10px; width: 38%; border-right: 1px solid rgba(255,255,255,0.2);">Chapters</th>
+                                        <th style="padding: 10px 4px; font-size: 10px; width: 25%; border-right: 1px solid rgba(255,255,255,0.2);">Start Time</th>
+                                        <th style="padding: 10px 4px; font-size: 10px; width: 25%;">End Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="explore-syllabus-table-body">
+                                    <tr>
+                                        <td colspan="4" style="padding: 20px 5px; text-align: center; color: var(--text-muted); font-size: 10px;">
+                                            <span class="material-icons" style="font-size: 18px; animation: spinGlow 1s linear infinite; color: var(--primary); vertical-align: middle;">autorenew</span>
+                                            <br>Fetching Schedule...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
                     </div>
                 </div>
-
                 <!-- ========================================== -->
                 <!-- 📂 6. PREMIUM SERIES FOLDER TAB            -->
                 <!-- ========================================== -->
+
                 <div id="premium-series-tab" class="tab-view" style="display: none;">
                     <div class="premium-tabs-wrapper" style="position: sticky; top: 0; z-index: 10; background: var(--card-bg); display: flex; border-bottom: 1px solid var(--border);">
-                        <button class="premium-tab active" id="tab-upcoming-series" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Upcoming & Live</button>
-                        <button class="premium-tab" id="tab-expired-series" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.3s ease;">Expired</button>
+                        <button class="premium-tab active" id="tab-upcoming-series" style="flex: 1; background: transparent; border: none; padding: 10px 0; font-size: 13px; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Upcoming & Live</button>
+                        <button class="premium-tab" id="tab-expired-series" style="flex: 1; background: transparent; border: none; padding: 10px 0; font-size: 13px; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.3s ease;">Expired</button>
+                        <button class="premium-tab" id="tab-attempted-series" style="flex: 1; background: transparent; border: none; padding: 10px 0; font-size: 13px; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.3s ease;">Attempted</button>
                     </div>
                     <div class="screen-content">
-                        <div class="category-banner-card" style="margin-bottom: 20px;">
-                            <img src="./assets/image1.jpg" alt="Series Banner" class="category-banner-img" style="height: 120px; width: 100%; object-fit: cover;">
+                        <div class="category-banner-card">
+                            <img src="./assets/image1.jpg" alt="Premium Test Series" class="category-banner-img">
                         </div>
                         <div id="upcoming-live-list-series" class="test-list-container"></div>
                         <div id="expired-live-list-series" class="test-list-container" style="display: none;"></div>
+                        <div id="attempted-list-series" class="test-list-container" style="display: none;"></div>
                     </div>
                 </div>
 
-            </div> <!-- 🛑 END OF SHELL CONTENT CONTAINER 🛑 -->
+            </div>
             
             <!-- FIXED BOTTOM NAVIGATION (Hamesha yahi dikhega) -->
             <footer class="app-bottom-nav">
