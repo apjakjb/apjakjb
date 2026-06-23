@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbx4ut7tfQY9O5GxthqEfn8EwKEjZeItUt_Km2pK4EMH6_XQ6aWUfgw0zm904pkpqfXAWA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzBZqMfEFw9pqdCK-7WISqnoHnD8Ssv322jJj3ubvMfXNPz-aU8QhgwOgVdrs-4mneFtw/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -749,7 +749,7 @@ const practiceList910 = document.getElementById('practice-list-910');
                             <div class="bpc-stat">
                                 <span class="material-icons success-icon">format_list_numbered</span>
                                 <div>
-                                    <small>Total Number of Test</small>
+                                    <small>TEST & MOCKS</small>
                                     <p>${bundle.totalMocks}</p>
                                 </div>
                             </div>
@@ -893,6 +893,10 @@ function updateLiveCards() {
 
 function attachTestCardListeners() {
     document.querySelectorAll('.test-action-btn').forEach(btn => {
+        // 🛡️ ANTI-BUG LOCK: Ek hi button par 2 baar event attach hone se rokne ke liye
+        if (btn.dataset.listenerAttached) return;
+        btn.dataset.listenerAttached = "true";
+
         btn.addEventListener('click', async (e) => {
             const testCard = e.target.closest('.test-card, .premium-test-card');
             
@@ -934,18 +938,23 @@ function attachTestCardListeners() {
                     buyBtn.setAttribute('data-testid', testCard.getAttribute('data-test'));
                     buyBtn.setAttribute('data-amount', testCard.getAttribute('data-newprice'));
                     
-                    // About Test popup set karna
+
+                    // 🛡️ UPGRADED: Ab popup ki jagah full-fledged demo screen open hogi
                     document.getElementById('pkg-about-btn').onclick = () => {
-                        showCustomPopup("About This Test", testCard.getAttribute('data-about'), "info");
+                        document.getElementById('explore-title').innerText = testCard.getAttribute('data-title');
+
+                        document.getElementById('explore-demo-start-btn').onclick = () => {
+                            showCustomPopup("Demo Test", testCard.getAttribute('data-about') || "Demo test logic will activate here.", "info");
+                        };
+
+                        switchTab('premium-explore-tab', 'Why Premium?');
                     };
                     
+
+
                     switchTab('premium-package-tab', 'Package Details'); // 🛡️ NATIVE UI FIX
                     return; // Yahin ruk jao, aage live test start nahi hoga
                 }
-
-
-
-
 
                 // 🌟 SCENARIO 2: Free test hai, ya phir Kharida hua Premium test hai (Normal flow)
                 if (testType === 'live') {
@@ -1180,6 +1189,9 @@ document.getElementById('next-btn').addEventListener('click', () => {
 async function processSubmission() {
     if (!isTestActive) return; 
     isTestActive = false; // Double-click ko rokne ke liye turant lock karo
+
+    // 🛡️ BUG FIX: Background timer ko completely kill kardo taaki Time's Up wapas na aaye
+    clearInterval(timerInterval);
 
     // 🛡️ FULL SCREEN ENGINE: Test submit hote hi normal screen par wapas aao
     try {
@@ -1463,30 +1475,43 @@ async function fetchAndRenderLeaderboard(testId) {
     }
 }
 
+
 // ==========================================
-// 10. DUAL LIVE TESTS TABS ENGINE (IX-X & XI-XII)
+// 10. ADVANCED LIVE TESTS TABS ENGINE (Supports up to 3 Tabs)
 // ==========================================
 function setupLiveTabs(target) {
     const tabUp = document.getElementById(`tab-upcoming-${target}`);
     const tabExp = document.getElementById(`tab-expired-${target}`);
+    const tabAtt = document.getElementById(`tab-attempted-${target}`); // Optional 3rd tab
+    
     const listUp = document.getElementById(`upcoming-live-list-${target}`);
     const listExp = document.getElementById(`expired-live-list-${target}`);
+    const listAtt = document.getElementById(`attempted-list-${target}`); // Optional 3rd list
 
-    if (tabUp && tabExp && listUp && listExp) {
-        tabUp.addEventListener('click', () => {
-            tabUp.classList.add('active'); tabExp.classList.remove('active');
-            tabUp.style.color = 'var(--primary)'; tabUp.style.borderBottom = '3px solid var(--primary)';
-            tabExp.style.color = 'var(--text-muted)'; tabExp.style.borderBottom = '3px solid transparent';
-            listUp.style.display = 'block'; listExp.style.display = 'none';
+    function resetTabs() {
+        [tabUp, tabExp, tabAtt].forEach(t => {
+            if (t) { t.classList.remove('active'); t.style.color = 'var(--text-muted)'; t.style.borderBottom = '3px solid transparent'; }
         });
-
-        tabExp.addEventListener('click', () => {
-            tabExp.classList.add('active'); tabUp.classList.remove('active');
-            tabExp.style.color = 'var(--primary)'; tabExp.style.borderBottom = '3px solid var(--primary)';
-            tabUp.style.color = 'var(--text-muted)'; tabUp.style.borderBottom = '3px solid transparent';
-            listExp.style.display = 'block'; listUp.style.display = 'none';
-        });
+        [listUp, listExp, listAtt].forEach(l => { if (l) l.style.display = 'none'; });
     }
+
+    if (tabUp) tabUp.addEventListener('click', () => {
+        resetTabs();
+        tabUp.classList.add('active'); tabUp.style.color = 'var(--primary)'; tabUp.style.borderBottom = '3px solid var(--primary)';
+        listUp.style.display = 'block';
+    });
+
+    if (tabExp) tabExp.addEventListener('click', () => {
+        resetTabs();
+        tabExp.classList.add('active'); tabExp.style.color = 'var(--primary)'; tabExp.style.borderBottom = '3px solid var(--primary)';
+        listExp.style.display = 'block';
+    });
+
+    if (tabAtt) tabAtt.addEventListener('click', () => {
+        resetTabs();
+        tabAtt.classList.add('active'); tabAtt.style.color = 'var(--primary)'; tabAtt.style.borderBottom = '3px solid var(--primary)';
+        listAtt.style.display = 'block';
+    });
 }
 setupLiveTabs('910');
 setupLiveTabs('1112');
@@ -1695,11 +1720,13 @@ document.addEventListener('click', async (e) => {
         // 🛡️ NAYA FIX: Native UI Tab switch (Title aur nav bar maintain rahega)
         const upList = document.getElementById('upcoming-live-list-series');
         const expList = document.getElementById('expired-live-list-series');
+        const attList = document.getElementById('attempted-list-series'); // 🛡️ NAYA: Attempted list
         
         upList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--primary);"><span class="material-icons" style="font-size: 30px; animation: spinGlow 1s linear infinite;">autorenew</span><br><b style="display:block; margin-top:10px;">Fetching Mock Tests...</b></div>`;
         expList.innerHTML = "";
+        attList.innerHTML = "";
 
-        switchTab('series-inside-tab', seriesTitle); // Yeh app ka title bar automatically update kar dega
+        switchTab('premium-series-tab', seriesTitle);
 
         try {
             const authToken = localStorage.getItem('auth_token');
@@ -1714,8 +1741,8 @@ document.addEventListener('click', async (e) => {
             if (data.success && data.bundleTests.length > 0) {
                 upList.innerHTML = ""; // Clear loader
                 expList.innerHTML = "";
-                
-                let upCount = 0, expCount = 0;
+
+                let upCount = 0, expCount = 0, attCount = 0; // 🛡️ NAYA: Attempted count
 
                 const formatShortDate = (isoString) => {
                     if (!isoString) return 'TBA';
@@ -1737,8 +1764,14 @@ document.addEventListener('click', async (e) => {
                     // Button Logic & Tagging
                     if (isCompleted) {
                         statusBadge = `<span style="color:var(--success); font-size:11px; font-weight:bold;">✅ ATTEMPTED</span>`;
-                        actionBtn = `<button class="btn-secondary test-action-btn" data-test="${test.testId}" data-completed="true" style="width:100%;">View Analysis</button>`;
-                        testHistoryData[test.testId] = { score: test.score, total: test.total }; 
+                        actionBtn = `<button class="btn-secondary test-action-btn" data-test="${test.testId}" style="width:100%;">View Analysis</button>`;
+                        // 🛡️ THE FIX: Ab app breakdown render karne ke liye 'details' bhi local memory mein save karega
+                        testHistoryData[test.testId] = { 
+                            score: test.score, 
+                            total: test.total,
+                            percentage: test.percentage,
+                            details: test.details 
+                        }; 
                     } else if (now < startTime) {
                         statusBadge = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
                         actionBtn = `<button class="btn-primary" disabled style="width:100%; opacity:0.5; background:var(--primary);">Starts ${new Date(startTime).toLocaleDateString()}</button>`;
@@ -1750,8 +1783,16 @@ document.addEventListener('click', async (e) => {
                         actionBtn = `<button class="btn-primary test-action-btn" data-test="${test.testId}" data-duration="${testDuration}" data-type="live" style="width:100%; background:var(--danger); color:white; border:none; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">Start Premium Test</button>`;
                     }
 
+                    // 🛡️ THE MASTER FIX: data-completed="${isCompleted}" card wrapper par lagaya gaya hai!
                     const cardHTML = `
-                        <div class="premium-test-card live-test-card" style="border: 1.5px solid #FCD34D; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);">
+                        <div class="premium-test-card live-test-card" 
+                             data-test="${test.testId}" 
+                             data-duration="${testDuration}" 
+                             data-start="${test.startTime}" 
+                             data-end="${test.endTime}" 
+                             data-type="live"
+                             data-completed="${isCompleted}"
+                             style="border: 1.5px solid #FCD34D; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);">
                             <div class="ptc-header" style="flex-wrap: wrap; gap: 8px;">
                                 <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                     <span class="ptc-subject" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; border: none; box-shadow: 0 2px 6px rgba(245,158,11,0.3);">
@@ -1783,8 +1824,11 @@ document.addEventListener('click', async (e) => {
                         </div>
                     `;
 
-                    // Sort logic: Expired tests go to the expired list, everything else stays in upcoming
-                    if (isExpired && !isCompleted) {
+                    // 🛡️ NAYA LOGIC: Sort tests strictly into their proper tabs
+                    if (isCompleted) {
+                        attList.insertAdjacentHTML('beforeend', cardHTML);
+                        attCount++;
+                    } else if (isExpired) {
                         expList.insertAdjacentHTML('beforeend', cardHTML);
                         expCount++;
                     } else {
@@ -1795,6 +1839,9 @@ document.addEventListener('click', async (e) => {
 
                 if (upCount === 0) upList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">No upcoming or active tests here.</div>`;
                 if (expCount === 0) expList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">No expired tests in this series.</div>`;
+                if (attCount === 0) attList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">You haven't attempted any tests yet.</div>`;
+
+                attachTestCardListeners();
 
             } else {
                 upList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">No mock tests have been uploaded in this series yet.</div>`;
@@ -1802,5 +1849,75 @@ document.addEventListener('click', async (e) => {
         } catch (err) {
             upList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--danger);">Failed to connect to server.</div>`;
         }
+    }
+});
+
+// ==========================================
+// 🚀 PREMIUM EXPLORE DEMO ROUTING ENGINE (DYNAMIC DATA)
+// ==========================================
+
+// Yeh master function hai jo kisi bhi bundle ka data server se layega
+async function openExploreDemoScreen(bundleId, title, aboutText) {
+    // 1. Basic UI Update
+    document.getElementById('explore-title').innerText = title;
+    
+    // Demo Test Button (Dummy for now)
+    document.getElementById('explore-demo-start-btn').onclick = () => {
+        showCustomPopup("Demo Test", aboutText || "Your free demo mock test is being prepared by educators. Check back soon!", "info");
+    };
+
+    // 2. Tab open karo aur Loader dikhao
+    switchTab('premium-explore-tab', 'Why Premium?');
+    const tbody = document.getElementById('explore-syllabus-table-body');
+    tbody.innerHTML = `<tr><td colspan="4" style="padding: 20px 5px; text-align: center; color: var(--text-muted); font-size: 10px;"><span class="material-icons" style="font-size: 18px; animation: spinGlow 1s linear infinite; color: var(--primary); vertical-align: middle;">autorenew</span><br>Fetching Detailed Schedule...</td></tr>`;
+
+    // 3. Backend se Syllabus Table Data Fetch Karo
+    try {
+        const authToken = localStorage.getItem('auth_token');
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "getBundleDetails", username: loggedInUser, token: authToken, bundleId: bundleId })
+        });
+        
+        const data = JSON.parse(await res.text());
+
+        // 4. Table Table Render Logic
+        if (data.success && data.syllabus.length > 0) {
+            tbody.innerHTML = ""; // Clear loader
+            
+            const formatShortDate = (isoString) => {
+                if (!isoString) return 'TBA';
+                return new Date(isoString).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+            };
+
+            data.syllabus.forEach((item, index) => {
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 10px 4px; font-size: 10px; border-right: 1px solid var(--border); text-align: center;">${index + 1}</td>
+                        <td style="padding: 10px 4px; font-size: 10px; border-right: 1px solid var(--border);">${item.chapter}</td>
+                        <td style="padding: 10px 4px; font-size: 10px; border-right: 1px solid var(--border);">${formatShortDate(item.startTime)}</td>
+                        <td style="padding: 10px 4px; font-size: 10px;">${formatShortDate(item.endTime)}</td>
+                    </tr>
+                `);
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="4" style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 10px;">Schedule is being updated by educators. Stay tuned!</td></tr>`;
+        }
+    } catch(e) {
+        tbody.innerHTML = `<tr><td colspan="4" style="padding: 20px; text-align: center; color: var(--danger); font-size: 10px;">Network Error: Failed to load schedule.</td></tr>`;
+    }
+}
+
+// Click Listener jo is master function ko trigger karega
+document.addEventListener('click', (e) => {
+    // Agar dashboard ke "Explore Demo" pe click kiya
+    const exploreBtn = e.target.closest('.bpc-about-btn');
+    if (exploreBtn) {
+        const bundleId = exploreBtn.getAttribute('data-about');
+        const card = exploreBtn.closest('.bundle-premium-card');
+        const title = card.querySelector('.bpc-title').innerText;
+        // API call start
+        openExploreDemoScreen(bundleId, title, "Demo will start soon.");
     }
 });
