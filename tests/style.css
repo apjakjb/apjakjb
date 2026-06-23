@@ -371,24 +371,6 @@ button {
 .new-badge { background: #FEF2F2; color: var(--danger); padding: 2px 6px; border-radius: 6px; font-size: 9px; font-weight: 800; border: 1px solid rgba(239, 68, 68, 0.15); }
 [data-theme="dark"] .new-badge { background: rgba(239, 68, 68, 0.15); color: #F87171; }
 
-/* PDF Notes List Module */
-.notes-list-container { display: flex; flex-direction: column; gap: 10px; }
-.note-item-card {
-    background: var(--card-bg);
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
-    padding: 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-}
-.note-info { flex: 1; }
-.note-info h4 { font-size: 14px; font-weight: 700; color: var(--text-main); line-height: 1.4; }
-.note-info p { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
-.note-dl-btn { width: 40px; height: 40px; min-width: 40px; padding: 0; border-radius: 10px; background: var(--border); color: var(--primary); }
-[data-theme="dark"] .note-dl-btn { color: #818CF8; }
-
 /* TAB 2: Historical Results Content UI */
 .tab-header-block { margin-bottom: 16px; padding-left: 2px; }
 .tab-header-block h3 { font-size: 18px; font-weight: 800; color: var(--text-main); }
@@ -1277,11 +1259,6 @@ button {
 /* Offer Badge with rotating Star */
 .offer-badge { display: flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; }
 .offer-badge .star-icon { font-size: 14px; animation: spinGlow 3s linear infinite; }
-@keyframes spinGlow { 
-    0% { transform: rotate(0deg) scale(1); } 
-    50% { transform: rotate(180deg) scale(1.2); } 
-    100% { transform: rotate(360deg) scale(1); } 
-}
 
 /* Stats Grid */
 .pkg-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
@@ -1306,3 +1283,62 @@ button {
 .buy-btn-glow:active { background: #059669; }
 
 
+
+
+/* ========================================== */
+/* 🌟 PREMIUM BUNDLE CARD (ULTRA-REFINED UI)  */
+/* ========================================== */
+.bundle-premium-card {
+    border-radius: 16px; /* Pehle 20px tha, isko thoda sleek kiya */
+    padding: 16px; /* Pehle 20px tha, isko compact kiya */
+    margin-bottom: 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    position: relative;
+    z-index: 1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.bundle-premium-card:active { 
+    transform: scale(0.98); 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+
+.bpc-header, .bpc-title, .bpc-stats-grid, .bpc-price-row, .bpc-actions {
+    position: relative; 
+    z-index: 2; /* Shine ke upar rakhne ke liye */
+}
+
+.bpc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.bpc-tags { display: flex; gap: 6px; align-items: center; }
+.bpc-subject { background: rgba(245, 158, 11, 0.12); color: #D97706; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(245, 158, 11, 0.2); }
+.bpc-class { font-size: 10px; font-weight: 750; color: var(--text-muted); background: var(--bg-color); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); }
+.bpc-offer-badge { display: inline-flex; align-items: center; gap: 3px; background: linear-gradient(135deg, #2D0082 0%, #F00068 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2); }
+
+.bpc-title { font-size: 16px; /* Size kam kiya premium balance ke liye */ font-weight: 800; color: var(--text-main); margin-bottom: 12px; line-height: 1.3; }
+
+/* Stats Grid ko aur compact aur clean kiya */
+.bpc-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; background: var(--bg-color); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); }
+.bpc-stat { display: flex; align-items: center; gap: 8px; }
+.bpc-stat .primary-icon { color: var(--primary); font-size: 16px; background: rgba(79, 70, 229, 0.1); padding: 5px; border-radius: 6px; }
+.bpc-stat .success-icon { color: var(--success); font-size: 16px; background: rgba(16, 185, 129, 0.1); padding: 5px; border-radius: 6px; }
+.bpc-stat small { display: block; font-size: 9px; font-weight: 750; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1px; }
+.bpc-stat p { font-size: 12px; font-weight: 800; color: var(--text-main); }
+
+.bpc-price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 0 2px; }
+.bpc-price-info { display: flex; align-items: baseline; gap: 6px; }
+.bpc-old-price { font-size: 12px; font-weight: 600; color: var(--text-muted); text-decoration: line-through; }
+.bpc-new-price { font-size: 20px; /* Thoda sleek kiya */ font-weight: 900; color: #10B981; }
+.bpc-discount-tag { font-size: 9px; font-weight: 800; color: #D97706; background: #FEF3C7; padding: 3px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Buttons ko resize aur reposition kiya perfect ratio mein */
+.bpc-actions { display: flex; gap: 8px; }
+.bpc-about-btn { flex: 0.7; /* Isko secondary focus diya */ padding: 10px; background: var(--bg-color); color: var(--text-main); border: 1.5px solid var(--border-dark); font-size: 12px; font-weight: 700; border-radius: 10px; }
+.bpc-buy-btn { flex: 1.3; /* Buy now ko main focus banaya */ padding: 10px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25); color: white; border: none; font-size: 13px; font-weight: 750; border-radius: 10px; }
+.bpc-open-btn { flex: 1.3; padding: 10px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25); color: white; border: none; font-size: 13px; font-weight: 750; border-radius: 10px; }
+
+[data-theme="dark"] .bpc-discount-tag { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
+[data-theme="dark"] .bpc-subject { background: rgba(245, 158, 11, 0.15); color: #FCD34D; }
+[data-theme="dark"] .bpc-class { background: var(--card-bg); border-color: var(--border-dark); }
+[data-theme="dark"] .bpc-stats-grid { background: var(--card-bg); }
+[data-theme="dark"] .bpc-about-btn { background: var(--card-bg); border-color: var(--border-dark); }
