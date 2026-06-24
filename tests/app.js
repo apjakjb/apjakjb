@@ -1911,29 +1911,29 @@ document.getElementById('home-share-btn').addEventListener('click', shareAppLogi
 document.getElementById('drawer-share-btn').addEventListener('click', shareAppLogic);
 
 async function shareAppLogic() {
-    const rawGifUrl = "https://raw.githubusercontent.com/apjakjb/apjakjb/main/tests/assets/Ads.gif";
-    const appLink = window.location.origin + window.location.pathname;
-
-    const shareMessage = `🔥 *Test Portal Install Guide* 🚀\n\n` +
-                         `Install this premium Test Portal for all subjects for the classes 9 to 12\n\n` +
-                         `*How to Install?* 👇\n` +
-                         `Dekho is GIF mein: ${rawGifUrl}\n\n` +
-                         `*Direct Link:* ${appLink}`;
+    // 🛡️ Always use the canonical URL for proper Meta Scraping
+    const appLink = "https://apjakjb.in/tests/"; 
+    
+    // 💎 PREMIUM FIX: Removed the raw GIF link from text!
+    // Jab platform ko ek clean URL milta hai, tabhi wo HTML Meta Tags (OG:Image) ko properly fetch karke animated preview banata hai.
+    const shareMessage = `🔥 *Premium Test Series Portal* 🚀\n\n` +
+                         `Boost your preparation with Free & Premium Live Tests, All-India Rankings, and Deep Analytics for Classes IX to XII.\n\n` +
+                         `👇 *Click below to Install & Start Mock Tests:*`;
 
     if (navigator.share) {
         try {
-            // Native Share Sheet open hogi
             await navigator.share({
-                title: 'Test Portal',
+                title: 'Test Portal by APJAKJB',
                 text: shareMessage,
-                url: appLink
+                url: appLink // 🛑 URL MUST be passed here, not concatenated in text for Native APIs
             });
         } catch (err) {
-            console.log("Share failed, falling back to copy", err);
-            copyToClipboard(shareMessage);
+            console.log("Native share failed or cancelled, falling back to copy", err);
+            // Fallback for desktop browsers
+            copyToClipboard(`${shareMessage}\n\n🔗 ${appLink}`);
         }
     } else {
-        copyToClipboard(shareMessage);
+        copyToClipboard(`${shareMessage}\n\n🔗 ${appLink}`);
     }
 }
 
