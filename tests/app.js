@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxsR_mSyCbwkfaeJYUeprNxsET4sUBrrtQT6PIiDPjh37wi0mPuUWcZfF1xbCZSpYvE1Q/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzBZqMfEFw9pqdCK-7WISqnoHnD8Ssv322jJj3ubvMfXNPz-aU8QhgwOgVdrs-4mneFtw/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -1904,24 +1904,25 @@ document.addEventListener('click', (e) => {
 });
 
 
-
-
 // ==========================================
-// 🚀 PREMIUM SHARE ENGINE (GIF + LINK)
+// 🚀 PREMIUM SHARE ENGINE (Upgraded)
 // ==========================================
-document.getElementById('share-app-btn').addEventListener('click', async () => {
-    // Yahan apni GIF ka URL daalein jo aapne GitHub se copy kiya tha
-    const gifUrl = "https://github.com/apjakjb/apjakjb/blob/main/tests/assets/Ads.gif"; 
+document.getElementById('home-share-btn').addEventListener('click', shareAppLogic);
+document.getElementById('drawer-share-btn').addEventListener('click', shareAppLogic);
+
+async function shareAppLogic() {
+    const rawGifUrl = "https://raw.githubusercontent.com/apjakjb/apjakjb/main/tests/assets/Ads.gif";
     const appLink = window.location.origin;
-    
+
     const shareMessage = `🔥 *Test Portal Install Guide* 🚀\n\n` +
-                         `Bhai, mera portal install kar le, bina Play Store ke fast kaam karta hai!\n\n` +
-                         `*Kaise Install karein?* 👇\n` +
-                         `Dekho is GIF mein: ${gifUrl}\n\n` +
+                         `Install this premium Test Portal for all subjects for the classes 9 to 12\n\n` +
+                         `*How to Install?* 👇\n` +
+                         `Dekho is GIF mein: ${rawGifUrl}\n\n` +
                          `*Direct Link:* ${appLink}`;
 
     if (navigator.share) {
         try {
+            // Native Share Sheet open hogi
             await navigator.share({
                 title: 'Test Portal',
                 text: shareMessage,
@@ -1934,7 +1935,7 @@ document.getElementById('share-app-btn').addEventListener('click', async () => {
     } else {
         copyToClipboard(shareMessage);
     }
-});
+}
 
 function copyToClipboard(text) {
     const dummy = document.createElement('textarea');
@@ -1944,6 +1945,5 @@ function copyToClipboard(text) {
     document.execCommand('copy');
     document.body.removeChild(dummy);
     
-    // Aapka custom popup function call kar rahe hain
-    showCustomPopup("Link Copied!", "Share message copy ho gaya hai. WhatsApp/Telegram par paste kar dein!", "success");
+    showCustomPopup("Link Copied!", "You can manually share to you friends", "success");
 }
