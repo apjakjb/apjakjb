@@ -78,12 +78,15 @@
                 </svg>
                 WhatsApp Support
             </button>
+    <button type="button" id="share-app-btn" class="drawer-item">
+        <span class="material-icons">share</span> Invite Friends
+    </button>
             <div class="drawer-divider"></div>
             <button class="drawer-item logout-item" id="drawer-logout-btn">
                 <span class="material-icons">logout</span> Sign Out
             </button>
             <div class="drawer-version-info">
-                App Version: v16
+                App Version: v16.2
             </div>
         </nav>
     </aside>
@@ -144,6 +147,8 @@
                     <button type="submit" id="login-btn" class="btn-secondary" style="border: 1px solid var(--border-dark); background: blue; color: white;">Admin Log In</button>
                 </form>
                 <!-- 🛡️ NAYA: PREMIUM TRUST FOOTER -->
+
+
                 <div class="login-trust-footer">
                     <p class="privacy-promise">
                         <span class="material-icons">security</span> 100% Secure & Zero Ads Guarantee
@@ -157,6 +162,7 @@
                         <a href="#">Terms of Service</a>
                     </div>
                 </div>
+
             </div>
         </section>
         <section id="main-app-shell" class="screen" style="display: none;">
@@ -176,10 +182,14 @@
             <div class="shell-content-container">
                 <div id="home-tab" class="tab-view active">
                     <div class="screen-content">
-                        <div class="welcome-section">
-                            <h3 id="welcome-text">Hello Dear, Student</h3>
-                            <p>Ready to sharpen your knowledge today?</p>
-                        </div>
+
+<div class="welcome-section">
+    <h3 id="welcome-text">Hello Dear, Student</h3>
+    <p>Ready to sharpen your knowledge today?</p>
+    <button type="button" id="share-app-btn" class="drawer-item" style="margin-top: 10px; background: skyblue; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <span class="material-icons">share</span> Invite Friends
+    </button>
+</div>
                         <div class="premium-image-slider">
                             <div class="slider-track" id="slider-track">
                                 <img src="./assets/slider1.jpg" alt="Slide 1" class="slide-img">
@@ -188,6 +198,10 @@
                             </div>
                             <div class="slider-dots" id="slider-dots"></div>
                         </div>
+
+
+
+
                         <p class="section-title" style="margin-top: 25px;">Explore Categories for XI & XII</p>
                         <div class="features-grid">
                             <div class="grid-card premium-glow-card" id="grid-action-premium-1112">
@@ -247,7 +261,7 @@
                     <div class="screen-content" style="padding-top: 15px; padding-bottom: 80px;">
                         
                         <div class="category-banner-card">
-                            <img src="./assets/image1.jpg" alt="Class 11 & 12 Test Series" class="category-banner-img">
+                            <img src="./slider/image1.jpg" alt="Class 11 & 12 Test Series" class="category-banner-img">
                         </div>
 
                         <div id="upcoming-live-list-1112" class="test-list-container"></div>
@@ -377,39 +391,6 @@
                 <!-- ========================================== -->
                 <!-- 💎 4. PREMIUM PACKAGE DETAILS TAB          -->
                 <!-- ========================================== -->
-                <div id="premium-package-tab" class="tab-view" style="display: none;">
-                    <div class="screen-content" style="padding-bottom: 20px;">
-                        <div class="premium-pkg-banner">
-                            <div class="pkg-badge">🔥 Bestseller</div>
-                            <img src="./assets/XII%20banner.jpg" alt="Premium Test Cover" class="pkg-banner-img" id="pkg-detail-banner">
-                        </div>
-                        <div class="pkg-header-info">
-                            <h2 id="pkg-detail-title">Premium Complete Mock Series</h2>
-                            <div class="pkg-price-row">
-                                <div class="price-block">
-                                    <span class="deleted-price" id="pkg-old-price">₹1999</span>
-                                    <span class="current-price" id="pkg-new-price">₹499</span>
-                                </div>
-                                <div class="offer-badge">
-                                    <span class="material-icons star-icon">auto_awesome</span>
-                                    <span id="pkg-offer-text">75% OFF Dhamaka</span>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="section-title">Package Features</p>
-                        <div class="pkg-stats-grid">
-                            <div class="stat-item"><span class="material-icons">library_books</span><div class="stat-text"><label>Syllabus</label><p id="pkg-detail-syllabus">Full Syllabus</p></div></div>
-                            <div class="stat-item"><span class="material-icons">format_list_numbered</span><div class="stat-text"><label>Total Tests</label><p id="pkg-detail-count">10 Mocks</p></div></div>
-                            <div class="stat-item"><span class="material-icons">schedule</span><div class="stat-text"><label>Duration</label><p id="pkg-detail-duration">180 Mins</p></div></div>
-                            <div class="stat-item"><span class="material-icons">event</span><div class="stat-text"><label>Validity</label><p id="pkg-detail-date">Till Exams</p></div></div>
-                        </div>
-                        <!-- Native Button layout (Removed fixed bottom bar for smooth tab feel) -->
-                        <div style="display: flex; gap: 12px; margin-top: 20px;">
-                            <button class="btn-secondary" id="pkg-about-btn" style="flex: 1;"><span class="material-icons">info</span> About</button>
-                            <button class="btn-primary buy-btn-glow" id="pkg-buy-btn" style="flex: 2;">Buy Now <span class="material-icons">shopping_cart_checkout</span></button>
-                        </div>
-                    </div>
-                </div>
 
                 <div id="premium-explore-tab" class="tab-view" style="display: none;">
                     <div class="screen-content" style="padding-bottom: 70px;">
@@ -498,6 +479,14 @@
 
                     </div>
                 </div>
+
+
+
+
+
+
+
+
                 <!-- ========================================== -->
                 <!-- 📂 6. PREMIUM SERIES FOLDER TAB            -->
                 <!-- ========================================== -->
