@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbzBZqMfEFw9pqdCK-7WISqnoHnD8Ssv322jJj3ubvMfXNPz-aU8QhgwOgVdrs-4mneFtw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxsR_mSyCbwkfaeJYUeprNxsET4sUBrrtQT6PIiDPjh37wi0mPuUWcZfF1xbCZSpYvE1Q/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -198,12 +198,6 @@ document.getElementById('profile-dark-toggle-row').addEventListener('click', tog
 
 
 // Feature Grid Category Switcher (Home Tab)
-const gridLive = document.getElementById('grid-action-live');
-const gridPractice = document.getElementById('grid-action-practice');
-const gridNotes = document.getElementById('grid-action-notes'); 
-
-
-// 🎯 PREMIUM UI ENGINE: Card highlight aur section toggle logic
 function handleGridSwitch(activeBtnId, sectionToShowId) {
     document.querySelectorAll('.grid-card').forEach(card => card.classList.remove('active-card'));
     const activeBtn = document.getElementById(activeBtnId);
@@ -921,41 +915,6 @@ function attachTestCardListeners() {
                 const isPremium = testCard.getAttribute('data-premium') === "true";
                 const isBought = testCard.getAttribute('data-bought') === "true";
 
-
-
-
-                // 🌟 SCENARIO 1: Agar Premium hai aur BOUGHT NAHI HAI -> Detail Screen kholo
-                if (isPremium && !isBought) {
-                    document.getElementById('pkg-detail-title').innerText = testCard.getAttribute('data-title');
-                    document.getElementById('pkg-old-price').innerText = `₹${testCard.getAttribute('data-oldprice')}`;
-                    document.getElementById('pkg-new-price').innerText = `₹${testCard.getAttribute('data-newprice')}`;
-                    document.getElementById('pkg-offer-text').innerText = testCard.getAttribute('data-badge');
-                    document.getElementById('pkg-detail-syllabus').innerText = testCard.getAttribute('data-syllabus');
-                    document.getElementById('pkg-detail-duration').innerText = `${duration} Mins`;
-                    
-                    // 🎯 THE FIX: Buy Button ko exactly batao ki kya kharidna hai
-                    const buyBtn = document.getElementById('pkg-buy-btn');
-                    buyBtn.setAttribute('data-testid', testCard.getAttribute('data-test'));
-                    buyBtn.setAttribute('data-amount', testCard.getAttribute('data-newprice'));
-                    
-
-                    // 🛡️ UPGRADED: Ab popup ki jagah full-fledged demo screen open hogi
-                    document.getElementById('pkg-about-btn').onclick = () => {
-                        document.getElementById('explore-title').innerText = testCard.getAttribute('data-title');
-
-                        document.getElementById('explore-demo-start-btn').onclick = () => {
-                            showCustomPopup("Demo Test", testCard.getAttribute('data-about') || "Demo test logic will activate here.", "info");
-                        };
-
-                        switchTab('premium-explore-tab', 'Why Premium?');
-                    };
-                    
-
-
-                    switchTab('premium-package-tab', 'Package Details'); // 🛡️ NATIVE UI FIX
-                    return; // Yahin ruk jao, aage live test start nahi hoga
-                }
-
                 // 🌟 SCENARIO 2: Free test hai, ya phir Kharida hua Premium test hai (Normal flow)
                 if (testType === 'live') {
                     const start = new Date(testCard.getAttribute('data-start')).getTime();
@@ -985,24 +944,55 @@ function attachTestCardListeners() {
 }
 
 // ==========================================
-// 6. LIVE TEST ENGINE (NO CHANGES NEEDED HERE)
+// 6. ULTIMATE ANTI-CHEAT & LIVE TEST ENGINE
 // ==========================================
 
-// Strict Anti-Cheat: Tab Switch / Minimize Detection
+// 🛡️ 1. Tab Switch / Minimize / Fullscreen Detector (HACKER PROOF)
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && isTestActive) {
-        // Zero-tolerance: Immediately submit test and show warning
-        showCustomPopup(
-            "Test Terminated!", 
-            "You switched tabs or minimized the app. As per strict anti-cheat policies, your test has been automatically submitted.", 
-            "danger",
-            () => {
-                // Ensure popup doesn't block submission flow
-            }
-        );
-        processSubmission(); // Force submit immediately
+        showCustomPopup("Test Terminated! 🚨", "You switched tabs or minimized the window. As per strict anti-cheat policies, your test has been automatically submitted.", "danger");
+        processSubmission(); 
     }
 });
+
+document.addEventListener("fullscreenchange", () => {
+    // Agar test active hai aur user ne fullscreen exit kar diya
+    if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && isTestActive) {
+        showCustomPopup("Security Breach Detected! 🚨", "You exited Full-Screen mode. Your session has been flagged and auto-submitted.", "danger");
+        processSubmission();
+    }
+});
+
+// 🛡️ 2. Aggressive Keyboard Shortcut Blocker (Black-Hat Stopper)
+document.addEventListener("keydown", (e) => {
+    if (!isTestActive) return; // strictness sirf Live test me rahegi
+
+    // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
+    if (
+        e.key === "F12" || 
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j" || e.key === "C" || e.key === "c")) || 
+        (e.ctrlKey && (e.key === "U" || e.key === "u"))
+    ) {
+        e.preventDefault();
+        showCustomPopup("Warning ⚠️", "Keyboard shortcuts and Developer Tools are strictly disabled during a live exam.", "warning");
+        return false;
+    }
+});
+
+// 🛡️ 3. The "Debugger Trap" (DevTools Auto-Kill Engine)
+setInterval(() => {
+    if (isTestActive) {
+        const startTrap = performance.now();
+        debugger; // Yeh line normally browser ignore karta hai. LEKIN agar DevTools open hai, toh browser yaha freeze ho jayega.
+        const endTrap = performance.now();
+        
+        // Agar execution freeze hui (yani Console open tha), toh time difference 100ms se zyada aayega
+        if (endTrap - startTrap > 100) {
+            showCustomPopup("Security Breach Detected! 🚨", "Developer Tools opened. Your session is flagged and the exam is auto-submitted.", "danger");
+            processSubmission();
+        }
+    }
+}, 2000); // Har 2 second mein hacker check karo
 
 
 async function startLiveTest(testId, durationMins) {
@@ -1054,24 +1044,26 @@ async function startLiveTest(testId, durationMins) {
 
 function startTimer(seconds) {
     clearInterval(timerInterval);
-    timeRemaining = seconds; // 🛡️ SYSTEM TIME BYPASS: Direct seconds variable set karo
     
+    // 🛡️ HACKER-PROOF TIMER: Real end time ko local scope mein lock kar diya taaki console se access na ho
+    const realEndTime = getSecureTime() + (seconds * 1000);
+
     function checkTime() {
-        timeRemaining--; // 🛡️ STRICT ENGINE: Har second exactly 1 minus karo. Device time change karne se ispe koi farq nahi padega.
-        
-        if (timeRemaining <= 0) {
-            timeRemaining = 0;
-        }
-        
+        const now = getSecureTime();
+        const diff = Math.floor((realEndTime - now) / 1000);
+
+        // 🛡️ AUTO-CORRECT ENGINE: Agar hacker console se timeRemaining badhayega, toh next tick mein ye actual bache hue time par wapas aa jayega
+        timeRemaining = diff > 0 ? diff : 0;
+
         updateTimerDisplay();
-        
+
         if (timeRemaining <= 0) {
             clearInterval(timerInterval);
             showCustomPopup("Time's Up!", "Auto-submitting your test.", "warning", processSubmission, false);
         }
     }
-    
-    updateTimerDisplay(); // Start hote hi UI par time dikhao
+
+    checkTime(); // Start hote hi UI par time dikhao
     timerInterval = setInterval(checkTime, 1000); // Har 1 second mein tick karo
 }
 
@@ -1582,17 +1574,6 @@ function initPremiumSlider() {
 // App khulte hi slider engine ko start kar do
 document.addEventListener('DOMContentLoaded', initPremiumSlider);
 
-// ==========================================
-// 💎 PREMIUM SCREEN ENGINE & PHASE 4 SETUP
-// ==========================================
-const closePremiumBtn = document.getElementById('close-premium-pkg-btn');
-if (closePremiumBtn) {
-    closePremiumBtn.addEventListener('click', () => {
-        navigate('main-app-shell', false);
-    });
-}
-
-
 
 // ==========================================
 // 💳 PREMIUM RAZORPAY PAYMENT ENGINE (100% SECURE FOR BUNDLES)
@@ -1921,3 +1902,48 @@ document.addEventListener('click', (e) => {
         openExploreDemoScreen(bundleId, title, "Demo will start soon.");
     }
 });
+
+
+
+
+// ==========================================
+// 🚀 PREMIUM SHARE ENGINE (GIF + LINK)
+// ==========================================
+document.getElementById('share-app-btn').addEventListener('click', async () => {
+    // Yahan apni GIF ka URL daalein jo aapne GitHub se copy kiya tha
+    const gifUrl = "https://github.com/apjakjb/apjakjb/blob/main/tests/assets/Ads.gif"; 
+    const appLink = window.location.origin;
+    
+    const shareMessage = `🔥 *Test Portal Install Guide* 🚀\n\n` +
+                         `Bhai, mera portal install kar le, bina Play Store ke fast kaam karta hai!\n\n` +
+                         `*Kaise Install karein?* 👇\n` +
+                         `Dekho is GIF mein: ${gifUrl}\n\n` +
+                         `*Direct Link:* ${appLink}`;
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'Test Portal',
+                text: shareMessage,
+                url: appLink
+            });
+        } catch (err) {
+            console.log("Share failed, falling back to copy", err);
+            copyToClipboard(shareMessage);
+        }
+    } else {
+        copyToClipboard(shareMessage);
+    }
+});
+
+function copyToClipboard(text) {
+    const dummy = document.createElement('textarea');
+    document.body.appendChild(dummy);
+    dummy.value = text;
+    dummy.select();
+    document.execCommand('copy');
+    document.body.removeChild(dummy);
+    
+    // Aapka custom popup function call kar rahe hain
+    showCustomPopup("Link Copied!", "Share message copy ho gaya hai. WhatsApp/Telegram par paste kar dein!", "success");
+}
