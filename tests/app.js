@@ -1912,7 +1912,7 @@ document.getElementById('drawer-share-btn').addEventListener('click', shareAppLo
 
 async function shareAppLogic() {
     const rawGifUrl = "https://raw.githubusercontent.com/apjakjb/apjakjb/main/tests/assets/Ads.gif";
-    const appLink = window.location.origin;
+    const appLink = window.location.origin + window.location.pathname;
 
     const shareMessage = `🔥 *Test Portal Install Guide* 🚀\n\n` +
                          `Install this premium Test Portal for all subjects for the classes 9 to 12\n\n` +
