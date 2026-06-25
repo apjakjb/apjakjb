@@ -6,33 +6,27 @@
     <meta name="theme-color" content="#4F46E5">
     <meta name="description" content="Premium Android-Style Test Series & Learning Portal">
     <meta name="apple-mobile-web-app-title" content="Premium Portal">
-    <meta name="apple-touch-fullscreen" content="yes">    
-    <link rel="icon" href="data:," />  
+    <meta name="apple-touch-fullscreen" content="yes">
+    <link rel="icon" href="data:," /> 
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    
     <meta property="og:title" content="Premium Test Series Portal | Join Now!">
     <meta property="og:description" content="Boost your preparation with Free & Premium Live Tests, All-India Rankings, and Deep Analytics. Install Now!">
     <meta property="og:url" content="https://apjakjb.in/tests/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="APJAKJB Test Portal">
-    
     <meta property="og:image" content="https://raw.githubusercontent.com/apjakjb/apjakjb/main/tests/assets/Ads.gif">
     <meta property="og:image:secure_url" content="https://raw.githubusercontent.com/apjakjb/apjakjb/main/tests/assets/Ads.gif">
     <meta property="og:image:type" content="image/gif">
     <meta property="og:image:width" content="600">
     <meta property="og:image:height" content="400">
-    
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Premium Test Series Portal">
     <meta name="twitter:description" content="Dominate your exams with Live Tests and AI Analytics.">
     <meta name="twitter:image" content="https://raw.githubusercontent.com/apjakjb/apjakjb/main/tests/assets/Ads.gif">
-
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -73,6 +67,21 @@
                 <button id="popup-cancel-btn" class="btn-secondary">Cancel</button>
                 <button id="popup-confirm-btn" class="btn-primary">Confirm</button>
             </div>
+
+
+
+<div id="welcome-gif-overlay" class="popup-overlay" style="display: none; z-index: 10000; backdrop-filter: blur(5px);">
+        <div style="position: relative; background: transparent; padding: 0; box-shadow: none; display: flex; justify-content: center; align-items: center; max-width: 85%;">
+            
+            <button id="close-welcome-gif" style="position: absolute; top: -12px; right: -12px; background: #EF4444; color: white; border: 2px solid white; border-radius: 50%; width: 32px; height: 32px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 10001;">
+                <span class="material-icons" style="font-size: 16px;">close</span>
+            </button>
+
+            <img src="https://raw.githubusercontent.com/apjakjb/apjakjb/main/tests/assets/Ads.gif" alt="Welcome Alert" style="width: 100%; max-width: 350px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); object-fit: contain;">
+        </div>
+</div>
+
+
         </div>
     </div>
     <div id="drawer-overlay" class="drawer-overlay" style="display: none;"></div>
@@ -471,17 +480,22 @@
                                 <span style="font-size: 13px; font-weight: bold; color: #F59E0B; flex: 1; text-align: center;">Premium</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                                <span style="font-size: 13px; flex: 2;">Full Syllabus Mocks</span>
+                                <span style="font-size: 13px; flex: 2; color: var(--text-main);">Full Syllabus Mocks</span>
                                 <span class="material-icons" style="font-size: 18px; color: var(--danger); flex: 1; text-align: center;">close</span>
                                 <span class="material-icons" style="font-size: 18px; color: var(--success); flex: 1; text-align: center;">check_circle</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                                <span style="font-size: 13px; flex: 2;">Detailed Solutions</span>
+                                <span style="font-size: 13px; flex: 2; color: var(--text-main);">Detailed Solutions</span>
+                                <span class="material-icons" style="font-size: 18px; color: var(--danger); flex: 1; text-align: center;">close</span>
+                                <span class="material-icons" style="font-size: 18px; color: var(--success); flex: 1; text-align: center;">check_circle</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;  margin-bottom: 12px;">
+                                <span style="font-size: 13px; flex: 2; color: var(--text-main);">All India Rank</span>
                                 <span class="material-icons" style="font-size: 18px; color: var(--danger); flex: 1; text-align: center;">close</span>
                                 <span class="material-icons" style="font-size: 18px; color: var(--success); flex: 1; text-align: center;">check_circle</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span style="font-size: 13px; flex: 2;">Rank Predictor</span>
+                                <span style="font-size: 13px; flex: 2; color: var(--text-main);">PYQs and MIQs</span>
                                 <span class="material-icons" style="font-size: 18px; color: var(--danger); flex: 1; text-align: center;">close</span>
                                 <span class="material-icons" style="font-size: 18px; color: var(--success); flex: 1; text-align: center;">check_circle</span>
                             </div>
@@ -498,12 +512,14 @@
                                         <th style="padding: 10px 4px; font-size: 10px; width: 25%;">End Time</th>
                                     </tr>
                                 </thead>
-                                <tbody id="explore-syllabus-table-body">
+                                <tbody id="explore-syllabus-table-body" style="color: var(--text-main);">
                                     <tr>
-                                        <td colspan="4" style="padding: 20px 5px; text-align: center; color: var(--text-muted); font-size: 10px;">
-                                            <span class="material-icons" style="font-size: 18px; animation: spinGlow 1s linear infinite; color: var(--primary); vertical-align: middle;">autorenew</span>
-                                            <br>Fetching Schedule...
-                                        </td>
+
+                                            <td colspan="4" style="padding: 20px 5px; text-align: center; font-size: 10px;">
+                                                <span class="material-icons" style="font-size: 18px; animation: spinGlow 1s linear infinite; color: var(--primary); vertical-align: middle;">autorenew</span>
+                                                <br>Fetching Schedule...
+                                            </td>
+                                        
                                     </tr>
                                 </tbody>
                             </table>
@@ -511,12 +527,6 @@
 
                     </div>
                 </div>
-
-
-
-
-
-
 
 
                 <!-- ========================================== -->
