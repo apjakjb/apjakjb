@@ -14,10 +14,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-
-
-
-
+    
     <meta property="og:title" content="Premium Test Series Portal | Join Now!">
     <meta property="og:description" content="Boost your preparation with Free & Premium Live Tests, All-India Rankings, and Deep Analytics. Install Now!">
     <meta property="og:url" content="https://apjakjb.in/tests/">
@@ -36,12 +33,13 @@
     <meta name="twitter:image" content="https://raw.githubusercontent.com/apjakjb/apjakjb/main/tests/assets/Ads.gif">
 
 
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Student Testing Portal</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -423,7 +421,12 @@
 
                 <div id="premium-explore-tab" class="tab-view" style="display: none;">
                     <div class="screen-content" style="padding-bottom: 70px;">
-                        
+
+<div id="premium-video-wrapper" style="display: none; position: relative; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background: #000; aspect-ratio: 16/9;">
+    <div id="youtube-player-container" style="width: 100%; height: 100%;"></div>
+</div>
+
+                        <!-- Original Analytics Card Below -->
                         <div class="analytics-card premium-glow-card" style="text-align: center; padding: 30px 15px; border: 1px solid #FCD34D;">
                             <span class="material-icons" style="font-size: 48px; color: #F59E0B; margin-bottom: 10px;">workspace_premium</span>
                             <h2 id="explore-title" style="color: var(--text-main); margin-bottom: 10px;">Premium Mock Series</h2>
@@ -557,6 +560,7 @@
         
     </main>
 
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
