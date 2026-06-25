@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbzBZqMfEFw9pqdCK-7WISqnoHnD8Ssv322jJj3ubvMfXNPz-aU8QhgwOgVdrs-4mneFtw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw54Gr9mB2rsWtKwzGUSTtThFsHzYrC7sVibPE65QIYuTkkK3q_4GrtU_cCXtIYdm7IDQ/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -1837,20 +1837,43 @@ document.addEventListener('click', async (e) => {
 // 🚀 PREMIUM EXPLORE DEMO ROUTING ENGINE (DYNAMIC DATA)
 // ==========================================
 
-// Yeh master function hai jo kisi bhi bundle ka data server se layega
-async function openExploreDemoScreen(bundleId, title, aboutText) {
+
+
+// 🚀 THE ULTIMATE FIX: Native Google Drive HTML5 Player (Zero YouTube Dependency)
+async function openExploreDemoScreen(bundleId, title, aboutText, price) {
     // 1. Basic UI Update
     document.getElementById('explore-title').innerText = title;
     
-    // Demo Test Button (Dummy for now)
-    document.getElementById('explore-demo-start-btn').onclick = () => {
-        showCustomPopup("Demo Test", aboutText || "Your free demo mock test is being prepared by educators. Check back soon!", "info");
-    };
+    // 🛡️ Setup Smart Back Button
+    const backBtn = document.getElementById('explore-back-btn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            switchTab('premium-tests-tab', 'Premium Test Series');
+        };
+    }
+
+    // 🛡️ Setup Dynamic Buy Button
+    const buyBtn = document.getElementById('explore-buy-now-btn');
+    if (buyBtn) {
+        buyBtn.setAttribute('data-testid', bundleId);
+        buyBtn.setAttribute('data-amount', price);
+        buyBtn.innerHTML = `<span class="material-icons" style="font-size:16px;">shopping_cart_checkout</span> Unlock Full Access - ₹${price}`;
+    }
+    
+    // Demo Test Button
+    const demoBtn = document.getElementById('explore-demo-start-btn');
+    if (demoBtn) {
+        demoBtn.onclick = () => {
+            showCustomPopup("Demo Test", aboutText || "Your free demo mock test is being prepared by educators. Check back soon!", "info");
+        };
+    }
 
     // 2. Tab open karo aur Loader dikhao
     switchTab('premium-explore-tab', 'Why Premium?');
     const tbody = document.getElementById('explore-syllabus-table-body');
-    tbody.innerHTML = `<tr><td colspan="4" style="padding: 20px 5px; text-align: center; color: var(--text-muted); font-size: 10px;"><span class="material-icons" style="font-size: 18px; animation: spinGlow 1s linear infinite; color: var(--primary); vertical-align: middle;">autorenew</span><br>Fetching Detailed Schedule...</td></tr>`;
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="4" style="padding: 20px 5px; text-align: center; color: var(--text-muted); font-size: 10px;"><span class="material-icons" style="font-size: 18px; animation: spinGlow 1s linear infinite; color: var(--primary); vertical-align: middle;">autorenew</span><br>Fetching Detailed Schedule...</td></tr>`;
+    }
 
     // 3. Backend se Syllabus Table Data Fetch Karo
     try {
@@ -1863,10 +1886,55 @@ async function openExploreDemoScreen(bundleId, title, aboutText) {
         
         const data = JSON.parse(await res.text());
 
-        // 4. Table Table Render Logic
-        if (data.success && data.syllabus.length > 0) {
-            tbody.innerHTML = ""; // Clear loader
+        // 🛡️ YOUTUBE DEFAULT PLAYER ENGINE (100% CLEANED & ERROR BYPASSED)
+        const videoWrapper = document.getElementById('premium-video-wrapper');
+        const playerContainer = document.getElementById('youtube-player-container');
+
+        if (data.videoLink && videoWrapper && playerContainer) {
             
+            // Smart Regex to extract YouTube Video ID
+            let ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+            let ytMatch = data.videoLink.match(ytRegex);
+            let ytVideoId = ytMatch ? ytMatch[1] : null;
+
+            if (ytVideoId) {
+                videoWrapper.style.display = 'block';
+                
+                // 🚀 PRO ENGINEER FIX: Injecting Native Custom HTML5 Player
+                playerContainer.innerHTML = `
+                    <div id="premium-native-player" data-plyr-provider="youtube" data-plyr-embed-id="${ytVideoId}"></div>
+                `;
+                
+                // Initialize the native player UI with strict API parameters
+                setTimeout(() => {
+                    const player = new Plyr('#premium-native-player', {
+                        controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                        hideControls: true,
+                        youtube: { 
+                            noCookie: true, 
+                            rel: 0,              // Suggested videos band karega
+                            showinfo: 0,         // Title bar hide karega
+                            iv_load_policy: 3,   // Annotations block karega
+                            modestbranding: 1,   // YouTube logo minimal karega
+                            disablekb: 1         // Default keyboard shortcuts disable
+                        }
+                    });
+
+                    // 🎨 Optional: Custom Theme Color Set karna (Matching your App's Primary Color)
+                    document.documentElement.style.setProperty('--plyr-color-main', '#EF4444'); // Danger Red theme
+                }, 100);
+            } else {
+                videoWrapper.style.display = 'none';
+                playerContainer.innerHTML = '';
+            }
+        } else if (videoWrapper) {
+            videoWrapper.style.display = 'none';
+            if (playerContainer) playerContainer.innerHTML = '';
+        }
+
+        // 4. Syllabus Table Render Logic
+        if (data.success && data.syllabus.length > 0 && tbody) {
+            tbody.innerHTML = ""; 
             const formatShortDate = (isoString) => {
                 if (!isoString) return 'TBA';
                 return new Date(isoString).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
@@ -1882,13 +1950,22 @@ async function openExploreDemoScreen(bundleId, title, aboutText) {
                     </tr>
                 `);
             });
-        } else {
+        } else if (tbody) {
             tbody.innerHTML = `<tr><td colspan="4" style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 10px;">Schedule is being updated by educators. Stay tuned!</td></tr>`;
         }
     } catch(e) {
-        tbody.innerHTML = `<tr><td colspan="4" style="padding: 20px; text-align: center; color: var(--danger); font-size: 10px;">Network Error: Failed to load schedule.</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="padding: 20px; text-align: center; color: var(--danger); font-size: 10px;">Network Error: Failed to load schedule.</td></tr>`;
     }
 }
+
+
+
+
+
+
+
+
+
 
 // Click Listener jo is master function ko trigger karega
 document.addEventListener('click', (e) => {
