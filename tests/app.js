@@ -1875,6 +1875,20 @@ async function openExploreDemoScreen(bundleId, title, aboutText, price) {
         tbody.innerHTML = `<tr><td colspan="4" style="padding: 20px 5px; text-align: center; color: var(--text-muted); font-size: 10px;"><span class="material-icons" style="font-size: 18px; animation: spinGlow 1s linear infinite; color: var(--primary); vertical-align: middle;">autorenew</span><br>Fetching Detailed Schedule...</td></tr>`;
     }
 
+    // 🚀 PRO ENGINEER FIX: API aane se pehle Skeleton Frame Loader dikhao
+    const videoWrapper = document.getElementById('premium-video-wrapper');
+    const playerContainer = document.getElementById('youtube-player-container');
+    
+    if (videoWrapper && playerContainer) {
+        videoWrapper.style.display = 'block'; // Frame ko turant show karo
+        playerContainer.innerHTML = `
+            <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0f0f0f;">
+                <span class="material-icons" style="font-size: 36px; color: var(--primary); animation: spinGlow 1.2s linear infinite;">satellite_alt</span>
+                <p style="color: var(--text-muted); font-size: 11px; margin-top: 15px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">Connecting to Secure Server...</p>
+            </div>
+        `;
+    }
+
     // 3. Backend se Syllabus Table Data Fetch Karo
     try {
         const authToken = localStorage.getItem('auth_token');
@@ -1886,9 +1900,7 @@ async function openExploreDemoScreen(bundleId, title, aboutText, price) {
         
         const data = JSON.parse(await res.text());
 
-        // 🛡️ YOUTUBE DEFAULT PLAYER ENGINE (100% CLEANED & ERROR BYPASSED)
-        const videoWrapper = document.getElementById('premium-video-wrapper');
-        const playerContainer = document.getElementById('youtube-player-container');
+        // 🛡️ DATA AANE KE BAAD YOUTUBE PLAYER INJECT HOGA
 
         if (data.videoLink && videoWrapper && playerContainer) {
             
@@ -1900,8 +1912,18 @@ async function openExploreDemoScreen(bundleId, title, aboutText, price) {
             if (ytVideoId) {
                 videoWrapper.style.display = 'block';
                 
-                // 🚀 PRO ENGINEER FIX: Injecting Native Custom HTML5 Player
+                // 🚀 PRO ENGINEER FIX: Injecting Player + Black Overlay Wave Loader
                 playerContainer.innerHTML = `
+                    <div id="video-wave-loader" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; z-index: 10; transition: opacity 0.4s ease;">
+                        <div class="wave-container">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <p style="color: #FCD34D; font-size: 11px; margin-top: 15px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">Loading video...</p>
+                    </div>
                     <div id="premium-native-player" data-plyr-provider="youtube" data-plyr-embed-id="${ytVideoId}"></div>
                 `;
                 
@@ -1912,16 +1934,28 @@ async function openExploreDemoScreen(bundleId, title, aboutText, price) {
                         hideControls: true,
                         youtube: { 
                             noCookie: true, 
-                            rel: 0,              // Suggested videos band karega
-                            showinfo: 0,         // Title bar hide karega
-                            iv_load_policy: 3,   // Annotations block karega
-                            modestbranding: 1,   // YouTube logo minimal karega
-                            disablekb: 1         // Default keyboard shortcuts disable
+                            rel: 0,
+                            showinfo: 0,
+                            iv_load_policy: 3,
+                            modestbranding: 1,
+                            disablekb: 1
                         }
                     });
 
-                    // 🎨 Optional: Custom Theme Color Set karna (Matching your App's Primary Color)
-                    document.documentElement.style.setProperty('--plyr-color-main', '#EF4444'); // Danger Red theme
+                    document.documentElement.style.setProperty('--plyr-color-main', '#EF4444');
+
+                    // 🛡️ THE MAGIC: Listen for Plyr's 'ready' event
+                    // Jab YouTube iframe ka data puri tarah render ho jayega, yeh function chalega
+                    player.on('ready', () => {
+                        const loader = document.getElementById('video-wave-loader');
+                        if (loader) {
+                            loader.style.opacity = '0'; // Pehle makkhan ki tarah fade out karo
+                            setTimeout(() => {
+                                loader.style.display = 'none'; // 400ms baad DOM flow se gayab kar do
+                            }, 400); 
+                        }
+                    });
+
                 }, 100);
             } else {
                 videoWrapper.style.display = 'none';
@@ -2024,3 +2058,38 @@ function copyToClipboard(text) {
     
     showCustomPopup("Link Copied!", "You can manually share to you friends", "success");
 }
+
+
+
+// ==========================================
+// 🚀 PREMIUM WELCOME GIF ENGINE
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    const welcomeOverlay = document.getElementById('welcome-gif-overlay');
+    const closeBtn = document.getElementById('close-welcome-gif');
+    
+    // 🛡️ SMART LOCK: Check karo kya is session mein pehle GIF dikh chuka hai?
+    if (!sessionStorage.getItem('welcome_gif_shown')) {
+        
+        if (welcomeOverlay) {
+            // 1. Popup dikhao
+            welcomeOverlay.style.display = 'flex';
+            
+            // 2. Memory mein save kar lo taaki refresh par wapas na aaye
+            sessionStorage.setItem('welcome_gif_shown', 'true');
+
+            // 3. Auto-Kill Timer: 3500ms (3.5 seconds) baad automatic gayab karo
+            const autoKillTimer = setTimeout(() => {
+                welcomeOverlay.style.display = 'none';
+            }, 3500);
+
+            // 4. Manual Close Button Logic (Agar student timer se pehle 'X' daba de)
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    clearTimeout(autoKillTimer); // Background timer ko turant destroy karo
+                    welcomeOverlay.style.display = 'none';
+                });
+            }
+        }
+    }
+});
