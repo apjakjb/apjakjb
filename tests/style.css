@@ -1361,3 +1361,63 @@ button {
         transform: translateY(0);
     }
 }
+
+
+
+/* ==========================================
+   💎 PREMIUM WELCOME AD POPUP (PURE IMAGE)
+   ========================================== */
+.ad-popup-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75); /* Darker background for better image focus */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    animation: fadeInAd 0.4s ease forwards;
+}
+
+.ad-popup-card-clean {
+    position: relative;
+    width: 85%; 
+    max-width: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: scale(0.8);
+    animation: popUpAd 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.ad-gif-full-image {
+    width: 100%;
+    height: auto;
+    border-radius: 12px; /* Slight smooth curve for premium feel */
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6); /* Deep shadow */
+    display: block;
+}
+
+.ad-close-btn {
+    position: absolute;
+    top: -15px; 
+    right: -15px;
+    background: var(--card-bg, #ffffff);
+    color: var(--text-main, #111);
+    border: none;
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer; z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    transition: transform 0.2s, background 0.3s;
+}
+
+.ad-close-btn:hover { 
+    background: var(--danger, #ef4444); 
+    color: white;
+    transform: scale(1.1);
+}
+
+@keyframes fadeInAd { to { opacity: 1; } }
+@keyframes popUpAd { to { transform: scale(1); } }
