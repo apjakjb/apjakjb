@@ -67,23 +67,18 @@
                 <button id="popup-cancel-btn" class="btn-secondary">Cancel</button>
                 <button id="popup-confirm-btn" class="btn-primary">Confirm</button>
             </div>
+        </div>
+    </div>
 
 
-
-<div id="welcome-gif-overlay" class="popup-overlay" style="display: none; z-index: 10000; backdrop-filter: blur(5px);">
-        <div style="position: relative; background: transparent; padding: 0; box-shadow: none; display: flex; justify-content: center; align-items: center; max-width: 85%;">
-            
-            <button id="close-welcome-gif" style="position: absolute; top: -12px; right: -12px; background: #EF4444; color: white; border: 2px solid white; border-radius: 50%; width: 32px; height: 32px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 10001;">
-                <span class="material-icons" style="font-size: 16px;">close</span>
-            </button>
-
-            <img src="https://raw.githubusercontent.com/apjakjb/apjakjb/main/tests/assets/Ads.gif" alt="Welcome Alert" style="width: 100%; max-width: 350px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); object-fit: contain;">
+<div id="welcome-ad-popup" class="ad-popup-overlay" style="display: none;" role="dialog" aria-modal="true">
+        <div class="ad-popup-card-clean">
+            <button id="close-ad-btn" class="ad-close-btn"><span class="material-icons">close</span></button>
+            <img src="./assets/Ads.gif" alt="Premium Offer" class="ad-gif-full-image">
         </div>
 </div>
 
 
-        </div>
-    </div>
     <div id="drawer-overlay" class="drawer-overlay" style="display: none;"></div>
     <aside id="side-drawer" class="side-drawer">
         <div class="drawer-header">
@@ -565,7 +560,7 @@
                     <span class="material-icons">person</span>
                     <span class="tab-label">Profile</span>
                 </button>
-            </footer> 
+            </footer>
         </section>
         
     </main>
