@@ -764,7 +764,7 @@ const practiceList910 = document.getElementById('practice-list-910');
 
                         <div class="bpc-actions">
                             <button class="btn-secondary bpc-about-btn" data-about="${bundle.bundleId}">
-                                Explore Demo
+                                Explore Details
                             </button>
                             
                             ${!bundle.isBought ? 
@@ -1864,14 +1864,6 @@ async function openExploreDemoScreen(bundleId, title, aboutText, price) {
         buyBtn.setAttribute('data-amount', price);
         buyBtn.innerHTML = `<span class="material-icons" style="font-size:16px;">shopping_cart_checkout</span> Unlock Full Access - ₹${price}`;
     }
-    
-    // Demo Test Button
-    const demoBtn = document.getElementById('explore-demo-start-btn');
-    if (demoBtn) {
-        demoBtn.onclick = () => {
-            showCustomPopup("Demo Test", aboutText || "Your free demo mock test is being prepared by educators. Check back soon!", "info");
-        };
-    }
 
     // 2. Tab open karo aur Loader dikhao
     switchTab('premium-explore-tab', 'Why Premium?');
@@ -2063,6 +2055,10 @@ function copyToClipboard(text) {
     
     showCustomPopup("Link Copied!", "You can manually share to you friends", "success");
 }
+
+
+
+
 
 // ==========================================
 // 🚀 PREMIUM WELCOME AD ENGINE (PURE IMAGE)
