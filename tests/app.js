@@ -422,14 +422,18 @@ function checkAuthSession() {
     const cachedUser = localStorage.getItem('student_username');
     const cachedName = localStorage.getItem('student_name');
     const cachedToken = localStorage.getItem('auth_token');
-    if (cachedUser && cachedToken) {
-        loggedInUser = cachedUser;
-        loggedInUserName = cachedName || cachedUser.split('@')[0]; 
-        updateProfileUI();
-        history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
-        loadDashboard(); 
-        triggerSmartPushPrompt();
-    } else {
+
+if (cachedUser && cachedToken) {
+            loggedInUser = cachedUser;
+            loggedInUserName = cachedName || cachedUser.split('@')[0]; 
+            updateProfileUI();
+            history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
+            loadDashboard(); 
+            triggerSmartPushPrompt();
+            setTimeout(showPremiumWelcomeAd, 1500); // 🚀 1.5s delay to sync beautifully with loading process
+        }
+
+     else {
         history.replaceState({ screen: 'login-screen' }, "", "#login-screen");
         navigate('login-screen', false);
     }
@@ -464,11 +468,12 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             localStorage.setItem('student_name', loggedInUserName);
             localStorage.setItem('auth_token', result.token); 
             
-            updateProfileUI();
+updateProfileUI();
             document.getElementById('login-form').reset();
             errorMsg.innerText = "";
             loadDashboard();
             triggerSmartPushPrompt(); 
+            setTimeout(showPremiumWelcomeAd, 1500); // 🚀 Premium Ad Trigger
         } else {
             errorMsg.innerText = result.message;
         }
@@ -2059,37 +2064,19 @@ function copyToClipboard(text) {
     showCustomPopup("Link Copied!", "You can manually share to you friends", "success");
 }
 
-
-
 // ==========================================
-// 🚀 PREMIUM WELCOME GIF ENGINE
+// 🚀 PREMIUM WELCOME AD ENGINE (PURE IMAGE)
 // ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-    const welcomeOverlay = document.getElementById('welcome-gif-overlay');
-    const closeBtn = document.getElementById('close-welcome-gif');
+function showPremiumWelcomeAd() {
+    if (sessionStorage.getItem('welcomeAdShown')) return; 
     
-    // 🛡️ SMART LOCK: Check karo kya is session mein pehle GIF dikh chuka hai?
-    if (!sessionStorage.getItem('welcome_gif_shown')) {
-        
-        if (welcomeOverlay) {
-            // 1. Popup dikhao
-            welcomeOverlay.style.display = 'flex';
-            
-            // 2. Memory mein save kar lo taaki refresh par wapas na aaye
-            sessionStorage.setItem('welcome_gif_shown', 'true');
-
-            // 3. Auto-Kill Timer: 3500ms (3.5 seconds) baad automatic gayab karo
-            const autoKillTimer = setTimeout(() => {
-                welcomeOverlay.style.display = 'none';
-            }, 3500);
-
-            // 4. Manual Close Button Logic (Agar student timer se pehle 'X' daba de)
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    clearTimeout(autoKillTimer); // Background timer ko turant destroy karo
-                    welcomeOverlay.style.display = 'none';
-                });
-            }
-        }
-    }
-});
+    const adPopup = document.getElementById('welcome-ad-popup');
+    if (!adPopup) return;
+    
+    adPopup.style.display = 'flex';
+    sessionStorage.setItem('welcomeAdShown', 'true');
+    
+    document.getElementById('close-ad-btn').addEventListener('click', () => {
+        adPopup.style.display = 'none';
+    });
+}
