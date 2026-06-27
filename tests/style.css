@@ -1421,3 +1421,53 @@ button {
 
 @keyframes fadeInAd { to { opacity: 1; } }
 @keyframes popUpAd { to { transform: scale(1); } }
+
+
+
+
+/* ========================================== */
+/* 🌟 PREMIUM GIF PROMO UI (Ad-Blocker Safe)  */
+/* ========================================== */
+.login-premium-promo-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    margin-bottom: 25px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--card-bg);
+    border: 1.5px solid #FCD34D;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.15);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.login-premium-promo-wrapper:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+}
+
+.login-premium-promo-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg);
+    animation: goldShine 3.5s infinite;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.login-premium-promo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+[data-theme="dark"] .login-premium-promo-wrapper {
+    border-color: #D97706;
+    box-shadow: 0 6px 20px rgba(217, 119, 6, 0.25);
+}
