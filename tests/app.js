@@ -1118,8 +1118,14 @@ function renderQuestion() {
         nextBtn.style.backgroundColor = "var(--primary)";
     }
 
-    // ✅ Question Load hote hi palette update aur scroll karega
     renderQuestionPalette();
+
+    if (window.MathJax) {
+        MathJax.typesetPromise([
+            document.getElementById('question-text'),
+            document.getElementById('options-container')
+        ]).catch((err) => console.log('Math rendering error: ', err.message));
+    }
 }
 
 // ✅ NAYA LOGIC: Quick Jump System Engine
@@ -1287,7 +1293,13 @@ function displayDeepAnalysis(score, total, percentage, detailsArray, pushToHisto
 
     });
 
-    switchTab('analysis-tab', 'Performance Insights', pushToHistory); // 🛡️ NATIVE UI FIX
+    // 🚀 NAYA: MATHJAX FOR ANALYSIS SCREEN
+    if (window.MathJax) {
+        MathJax.typesetPromise([document.getElementById('breakdown-list')])
+            .catch((err) => console.log('Math rendering error in analysis: ', err.message));
+    }
+
+    switchTab('analysis-tab', 'Performance Insights', pushToHistory);
 }
 
 
