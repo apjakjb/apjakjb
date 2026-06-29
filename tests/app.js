@@ -42,8 +42,12 @@ let timeRemaining = 0;
 let testEndTime = 0;
 let isTestActive = false;
 let totalTestSeconds = 0;
-let serverTimeOffset = 0; // 🛡️ NAYA: Real Server Time Tracker
-let isPostExamRestricted = false; // 🛡️ NAYA: Test submit ke turant baad strict mode ke liye
+let serverTimeOffset = 0; 
+let isPostExamRestricted = false; 
+let globalLiveTests910 = []; 
+let currentSubjectClassLvl = '9'; 
+let globalLiveTests1112 = []; // 🛡️ NAYA: Storage for XI/XII Subject filtering
+let currentSubjectClassLvl1112 = '11'; // 🛡️ NAYA: Default tab for XI/XII
 
 const optionPrefixes = ['(a) ', '(b) ', '(c) ', '(d) '];
 
@@ -220,18 +224,15 @@ function handleGridSwitch(activeBtnId, sectionToShowId) {
 }
 
 
-
-
-// 🎯 SMART LISTENERS FOR ROUTING (IX-X & XI-XII)
 document.getElementById('grid-action-live-910')?.addEventListener('click', () => {
     handleGridSwitch('grid-action-live-910', null); 
-    switchTab('live-tests-tab-910', 'Live Tests (IX & X)');
+    switchTab('subject-selection-tab-910', 'Select Class & Subject');
 });
 
-// 🛡️ NAYA FIX: Missing Free Live Test Routing Engine for Class 11 & 12
+// 🛡️ NAYA FIX: Subject Selection Routing for Class 11 & 12
 document.getElementById('grid-action-live-1112')?.addEventListener('click', () => {
     handleGridSwitch('grid-action-live-1112', null); 
-    switchTab('live-tests-tab-1112', 'Free Live Tests (XI & XII)');
+    switchTab('subject-selection-tab-1112', 'Select Class & Subject');
 });
 
 // 🌟 FIXED: Premium Live Test ke click par ab NAYA Premium Tab khulega
@@ -620,7 +621,6 @@ const practiceList910 = document.getElementById('practice-list-910');
             testHistoryData = result.history || {}; 
 
             let practiceCount910 = 0, practiceCount1112 = 0, completedCount = 0;
-            let upCount910 = 0, expCount910 = 0, upCount1112 = 0, expCount1112 = 0;
             const nowMs = getSecureTime(); // 🛡️ SECURE TIME USED HERE
 
             const formatOnlyDate = (isoString) => {
@@ -715,11 +715,9 @@ const practiceList910 = document.getElementById('practice-list-910');
                     `;
 
                     if (isSenior) {
-                        if (isExpired) { expCount1112++; if(expired1112) expired1112.insertAdjacentHTML('beforeend', cardHTML); }
-                        else { upCount1112++; if(upcoming1112) upcoming1112.insertAdjacentHTML('beforeend', cardHTML); }
+                        globalLiveTests1112.push({ rawData: test, html: cardHTML, isExpired: isExpired });
                     } else {
-                        if (isExpired) { expCount910++; if(expired910) expired910.insertAdjacentHTML('beforeend', cardHTML); }
-                        else { upCount910++; if(upcoming910) upcoming910.insertAdjacentHTML('beforeend', cardHTML); }
+                        globalLiveTests910.push({ rawData: test, html: cardHTML, isExpired: isExpired });
                     }
                 }
             });
@@ -784,10 +782,6 @@ const practiceList910 = document.getElementById('practice-list-910');
 
             // 🎨 NEW EMPTY STATES
             const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
-            if (upCount910 === 0 && upcoming910) upcoming910.innerHTML = emptyMsg("No upcoming live tests for IX & X.");
-            if (expCount910 === 0 && expired910) expired910.innerHTML = emptyMsg("No expired tests for IX & X.");
-            if (upCount1112 === 0 && upcoming1112) upcoming1112.innerHTML = emptyMsg("No upcoming live tests for XI & XII.");
-            if (expCount1112 === 0 && expired1112) expired1112.innerHTML = emptyMsg("No expired tests for XI & XII.");
             if (practiceCount910 === 0 && practiceList910) practiceList910.innerHTML = emptyMsg("No practice tests for IX & X.");
             if (practiceCount1112 === 0 && practiceList1112) practiceList1112.innerHTML = emptyMsg("No practice tests for XI & XII.");
             if (completedCount === 0 && pastResultsContainer) pastResultsContainer.innerHTML = emptyMsg("You haven't attempted any tests yet.");
@@ -820,74 +814,242 @@ function renderCompletedCard(test, container) {
     `);
 }
 
-// --- NATIVE LIVE ENGINE (REAL-TIME UI) ---
-function startDashboardLiveEngine() {
-function updateLiveCards() {
-        const now = getSecureTime(); // 🛡️ SECURE TIME USED HERE
-        document.querySelectorAll('.live-test-card').forEach(card => {
-            const startTime = new Date(card.getAttribute('data-start')).getTime();
-            const endTime = new Date(card.getAttribute('data-end')).getTime();
-            
-            const badge = card.querySelector('.live-status-badge');
-            const timeText = card.querySelector('.live-timing-text');
-            const btn = card.querySelector('.test-action-btn');
-            const isPremium = card.getAttribute('data-premium') === "true";
-            const isBought = card.getAttribute('data-bought') === "true";
-            const offerPrice = card.getAttribute('data-newprice');
 
-            // Agar Test Expire Ho Gaya Hai
-            if (now > endTime) {
-                badge.innerHTML = `<span style="color:var(--danger); font-size:11px; font-weight:bold;">🔴 CLOSED</span>`;
-                timeText.innerText = `Missed: ${new Date(endTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}`;
-                btn.innerText = "Expired";
-                btn.disabled = true;
-                btn.style.opacity = "0.3";
-                btn.style.backgroundColor = "transparent";
-                btn.style.color = "var(--text-muted)";
-            } 
-            else { // Test Upcoming hai ya Live Now hai
+// --- NATIVE LIVE ENGINE (REAL-TIME UI) ---
+function updateLiveCards() {
+    const now = getSecureTime(); 
+    document.querySelectorAll('.live-test-card').forEach(card => {
+        const startTime = new Date(card.getAttribute('data-start')).getTime();
+        const endTime = new Date(card.getAttribute('data-end')).getTime();
+        
+        const badge = card.querySelector('.live-status-badge');
+        const timeText = card.querySelector('.live-timing-text');
+        const btn = card.querySelector('.test-action-btn');
+        if(!badge || !timeText || !btn) return;
+
+        const isPremium = card.getAttribute('data-premium') === "true";
+        const isBought = card.getAttribute('data-bought') === "true";
+        const offerPrice = card.getAttribute('data-newprice');
+
+        if (now > endTime) {
+            badge.innerHTML = `<span style="color:var(--danger); font-size:11px; font-weight:bold;">🔴 CLOSED</span>`;
+            timeText.innerText = `Missed: ${new Date(endTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}`;
+            btn.innerText = "Expired";
+            btn.disabled = true;
+            btn.style.opacity = "0.3";
+            btn.style.backgroundColor = "transparent";
+            btn.style.color = "var(--text-muted)";
+        } 
+        else { 
+            if (now < startTime) {
+                badge.innerHTML = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
+                timeText.innerHTML = `Starts: <strong>${new Date(startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</strong>`;
+            } else {
+                badge.innerHTML = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🛑 LIVE NOW</span>`;
+                const diffMs = endTime - now;
+                const hrs = Math.floor(diffMs / 3600000);
+                const mins = Math.floor((diffMs % 3600000) / 60000);
+                timeText.innerHTML = `<span style="color:var(--danger); font-weight:600;">Closes in: ${hrs}h ${mins}m</span>`;
+            }
+            
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            btn.style.padding = "12px 24px";
+            
+            if (isPremium && !isBought) {
+                btn.innerHTML = `Buy Test - ₹${offerPrice} <span class="material-icons" style="font-size:16px;">shopping_cart</span>`;
+                btn.style.backgroundColor = "#F59E0B"; 
+                btn.style.color = "white";
+            } else {
                 if (now < startTime) {
-                    badge.innerHTML = `<span style="color:var(--warning); font-size:11px; font-weight:bold;">⏳ UPCOMING</span>`;
-                    timeText.innerHTML = `Starts: <strong>${new Date(startTime).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</strong>`;
+                    btn.innerText = isPremium && isBought ? "Purchased (Wait to start)" : "🔒 Inactive";
+                    btn.disabled = true;
+                    btn.style.opacity = "0.5";
+                    btn.style.backgroundColor = "var(--primary)";
                 } else {
-                    badge.innerHTML = `<span style="color:var(--success); font-size:11px; font-weight:bold;">🛑 LIVE NOW</span>`;
-                    const diffMs = endTime - now;
-                    const hrs = Math.floor(diffMs / 3600000);
-                    const mins = Math.floor((diffMs % 3600000) / 60000);
-                    timeText.innerHTML = `<span style="color:var(--danger); font-weight:600;">Closes in: ${hrs}h ${mins}m</span>`;
-                }
-                
-                // 💎 SMART BUTTON TEXT LOGIC
-                btn.disabled = false;
-                btn.style.opacity = "1";
-                btn.style.padding = "12px 24px";
-                
-                if (isPremium && !isBought) {
-                    // Paid hai aur kharida nahi hai -> "Buy Test" dikhao
-                    btn.innerHTML = `Buy Test - ₹${offerPrice} <span class="material-icons" style="font-size:16px;">shopping_cart</span>`;
-                    btn.style.backgroundColor = "#F59E0B"; // Gold color for buying
+                    btn.innerText = isPremium && isBought ? "Open Premium Test" : "Start Live Test";
+                    btn.style.backgroundColor = "var(--danger)"; 
                     btn.style.color = "white";
-                } else {
-                    // Free hai ya phir Kharid liya hai -> "Open Test" logic
-                    if (now < startTime) {
-                        btn.innerText = isPremium && isBought ? "Purchased (Wait to start)" : "🔒 Inactive";
-                        btn.disabled = true;
-                        btn.style.opacity = "0.5";
-                        btn.style.backgroundColor = "var(--primary)";
-                    } else {
-                        btn.innerText = isPremium && isBought ? "Open Premium Test" : "Start Live Test";
-                        btn.style.backgroundColor = "var(--danger)"; // Striking Red for Live
-                        btn.style.color = "white";
-                    }
                 }
             }
-        });
-    }
-    
-    updateLiveCards(); 
-    dashboardTimerInterval = setInterval(updateLiveCards, 30000); // UI Updates every 30 seconds
+        }
+    });
 }
 
+function startDashboardLiveEngine() {
+    updateLiveCards(); 
+    dashboardTimerInterval = setInterval(updateLiveCards, 30000); 
+}
+
+// ==========================================
+// 🛡️ NAYA: IX & X SUBJECT FILTER ENGINE 
+// ==========================================
+const tabClass9 = document.getElementById('tab-class-9');
+const tabClass10 = document.getElementById('tab-class-10');
+
+const indicatorTextClass = document.getElementById('indicator-text-class');
+
+if(tabClass9 && tabClass10) {
+    tabClass9.addEventListener('click', () => {
+        currentSubjectClassLvl = '9';
+        // Active Styling for Pill
+        tabClass9.style.background = 'var(--card-bg)';
+        tabClass9.style.color = 'var(--primary)';
+        tabClass9.style.fontWeight = '700';
+        tabClass9.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+        tabClass9.innerHTML = '🎯 Class IX';
+        
+        // Inactive Styling for Pill
+        tabClass10.style.background = 'transparent';
+        tabClass10.style.color = 'var(--text-muted)';
+        tabClass10.style.fontWeight = '600';
+        tabClass10.style.boxShadow = 'none';
+        tabClass10.innerHTML = 'Class X';
+
+        // Update Smart Banner
+        if(indicatorTextClass) indicatorTextClass.innerText = 'Class IX';
+    });
+
+    tabClass10.addEventListener('click', () => {
+        currentSubjectClassLvl = '10';
+        // Active Styling for Pill
+        tabClass10.style.background = 'var(--card-bg)';
+        tabClass10.style.color = 'var(--primary)';
+        tabClass10.style.fontWeight = '700';
+        tabClass10.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+        tabClass10.innerHTML = '🎯 Class X';
+        
+        // Inactive Styling for Pill
+        tabClass9.style.background = 'transparent';
+        tabClass9.style.color = 'var(--text-muted)';
+        tabClass9.style.fontWeight = '600';
+        tabClass9.style.boxShadow = 'none';
+        tabClass9.innerHTML = 'Class IX';
+
+        // Update Smart Banner
+        if(indicatorTextClass) indicatorTextClass.innerText = 'Class X';
+    });
+}
+
+document.querySelectorAll('.subject-card').forEach(card => {
+    card.addEventListener('click', () => {
+        const subject = card.getAttribute('data-subject');
+        openFilteredLiveTests(currentSubjectClassLvl, subject);
+    });
+});
+
+function openFilteredLiveTests(classLvl, subject) {
+    const upcoming910 = document.getElementById('upcoming-live-list-910');
+    const expired910 = document.getElementById('expired-live-list-910');
+    
+    upcoming910.innerHTML = "";
+    expired910.innerHTML = "";
+
+    let upCount = 0;
+    let expCount = 0;
+
+    globalLiveTests910.forEach(item => {
+        const testClass = String(item.rawData.classLvl).toUpperCase();
+        let isClassMatch = false;
+        
+        // Accurate routing based on exact class matching
+        if (classLvl === '9' && (testClass.includes('9') || testClass.includes('IX'))) isClassMatch = true;
+        if (classLvl === '10' && (testClass.includes('10') || testClass.includes('X') && !testClass.includes('IX'))) isClassMatch = true;
+
+        const testSubject = String(item.rawData.subject).toLowerCase();
+        const isSubjectMatch = testSubject.includes(subject.toLowerCase());
+
+        if (isClassMatch && isSubjectMatch) {
+            if (item.isExpired) {
+                expired910.insertAdjacentHTML('beforeend', item.html);
+                expCount++;
+            } else {
+                upcoming910.insertAdjacentHTML('beforeend', item.html);
+                upCount++;
+            }
+        }
+    });
+
+    const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
+    if (upCount === 0) upcoming910.innerHTML = emptyMsg(`No upcoming ${subject} tests for Class ${classLvl}.`);
+    if (expCount === 0) expired910.innerHTML = emptyMsg(`No expired ${subject} tests for Class ${classLvl}.`);
+
+    attachTestCardListeners();
+    updateLiveCards(); 
+
+    switchTab('live-tests-tab-910', `${subject} (Class ${classLvl})`);
+}
+
+// ==========================================
+// 🛡️ NAYA: XI & XII SUBJECT FILTER ENGINE 
+// ==========================================
+const tabClass11 = document.getElementById('tab-class-11');
+const tabClass12 = document.getElementById('tab-class-12');
+const indicatorTextClass1112 = document.getElementById('indicator-text-class-1112');
+
+if(tabClass11 && tabClass12) {
+    tabClass11.addEventListener('click', () => {
+        currentSubjectClassLvl1112 = '11';
+        tabClass11.style.background = 'var(--card-bg)'; tabClass11.style.color = 'var(--primary)'; tabClass11.style.fontWeight = '700'; tabClass11.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; tabClass11.innerHTML = '🎯 Class XI';
+        tabClass12.style.background = 'transparent'; tabClass12.style.color = 'var(--text-muted)'; tabClass12.style.fontWeight = '600'; tabClass12.style.boxShadow = 'none'; tabClass12.innerHTML = 'Class XII';
+        if(indicatorTextClass1112) indicatorTextClass1112.innerText = 'Class XI';
+    });
+
+    tabClass12.addEventListener('click', () => {
+        currentSubjectClassLvl1112 = '12';
+        tabClass12.style.background = 'var(--card-bg)'; tabClass12.style.color = 'var(--primary)'; tabClass12.style.fontWeight = '700'; tabClass12.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; tabClass12.innerHTML = '🎯 Class XII';
+        tabClass11.style.background = 'transparent'; tabClass11.style.color = 'var(--text-muted)'; tabClass11.style.fontWeight = '600'; tabClass11.style.boxShadow = 'none'; tabClass11.innerHTML = 'Class XI';
+        if(indicatorTextClass1112) indicatorTextClass1112.innerText = 'Class XII';
+    });
+}
+
+document.querySelectorAll('[data-subject-senior]').forEach(card => {
+    card.addEventListener('click', () => {
+        const subject = card.getAttribute('data-subject-senior');
+        openFilteredLiveTests1112(currentSubjectClassLvl1112, subject);
+    });
+});
+
+function openFilteredLiveTests1112(classLvl, subject) {
+    const upcoming1112 = document.getElementById('upcoming-live-list-1112');
+    const expired1112 = document.getElementById('expired-live-list-1112');
+    
+    upcoming1112.innerHTML = "";
+    expired1112.innerHTML = "";
+
+    let upCount = 0, expCount = 0;
+
+    globalLiveTests1112.forEach(item => {
+        const testClass = String(item.rawData.classLvl).toUpperCase();
+        let isClassMatch = false;
+        
+        // Accurate routing based on exact class matching for XI and XII
+        if (classLvl === '11' && (testClass.includes('11') || (testClass.includes('XI') && !testClass.includes('XII')))) isClassMatch = true;
+        if (classLvl === '12' && (testClass.includes('12') || testClass.includes('XII'))) isClassMatch = true;
+
+        const testSubject = String(item.rawData.subject).toLowerCase();
+        const isSubjectMatch = testSubject.includes(subject.toLowerCase());
+
+        if (isClassMatch && isSubjectMatch) {
+            if (item.isExpired) {
+                expired1112.insertAdjacentHTML('beforeend', item.html);
+                expCount++;
+            } else {
+                upcoming1112.insertAdjacentHTML('beforeend', item.html);
+                upCount++;
+            }
+        }
+    });
+
+    const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
+    if (upCount === 0) upcoming1112.innerHTML = emptyMsg(`No upcoming ${subject} tests for Class ${classLvl}.`);
+    if (expCount === 0) expired1112.innerHTML = emptyMsg(`No expired ${subject} tests for Class ${classLvl}.`);
+
+    attachTestCardListeners();
+    updateLiveCards(); 
+
+    switchTab('live-tests-tab-1112', `${subject} (Class ${classLvl})`);
+}
 
 
 function attachTestCardListeners() {
@@ -1349,19 +1511,27 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// 🚀 NAYA: OTA PREMIUM UPDATE ENGINE
 function showUpdatePopup() {
-    showCustomPopup(
-        "🚀 Update Available", 
-        "A new premium version of the portal is ready. Click update to get the latest features!", 
-        "success", 
-        () => {
-            showLoader("Installing & Restarting...");
+    const updatePopup = document.getElementById('premium-update-popup');
+    const updateBtn = document.getElementById('btn-update-now');
+    
+    if (updatePopup && updateBtn) {
+        // Overlay show karo (kisi aur popup par nirbhar nahi)
+        updatePopup.style.display = 'flex';
+        
+        updateBtn.addEventListener('click', () => {
+            // Button loading animation
+            updateBtn.disabled = true;
+            updateBtn.innerHTML = `<span class="material-icons" style="font-size: 18px; animation: spinGlow 1s linear infinite;">autorenew</span> Installing...`;
+            updateBtn.style.opacity = '0.8';
+            
+            // Service worker ko naya version activate karne ka command bhejo
             if (newWorker) {
                 newWorker.postMessage({ type: 'SKIP_WAITING' });
             }
-        }, 
-        false
-    );
+        });
+    }
 }
 
 // ✅ NAYA: MANUAL "CHECK FOR UPDATES" ENGINE
@@ -1850,12 +2020,6 @@ document.addEventListener('click', async (e) => {
     }
 });
 
-// ==========================================
-// 🚀 PREMIUM EXPLORE DEMO ROUTING ENGINE (DYNAMIC DATA)
-// ==========================================
-
-
-
 // 🚀 THE ULTIMATE FIX: Native Google Drive HTML5 Player (Zero YouTube Dependency)
 async function openExploreDemoScreen(bundleId, title, aboutText, price) {
     // 1. Basic UI Update
@@ -2067,9 +2231,6 @@ function copyToClipboard(text) {
     
     showCustomPopup("Link Copied!", "You can manually share to you friends", "success");
 }
-
-
-
 
 
 // ==========================================
