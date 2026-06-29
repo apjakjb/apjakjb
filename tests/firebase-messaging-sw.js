@@ -68,7 +68,7 @@ self.addEventListener('notificationclick', (event) => {
 // =========================================================================
 // PWA CACHING LOGIC STARTS HERE (Tumhara purana code neeche rahega)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v12';
+const CACHE_VERSION = 'premium-portal-v13';
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
