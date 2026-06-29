@@ -290,9 +290,61 @@
                         </div>
                     </div>
                 </div>
+                <!-- 🛡️ NAYA: SUBJECT SELECTION SCREEN FOR IX & X -->
+                <div id="subject-selection-tab-910" class="tab-view" style="display: none;">
+                    <!-- 🛡️ NAYA: Premium Segmented Pill Toggle -->
+                    <div style="position: sticky; top: 0; z-index: 10; background: var(--card-bg); padding: 15px 16px; border-bottom: 1px solid var(--border);">
+                        <div style="background: var(--bg-color); border-radius: 12px; display: flex; padding: 4px; border: 1px solid var(--border-dark);">
+                            <button class="premium-tab active" id="tab-class-9" style="flex: 1; background: var(--card-bg); border: none; padding: 10px 0; font-size: 14px; font-weight: 700; color: var(--primary); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s ease;">🎯 Class IX</button>
+                            <button class="premium-tab" id="tab-class-10" style="flex: 1; background: transparent; border: none; padding: 10px 0; font-size: 14px; font-weight: 600; color: var(--text-muted); border-radius: 10px; transition: all 0.3s ease;">Class X</button>
+                        </div>
+                    </div>
+                    <div class="screen-content" style="padding-top: 15px; padding-bottom: 80px;">
+                        
+                        <!-- 🛡️ NAYA: Active Class Indicator Banner -->
+                        <div id="active-class-indicator" style="background: rgba(79, 70, 229, 0.1); border-left: 4px solid var(--primary); padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="color: var(--primary); font-size: 20px;">school</span>
+                            <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">Showing Subjects for: <strong style="color: var(--primary);" id="indicator-text-class">Class IX</strong></span>
+                        </div>
+                        
+                        <p class="section-title">Core Subjects</p>
+                        <div class="subject-grid">
+                            <div class="subject-card subject-sci" data-subject="Science">
+                                <span class="material-icons" style="font-size:32px;">science</span>
+                                <span>Science</span>
+                            </div>
+                            <div class="subject-card subject-math" data-subject="Mathematics">
+                                <span class="material-icons" style="font-size:32px;">calculate</span>
+                                <span>Mathematics</span>
+                            </div>
+                        </div>
+
+                        <p class="section-title">Languages & Humanities</p>
+                        <div class="subject-grid">
+                            <div class="subject-card subject-eng" data-subject="English">
+                                <span class="material-icons" style="font-size:32px;">menu_book</span>
+                                <span>English</span>
+                            </div>
+                            <div class="subject-card subject-sst" data-subject="Social Science">
+                                <span class="material-icons" style="font-size:32px;">public</span>
+                                <span>Social Science</span>
+                            </div>
+                            <div class="subject-card subject-geo" data-subject="Geography">
+                                <span class="material-icons" style="font-size:32px;">explore</span>
+                                <span>Geography</span>
+                            </div>
+                        </div>
+
+                        <p class="section-title">Here we with you...</p>
+                        <div class="login-premium-promo-wrapper">
+                            <img src="./assets/promo-banner.gif" alt="Premium Offers" class="login-premium-promo-img">
+                        </div>
+
+                    </div>
+                </div>
                 <div id="live-tests-tab-910" class="tab-view" style="display: none;">
                     <div class="premium-tabs-wrapper" style="position: sticky; top: 0; z-index: 10; background: var(--card-bg); display: flex; border-bottom: 1px solid var(--border);">
-                        <button class="premium-tab active" id="tab-upcoming-910" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Upcoming (IX-X)</button>
+                        <button class="premium-tab active" id="tab-upcoming-910" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Upcoming Test</button>
                         <button class="premium-tab" id="tab-expired-910" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.3s ease;">Expired</button>
                     </div>
                     <div class="screen-content" style="padding-top: 15px; padding-bottom: 80px;">
@@ -300,9 +352,77 @@
                         <div id="expired-live-list-910" class="test-list-container" style="display: none;"></div>
                     </div>
                 </div>
+
+
+                <!-- 🛡️ NAYA: SUBJECT SELECTION SCREEN FOR XI & XII -->
+                <div id="subject-selection-tab-1112" class="tab-view" style="display: none;">
+                    <!-- 🛡️ Premium Segmented Pill Toggle -->
+                    <div style="position: sticky; top: 0; z-index: 10; background: var(--card-bg); padding: 15px 16px; border-bottom: 1px solid var(--border);">
+                        <div style="background: var(--bg-color); border-radius: 12px; display: flex; padding: 4px; border: 1px solid var(--border-dark);">
+                            <button class="premium-tab active" id="tab-class-11" style="flex: 1; background: var(--card-bg); border: none; padding: 10px 0; font-size: 14px; font-weight: 700; color: var(--primary); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s ease;">🎯 Class XI</button>
+                            <button class="premium-tab" id="tab-class-12" style="flex: 1; background: transparent; border: none; padding: 10px 0; font-size: 14px; font-weight: 600; color: var(--text-muted); border-radius: 10px; transition: all 0.3s ease;">Class XII</button>
+                        </div>
+                    </div>
+                    <div class="screen-content" style="padding-top: 15px; padding-bottom: 80px;">
+                        
+                        <!-- 🛡️ Active Class Indicator Banner -->
+                        <div id="active-class-indicator-1112" style="background: rgba(79, 70, 229, 0.1); border-left: 4px solid var(--primary); padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="color: var(--primary); font-size: 20px;">school</span>
+                            <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">Showing Subjects for: <strong style="color: var(--primary);" id="indicator-text-class-1112">Class XI</strong></span>
+                        </div>
+
+                        <p class="section-title">Core Science Stream</p>
+                        <div class="subject-grid">
+                            <div class="subject-card subject-sci" data-subject-senior="Physics">
+                                <span class="material-icons" style="font-size:32px;">memory</span>
+                                <span>Physics</span>
+                            </div>
+                            <div class="subject-card subject-sst" data-subject-senior="Chemistry">
+                                <span class="material-icons" style="font-size:32px;">science</span>
+                                <span>Chemistry</span>
+                            </div>
+                            <div class="subject-card subject-math" data-subject-senior="Mathematics">
+                                <span class="material-icons" style="font-size:32px;">calculate</span>
+                                <span>Mathematics</span>
+                            </div>
+                            <div class="subject-card subject-geo" data-subject-senior="Biology">
+                                <span class="material-icons" style="font-size:32px;">biotech</span>
+                                <span>Biology</span>
+                            </div>
+                        </div>
+
+                        <!-- 🛡️ NAYA: Humanities, Arts & Commerce Categories -->
+                        <p class="section-title">Arts, Commerce & Languages</p>
+                        <div class="subject-grid">
+                            <div class="subject-card subject-eng" data-subject-senior="English">
+                                <span class="material-icons" style="font-size:32px;">menu_book</span>
+                                <span>English</span>
+                            </div>
+                            <div class="subject-card subject-geo" data-subject-senior="Geography">
+                                <span class="material-icons" style="font-size:32px;">explore</span>
+                                <span>Geography</span>
+                            </div>
+                            <div class="subject-card subject-sst" data-subject-senior="History">
+                                <span class="material-icons" style="font-size:32px;">history_edu</span>
+                                <span>History</span>
+                            </div>
+                            <div class="subject-card subject-sci" data-subject-senior="Political Science">
+                                <span class="material-icons" style="font-size:32px;">account_balance</span>
+                                <span>Political Science</span>
+                            </div>
+                            <div class="subject-card subject-math" data-subject-senior="Economics">
+                                <span class="material-icons" style="font-size:32px;">trending_up</span>
+                                <span>Economics</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
                 <div id="live-tests-tab-1112" class="tab-view" style="display: none;">
                     <div class="premium-tabs-wrapper" style="position: sticky; top: 0; z-index: 10; background: var(--card-bg); display: flex; border-bottom: 1px solid var(--border);">
-                        <button class="premium-tab active" id="tab-upcoming-1112" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Upcoming (XI-XII)</button>
+                        <button class="premium-tab active" id="tab-upcoming-1112" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--primary); border-bottom: 3px solid var(--primary); transition: all 0.3s ease;">Upcoming Test</button>
                         <button class="premium-tab" id="tab-expired-1112" style="flex: 1; background: transparent; border: none; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.3s ease;">Expired</button>
                     </div>
                     <div class="screen-content" style="padding-top: 15px; padding-bottom: 80px;">
@@ -575,8 +695,20 @@
                 </button>
             </footer>
         </section>
-        
     </main>
+
+    <div id="premium-update-popup" class="popup-overlay" style="display: none; z-index: 99999; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+        <div class="update-popup-card">
+            <div class="update-icon-ring">
+                <span class="material-icons" style="font-size: 38px; color: #10B981;">system_update</span>
+            </div>
+            <h3>Update Available!</h3>
+            <p>A new premium version of the portal is ready with new features and bug fixes. Update now for the best experience.</p>
+            <button id="btn-update-now" class="btn-primary update-btn-glow">
+                <span class="material-icons">autorenew</span> Update App Now
+            </button>
+        </div>
+    </div>
 
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     <script src="app.js"></script>
