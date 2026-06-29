@@ -6,7 +6,6 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-// 2. Initialize Firebase in Service Worker
 firebase.initializeApp({
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
     authDomain: "testportal-9562c.firebaseapp.com",
@@ -17,25 +16,59 @@ firebase.initializeApp({
 });
 const messaging = firebase.messaging();
 
-// 3. Background Message Receiver (When App is closed/minimized)
 messaging.onBackgroundMessage((payload) => {
     console.log('[Firebase SW] Background notification received: ', payload);
     
     const notificationTitle = payload.notification.title || 'APJAKJB Portal Update';
+    // 🚀 PREMIUM FIX: Actionable Push Notifications
     const notificationOptions = {
         body: payload.notification.body,
         icon: './icon-192x192.png',
-        badge: './icon-192x192.png', 
-        data: { url: payload.data?.url || './' }
+        badge: './icon-512x512.png', // Higher resolution badge
+        image: payload.data?.imageUrl || '', // Support for Big Banner Images in Notification
+        data: { url: payload.data?.url || './' },
+        actions: [
+            { action: 'start_test', title: '🚀 Attempt Now' },
+            { action: 'view_dashboard', title: '📊 Open Dashboard' }
+        ],
+        vibrate: [200, 100, 200, 100, 200] // Premium triple vibration alert
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);
-}); 
+});
+
+// 🚀 NAYA: Notification Button Click Listener Engine
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    let targetUrl = event.notification.data.url;
+    
+    // Check which button student clicked
+    if (event.action === 'start_test') {
+        targetUrl = './index.html?source=pwa#main-app-shell';
+    } else if (event.action === 'view_dashboard') {
+        targetUrl = './index.html?source=pwa#main-app-shell';
+    }
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window' }).then((windowClients) => {
+            // Agar app already open hai toh usko focus karo
+            for (let client of windowClients) {
+                if (client.url.includes('index.html') && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // Agar app band hai toh background se open karo
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});
 
 // =========================================================================
 // PWA CACHING LOGIC STARTS HERE (Tumhara purana code neeche rahega)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v51';
+const CACHE_VERSION = 'premium-portal-v12';
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
