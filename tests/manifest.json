@@ -34,16 +34,23 @@
   ],
   "shortcuts": [
     {
-      "name": "Start Mock Test",
-      "short_name": "Live Tests",
-      "description": "Go directly to the active test series dashboard",
-      "url": "./index.html?source=pwa_shortcut#main-app-shell",
+      "name": "Live Tests (IX-XII)",
+      "short_name": "Free Tests",
+      "description": "Attempt scheduled free live tests",
+      "url": "./index.html?source=pwa_shortcut#live-tests-tab-910",
       "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Check Results",
-      "short_name": "Results",
-      "description": "View your past performance and deep analysis",
+      "name": "Premium Test Series",
+      "short_name": "Premium",
+      "description": "Unlock All India Mock Tests",
+      "url": "./index.html?source=pwa_shortcut#premium-tests-tab",
+      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Performance Results",
+      "short_name": "My Ranks",
+      "description": "View deep analytics and percentile",
       "url": "./index.html?source=pwa_shortcut#results-tab",
       "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
     }
