@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbw54Gr9mB2rsWtKwzGUSTtThFsHzYrC7sVibPE65QIYuTkkK3q_4GrtU_cCXtIYdm7IDQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbycyY7vTa0v1SHDSyPN09ajbx8EWKX5qBaZishYU-z6hiUWxBaKTHtykXznskPxyDSJeg/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -44,7 +44,8 @@ let isTestActive = false;
 let totalTestSeconds = 0;
 let serverTimeOffset = 0; 
 let isPostExamRestricted = false; 
-let globalLiveTests910 = []; 
+let globalLiveTests910 = [];
+let currentLeaderboardData = []; // 🛡️ NAYA: Data for Share Image 
 let currentSubjectClassLvl = '9'; 
 let globalLiveTests1112 = []; // 🛡️ NAYA: Storage for XI/XII Subject filtering
 let currentSubjectClassLvl1112 = '11'; // 🛡️ NAYA: Default tab for XI/XII
@@ -423,22 +424,31 @@ function checkAuthSession() {
     const cachedUser = localStorage.getItem('student_username');
     const cachedName = localStorage.getItem('student_name');
     const cachedToken = localStorage.getItem('auth_token');
+    const authTimestamp = localStorage.getItem('auth_time'); // 🛡️ NAYA: Timestamp
 
-if (cachedUser && cachedToken) {
-            loggedInUser = cachedUser;
-            loggedInUserName = cachedName || cachedUser.split('@')[0]; 
-            updateProfileUI();
-            history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
-            loadDashboard(); 
-            triggerSmartPushPrompt();
-            setTimeout(showPremiumWelcomeAd, 1500); // 🚀 1.5s delay to sync beautifully with loading process
-        }
+    // 🛡️ 24-Hour Local Expiry Check (100% Bulletproof)
+    const isTokenExpired = authTimestamp && (Date.now() - parseInt(authTimestamp) > 24 * 60 * 60 * 1000);
 
-     else {
+    if (cachedUser && cachedToken && !isTokenExpired) {
+        loggedInUser = cachedUser;
+        loggedInUserName = cachedName || cachedUser.split('@')[0]; 
+        updateProfileUI();
+        history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
+        loadDashboard(); 
+        triggerSmartPushPrompt();
+        setTimeout(showPremiumWelcomeAd, 1500); 
+    } else {
+        // 🛡️ Agar token expire ho gaya hai, toh kachra saaf karo
+        localStorage.removeItem('student_username');
+        localStorage.removeItem('student_name');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_time');
+        
         history.replaceState({ screen: 'login-screen' }, "", "#login-screen");
         navigate('login-screen', false);
     }
 }
+
 document.addEventListener("DOMContentLoaded", checkAuthSession);
 function updateProfileUI() {
     document.getElementById('welcome-text').innerText = `Hello Dear, ${loggedInUserName}`;
@@ -468,6 +478,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             localStorage.setItem('student_username', loggedInUser);
             localStorage.setItem('student_name', loggedInUserName);
             localStorage.setItem('auth_token', result.token); 
+            localStorage.setItem('auth_time', Date.now().toString()); 
             
 updateProfileUI();
             document.getElementById('login-form').reset();
@@ -519,6 +530,7 @@ if (googleLoginBtn) {
                 localStorage.setItem('student_username', loggedInUser);
                 localStorage.setItem('student_name', loggedInUserName);
                 localStorage.setItem('auth_token', backendResult.token); 
+                localStorage.setItem('auth_time', Date.now().toString());    
 
                 updateProfileUI();
                 document.getElementById('error-message').innerText = ""; 
@@ -566,6 +578,17 @@ function handleLogout() {
         if(drawer.classList.contains('open')) toggleDrawer();
         navigate('login-screen');
     }, true);
+}
+
+function forceSilentLogout() {
+    loggedInUser = "";
+    localStorage.removeItem('student_username');
+    localStorage.removeItem('student_name');
+    localStorage.removeItem('auth_token'); 
+    localStorage.removeItem('auth_time');
+    
+    if(auth) auth.signOut();
+    navigate('login-screen');
 }
 
 document.getElementById('drawer-logout-btn').addEventListener('click', handleLogout);
@@ -617,6 +640,10 @@ const practiceList910 = document.getElementById('practice-list-910');
             [practiceList910, practiceList1112, pastResultsContainer, upcoming910, expired910, upcoming1112, expired1112, premiumTestList].forEach(el => {
                 if(el) el.innerHTML = "";
             });
+            
+            // 🛡️ NAYA FIX (Anti-Memory Leak): Puraane active tests ko array se permanently delete karo
+            globalLiveTests910 = []; 
+            globalLiveTests1112 = [];
             
             testHistoryData = result.history || {}; 
 
@@ -789,8 +816,16 @@ const practiceList910 = document.getElementById('practice-list-910');
             attachTestCardListeners();
             startDashboardLiveEngine(); 
         } else {
-            showCustomPopup("Error", result.message, "danger");
+            // 🛡️ ANTI-HIJACK: Agar token galat hai toh turant logout karo
+            if (result.message.includes("Unauthorized") || result.message.includes("Security Alert")) {
+                showCustomPopup("Session Expired 🔒", "Your secure session has expired or is invalid. Please log in again.", "warning", () => {
+                    forceSilentLogout();
+                });
+            } else {
+                showCustomPopup("Error", result.message, "danger");
+            }
         }
+
     } catch (e) {
         showCustomPopup("Network Error", "Failed to sync dashboard. Check internet.", "danger");
     } finally {
@@ -1612,6 +1647,8 @@ async function fetchAndRenderLeaderboard(testId) {
         const result = JSON.parse(await response.text());
 
         if (result.success && result.leaderboard.length > 0) {
+            currentLeaderboardData = result.leaderboard;
+            document.getElementById('share-rank-btn').style.display = 'flex';
             listContainer.innerHTML = "";
             
             result.leaderboard.forEach(student => {
@@ -1647,9 +1684,11 @@ async function fetchAndRenderLeaderboard(testId) {
                 `);
             });
         } else {
+            document.getElementById('share-rank-btn').style.display = 'none';
             listContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No ranks generated yet. Be the first!</p>`;
         }
     } catch (err) {
+        document.getElementById('share-rank-btn').style.display = 'none';
         listContainer.innerHTML = `<p class="error" style="text-align:center; padding:30px;">Failed to connect to ranking server.</p>`;
     }
 }
@@ -2249,3 +2288,169 @@ function showPremiumWelcomeAd() {
         adPopup.style.display = 'none';
     });
 }
+
+
+// ==========================================
+// 🛡️ NAYA: PREMIUM PROFILE EDIT ENGINE
+// ==========================================
+const editNameBtn = document.getElementById('edit-name-btn');
+
+if (editNameBtn) {
+    editNameBtn.addEventListener('click', () => {
+        const nameEl = document.getElementById('profile-student-name');
+        const currentName = localStorage.getItem('student_name') || loggedInUserName;
+        
+        // Inline Editor UI
+        nameEl.innerHTML = `
+            <input type="text" id="inline-name-input" value="${currentName}" maxlength="30" 
+                style="padding: 4px 8px; border-radius: 6px; border: 1.5px solid var(--primary); 
+                background: var(--card-bg); color: var(--text-main); font-size: 14px; 
+                font-weight: 700; text-align: center; width: 140px; outline: none;">
+            <button id="inline-save-btn" class="btn-primary" 
+                style="padding: 4px 8px; border-radius: 6px; font-size: 12px; width: auto; 
+                margin-left: 6px; background: var(--success); box-shadow: none;">Save</button>
+        `;
+        
+        editNameBtn.style.display = 'none';
+
+        document.getElementById('inline-save-btn').addEventListener('click', async () => {
+            const newName = document.getElementById('inline-name-input').value.trim();
+            
+            if (!newName || newName === currentName) {
+                updateProfileUI(); // Revert back without API call
+                editNameBtn.style.display = 'flex';
+                return;
+            }
+            
+            showLoader("Updating Profile...");
+            try {
+                const authToken = localStorage.getItem('auth_token');
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action: "updateProfileName", username: loggedInUser, token: authToken, newName: newName })
+                });
+
+                const result = JSON.parse(await response.text());
+                hideLoader();
+
+                if (result.success) {
+                    loggedInUserName = newName;
+                    localStorage.setItem('student_name', newName); // Local storage update
+                    updateProfileUI(); // UI Refresh
+                    showCustomPopup("Profile Updated 🎉", "Your new name is successfully linked to the Leaderboard.", "success");
+                } else {
+                    showCustomPopup("Update Failed", result.message, "danger");
+                    updateProfileUI(); // Revert
+                }
+            } catch (error) {
+                hideLoader();
+                showCustomPopup("Network Error", "Could not save your new name. Please check your connection.", "danger");
+                updateProfileUI(); // Revert
+            } finally {
+                editNameBtn.style.display = 'flex';
+            }
+        });
+    });
+}
+
+// ==========================================
+// 🚀 PREMIUM SHARE LEADERBOARD ENGINE (NAVI STYLE)
+// ==========================================
+document.getElementById('share-rank-btn')?.addEventListener('click', async () => {
+    if (!currentLeaderboardData || currentLeaderboardData.length === 0) return;
+
+    showLoader("Generating Premium Rank Card...");
+
+    try {
+        const shareTestName = document.getElementById('leaderboard-test-name').innerText;
+        document.getElementById('share-test-name').innerText = shareTestName;
+
+        const container = document.getElementById('share-list-container');
+        container.innerHTML = "";
+
+        // Determine Top 9 + Current User
+        let displayList = [];
+        let userRankObj = currentLeaderboardData.find(u => u.username === loggedInUserName);
+        let userRank = userRankObj ? userRankObj.rank : -1;
+
+        // Add Top 9
+        for (let i = 0; i < Math.min(9, currentLeaderboardData.length); i++) {
+            displayList.push(currentLeaderboardData[i]);
+        }
+
+        // Agar user top 9 mein nahi hai, toh usko list ke end mein add karo with a separator
+        if (userRank > 9) {
+            displayList.push({ isSeparator: true });
+            displayList.push(userRankObj);
+        }
+
+        // Build HTML for Image
+        displayList.forEach(student => {
+            if (student.isSeparator) {
+                container.insertAdjacentHTML('beforeend', `<div style="text-align:center; color:#94A3B8; margin: 5px 0;">•••</div>`);
+                return;
+            }
+
+            let isMe = student.username === loggedInUserName;
+            let bgColor = isMe ? 'background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981;' : 'background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1);';
+            let rankColor = student.rank === 1 ? '#FCD34D' : (student.rank === 2 ? '#E2E8F0' : (student.rank === 3 ? '#FDBA74' : '#94A3B8'));
+            let trophy = student.rank === 1 ? '🥇' : (student.rank === 2 ? '🥈' : (student.rank === 3 ? '🥉' : `#${student.rank}`));
+
+            container.insertAdjacentHTML('beforeend', `
+                <div style="${bgColor} padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-radius: ${isMe ? '8px' : '0'}; margin-bottom: 2px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 24px; text-align: center; font-size: 16px; font-weight: 800; color: ${rankColor};">${trophy}</div>
+                        <div style="font-size: 14px; font-weight: ${isMe ? '800' : '600'}; color: ${isMe ? '#10B981' : 'white'};">${student.username} ${isMe ? '(You)' : ''}</div>
+                    </div>
+                    <div style="font-size: 13px; font-weight: 700; color: #FCD34D;">${student.score} <span style="font-size: 10px; color: #94A3B8;">Marks</span></div>
+                </div>
+            `);
+        });
+
+        // HTML to Canvas to Image Blob
+        const templateNode = document.getElementById('share-card-template');
+        
+        const canvas = await html2canvas(templateNode, {
+            scale: 2, // High resolution
+            useCORS: true, // Allow GitHub Logo
+            backgroundColor: "#0F172A",
+            logging: false
+        });
+
+        canvas.toBlob(async (blob) => {
+            const file = new File([blob], `Rank_${shareTestName.replace(/\s+/g, '_')}.jpg`, { type: 'image/jpeg' });
+            
+            const shareTitle = `🏆 My All India Rank: #${userRank !== -1 ? userRank : '-'}`;
+            const shareText = `🔥 I just secured Rank #${userRank !== -1 ? userRank : '-'} in ${shareTestName} on the APJAKJB Premium Portal!\n\nCan you beat my score? Attempt Free & Premium Mock Tests now.\n\n👇 Download/Access the App here:`;
+            const shareUrl = "https://apjakjb.in/tests/";
+
+            hideLoader();
+
+            // Native Share Trigger (Mobile Browsers / Modern PWA)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: shareTitle,
+                        text: shareText,
+                        url: shareUrl
+                    });
+                } catch (e) { console.log("Share cancelled by user."); }
+            } else {
+                // Fallback for PC or Unsupported Browsers (Auto Download + Copy Text)
+                const link = document.createElement('a');
+                link.download = file.name;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                copyToClipboard(`${shareTitle}\n${shareText}\n🔗 ${shareUrl}`);
+                showCustomPopup("Image Downloaded!", "Your Rank Card has been saved. The message is copied to your clipboard so you can paste and share it easily.", "success");
+            }
+        }, 'image/jpeg', 0.9); // 0.9 quality JPEG
+
+    } catch (err) {
+        hideLoader();
+        console.error("Screenshot error: ", err);
+        showCustomPopup("Error", "Could not generate rank card. Please try again.", "danger");
+    }
+});
