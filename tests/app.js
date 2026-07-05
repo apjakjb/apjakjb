@@ -1,5 +1,5 @@
 // ==========================================
-// API CONFIGURATION HERE
+// API CONFIGURATION
 // ==========================================
 const API_URL = "https://script.google.com/macros/s/AKfycbycyY7vTa0v1SHDSyPN09ajbx8EWKX5qBaZishYU-z6hiUWxBaKTHtykXznskPxyDSJeg/exec";
 
@@ -2354,103 +2354,109 @@ if (editNameBtn) {
     });
 }
 
+
 // ==========================================
-// 🚀 PREMIUM SHARE LEADERBOARD ENGINE (NAVI STYLE)
+// 🚀 PREMIUM SHARE LEADERBOARD ENGINE (NAVI STYLE + ASYNC LOADER)
 // ==========================================
-document.getElementById('share-rank-btn')?.addEventListener('click', async () => {
+document.getElementById('share-rank-btn')?.addEventListener('click', () => {
     if (!currentLeaderboardData || currentLeaderboardData.length === 0) return;
 
+    // 🛡️ 1. Sabse pehle instantly Wave Loader ON karo
     showLoader("Generating Premium Rank Card...");
 
-    try {
-        const shareTestName = document.getElementById('leaderboard-test-name').innerText;
-        document.getElementById('share-test-name').innerText = shareTestName;
+    // 🛡️ 2. MAGIC TRICK: Browser ko loader render karne ke liye 150ms ka time do
+    setTimeout(async () => {
+        try {
+            const shareTestName = document.getElementById('leaderboard-test-name').innerText;
+            document.getElementById('share-test-name').innerText = shareTestName;
 
-        const container = document.getElementById('share-list-container');
-        container.innerHTML = "";
+            const container = document.getElementById('share-list-container');
+            container.innerHTML = "";
 
-        // Determine Top 9 + Current User
-        let displayList = [];
-        let userRankObj = currentLeaderboardData.find(u => u.username === loggedInUserName);
-        let userRank = userRankObj ? userRankObj.rank : -1;
+            // Determine Top 9 + Current User
+            let displayList = [];
+            let userRankObj = currentLeaderboardData.find(u => u.username === loggedInUserName);
+            let userRank = userRankObj ? userRankObj.rank : -1;
 
-        // Add Top 9
-        for (let i = 0; i < Math.min(9, currentLeaderboardData.length); i++) {
-            displayList.push(currentLeaderboardData[i]);
-        }
-
-        // Agar user top 9 mein nahi hai, toh usko list ke end mein add karo with a separator
-        if (userRank > 9) {
-            displayList.push({ isSeparator: true });
-            displayList.push(userRankObj);
-        }
-
-        // Build HTML for Image
-        displayList.forEach(student => {
-            if (student.isSeparator) {
-                container.insertAdjacentHTML('beforeend', `<div style="text-align:center; color:#94A3B8; margin: 5px 0;">•••</div>`);
-                return;
+            // Add Top 9
+            for (let i = 0; i < Math.min(9, currentLeaderboardData.length); i++) {
+                displayList.push(currentLeaderboardData[i]);
             }
 
-            let isMe = student.username === loggedInUserName;
-            let bgColor = isMe ? 'background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981;' : 'background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1);';
-            let rankColor = student.rank === 1 ? '#FCD34D' : (student.rank === 2 ? '#E2E8F0' : (student.rank === 3 ? '#FDBA74' : '#94A3B8'));
-            let trophy = student.rank === 1 ? '🥇' : (student.rank === 2 ? '🥈' : (student.rank === 3 ? '🥉' : `#${student.rank}`));
+            // Agar user top 9 mein nahi hai, toh usko list ke end mein add karo with a separator
+            if (userRank > 9) {
+                displayList.push({ isSeparator: true });
+                displayList.push(userRankObj);
+            }
 
-            container.insertAdjacentHTML('beforeend', `
-                <div style="${bgColor} padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-radius: ${isMe ? '8px' : '0'}; margin-bottom: 2px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 24px; text-align: center; font-size: 16px; font-weight: 800; color: ${rankColor};">${trophy}</div>
-                        <div style="font-size: 14px; font-weight: ${isMe ? '800' : '600'}; color: ${isMe ? '#10B981' : 'white'};">${student.username} ${isMe ? '(You)' : ''}</div>
+            // Build HTML for Image
+            displayList.forEach(student => {
+                if (student.isSeparator) {
+                    container.insertAdjacentHTML('beforeend', `<div style="text-align:center; color:#94A3B8; margin: 5px 0;">•••</div>`);
+                    return;
+                }
+
+                let isMe = student.username === loggedInUserName;
+                let bgColor = isMe ? 'background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981;' : 'background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1);';
+                let rankColor = student.rank === 1 ? '#FCD34D' : (student.rank === 2 ? '#E2E8F0' : (student.rank === 3 ? '#FDBA74' : '#94A3B8'));
+                let trophy = student.rank === 1 ? '🥇' : (student.rank === 2 ? '🥈' : (student.rank === 3 ? '🥉' : `#${student.rank}`));
+
+                container.insertAdjacentHTML('beforeend', `
+                    <div style="${bgColor} padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-radius: ${isMe ? '8px' : '0'}; margin-bottom: 2px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 24px; text-align: center; font-size: 16px; font-weight: 800; color: ${rankColor};">${trophy}</div>
+                            <div style="font-size: 14px; font-weight: ${isMe ? '800' : '600'}; color: ${isMe ? '#10B981' : 'white'};">${student.username} ${isMe ? '(You)' : ''}</div>
+                        </div>
+                        <div style="font-size: 13px; font-weight: 700; color: #FCD34D;">${student.score} <span style="font-size: 10px; color: #94A3B8;">Marks</span></div>
                     </div>
-                    <div style="font-size: 13px; font-weight: 700; color: #FCD34D;">${student.score} <span style="font-size: 10px; color: #94A3B8;">Marks</span></div>
-                </div>
-            `);
-        });
+                `);
+            });
 
-        // HTML to Canvas to Image Blob
-        const templateNode = document.getElementById('share-card-template');
-        
-        const canvas = await html2canvas(templateNode, {
-            scale: 2, // High resolution
-            useCORS: true, // Allow GitHub Logo
-            backgroundColor: "#0F172A",
-            logging: false
-        });
-
-        canvas.toBlob(async (blob) => {
-            const file = new File([blob], `Rank_${shareTestName.replace(/\s+/g, '_')}.jpg`, { type: 'image/jpeg' });
+            // HTML to Canvas to Image Blob
+            const templateNode = document.getElementById('share-card-template');
             
-            const shareTitle = `🏆 My All India Rank: #${userRank !== -1 ? userRank : '-'}`;
-            const shareText = `🔥 I just secured Rank #${userRank !== -1 ? userRank : '-'} in ${shareTestName} on the APJAKJB Premium Portal!\n\nCan you beat my score? Attempt Free & Premium Mock Tests now.\n\n👇 Download/Access the App here:`;
-            const shareUrl = "https://apjakjb.in/tests/";
+            const canvas = await html2canvas(templateNode, {
+                scale: 2, // High resolution
+                useCORS: true, // Allow GitHub Logo
+                backgroundColor: "#0F172A",
+                logging: false
+            });
 
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], `Rank_${shareTestName.replace(/\s+/g, '_')}.jpg`, { type: 'image/jpeg' });
+                
+                const shareTitle = `🏆 My All India Rank: #${userRank !== -1 ? userRank : '-'}`;
+                const shareText = `🔥 I just secured Rank #${userRank !== -1 ? userRank : '-'} in ${shareTestName} on the APJAKJB Premium Portal!\n\nCan you beat my score? Attempt Free & Premium Mock Tests now.\n\n👇 Download/Access the App here:`;
+                const shareUrl = "https://apjakjb.in/tests/";
+
+                // 🛡️ 3. Share menu khulne se pehle Loader smoothly Hide karo
+                hideLoader();
+
+                // Native Share Trigger (Mobile Browsers / Modern PWA)
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: shareTitle,
+                            text: shareText,
+                            url: shareUrl
+                        });
+                    } catch (e) { console.log("Share cancelled by user."); }
+                } else {
+                    // Fallback for PC or Unsupported Browsers (Auto Download + Copy Text)
+                    const link = document.createElement('a');
+                    link.download = file.name;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                    copyToClipboard(`${shareTitle}\n${shareText}\n🔗 ${shareUrl}`);
+                    showCustomPopup("Image Downloaded!", "Your Rank Card has been saved. The message is copied to your clipboard so you can paste and share it easily.", "success");
+                }
+            }, 'image/jpeg', 0.9);
+
+        } catch (err) {
             hideLoader();
-
-            // Native Share Trigger (Mobile Browsers / Modern PWA)
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: shareTitle,
-                        text: shareText,
-                        url: shareUrl
-                    });
-                } catch (e) { console.log("Share cancelled by user."); }
-            } else {
-                // Fallback for PC or Unsupported Browsers (Auto Download + Copy Text)
-                const link = document.createElement('a');
-                link.download = file.name;
-                link.href = URL.createObjectURL(blob);
-                link.click();
-                copyToClipboard(`${shareTitle}\n${shareText}\n🔗 ${shareUrl}`);
-                showCustomPopup("Image Downloaded!", "Your Rank Card has been saved. The message is copied to your clipboard so you can paste and share it easily.", "success");
-            }
-        }, 'image/jpeg', 0.9); // 0.9 quality JPEG
-
-    } catch (err) {
-        hideLoader();
-        console.error("Screenshot error: ", err);
-        showCustomPopup("Error", "Could not generate rank card. Please try again.", "danger");
-    }
+            console.error("Screenshot error: ", err);
+            showCustomPopup("Error", "Could not generate rank card. Please try again.", "danger");
+        }
+    }, 150); // ⏳ Yeh 150ms ka delay browser ko freeze hone se bachayega
 });
