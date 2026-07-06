@@ -1,7 +1,7 @@
 // ==========================================
-// API CONFIGURATION Here 
+// API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbycyY7vTa0v1SHDSyPN09ajbx8EWKX5qBaZishYU-z6hiUWxBaKTHtykXznskPxyDSJeg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx1XiItUzl0IqSYTGxLeiHOCfdYNjlg4XphQ6pFRGvLTcJOfE7GNfPQ2kTe-H__JacDOQ/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -2460,3 +2460,43 @@ document.getElementById('share-rank-btn')?.addEventListener('click', () => {
         }
     }, 150); // ⏳ Yeh 150ms ka delay browser ko freeze hone se bachayega
 });
+
+
+// ==========================================
+// 🐍 NAYA: PYTHON MICROSERVICE TRIGGER ENGINE
+// ==========================================
+const pythonTestBtn = document.getElementById('menu-python-test-btn');
+
+if (pythonTestBtn) {
+    pythonTestBtn.addEventListener('click', async () => {
+        toggleDrawer(); // Side menu band karo
+        showLoader("Waking up Python Server..."); 
+
+        try {
+            const authToken = localStorage.getItem('auth_token');
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ 
+                    action: "callPython", 
+                    pyAction: "test_connection", 
+                    username: loggedInUser, 
+                    token: authToken 
+                })
+            });
+
+            const result = JSON.parse(await response.text());
+            hideLoader();
+
+            if (result.success) {
+                // Success hone par Premium Popup dikhayenge
+                showCustomPopup("Python Connected! 🎉", result.message, "success");
+            } else {
+                showCustomPopup("Connection Failed ❌", result.message, "danger");
+            }
+        } catch (error) {
+            hideLoader();
+            showCustomPopup("Network Error", "Could not reach the Python bridge. Check your connection.", "danger");
+        }
+    });
+}
