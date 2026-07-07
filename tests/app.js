@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbx1XiItUzl0IqSYTGxLeiHOCfdYNjlg4XphQ6pFRGvLTcJOfE7GNfPQ2kTe-H__JacDOQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxtoIwhwq4uQhbMvf0ItJXU4WaHYFYsQFGt_J1WCTZCHRLtfo3-jRIjQYxKDHVnTJxK0g/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -51,6 +51,23 @@ let globalLiveTests1112 = []; // 🛡️ NAYA: Storage for XI/XII Subject filter
 let currentSubjectClassLvl1112 = '11'; // 🛡️ NAYA: Default tab for XI/XII
 
 const optionPrefixes = ['(a) ', '(b) ', '(c) ', '(d) '];
+
+
+
+// ==========================================
+// 🚀 GLOBAL UTILITY FUNCTIONS (OPTIMIZED)
+// ==========================================
+const formatShortDate = (isoString) => {
+    if (!isoString) return 'TBA';
+    return new Date(isoString).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+};
+
+const formatOnlyDate = (isoString) => {
+    if(!isoString) return 'TBA';
+    return new Date(isoString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
 
 // 🛡️ NAYA: Time Travel Hack Preventer Function
 function getSecureTime() {
@@ -650,16 +667,6 @@ const practiceList910 = document.getElementById('practice-list-910');
             let practiceCount910 = 0, practiceCount1112 = 0, completedCount = 0;
             const nowMs = getSecureTime(); // 🛡️ SECURE TIME USED HERE
 
-            const formatOnlyDate = (isoString) => {
-                if(!isoString) return 'TBA';
-                return new Date(isoString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-            };
-
-            const formatShortDate = (isoString) => {
-                if (!isoString) return 'TBA';
-                return new Date(isoString).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
-            };
-
             // 🎯 Class Filter Engine (Sirf 11, 12 aur XI, XII ko filter karega)
             const isSeniorClass = (classStr) => {
                 const str = String(classStr).toUpperCase();
@@ -807,8 +814,6 @@ const practiceList910 = document.getElementById('practice-list-910');
                 if (premiumTestList) premiumTestList.insertAdjacentHTML('beforeend', premiumCardHTML);
             });
 
-            // 🎨 NEW EMPTY STATES
-            const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
             if (practiceCount910 === 0 && practiceList910) practiceList910.innerHTML = emptyMsg("No practice tests for IX & X.");
             if (practiceCount1112 === 0 && practiceList1112) practiceList1112.innerHTML = emptyMsg("No practice tests for XI & XII.");
             if (completedCount === 0 && pastResultsContainer) pastResultsContainer.innerHTML = emptyMsg("You haven't attempted any tests yet.");
@@ -1005,7 +1010,6 @@ function openFilteredLiveTests(classLvl, subject) {
         }
     });
 
-    const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
     if (upCount === 0) upcoming910.innerHTML = emptyMsg(`No upcoming ${subject} tests for Class ${classLvl}.`);
     if (expCount === 0) expired910.innerHTML = emptyMsg(`No expired ${subject} tests for Class ${classLvl}.`);
 
@@ -1076,7 +1080,7 @@ function openFilteredLiveTests1112(classLvl, subject) {
         }
     });
 
-    const emptyMsg = (msg) => `<div style="text-align:center; color:var(--text-muted); padding: 30px;">${msg}</div>`;
+
     if (upCount === 0) upcoming1112.innerHTML = emptyMsg(`No upcoming ${subject} tests for Class ${classLvl}.`);
     if (expCount === 0) expired1112.innerHTML = emptyMsg(`No expired ${subject} tests for Class ${classLvl}.`);
 
@@ -1292,14 +1296,16 @@ function renderQuestion() {
         btn.className = 'option-btn';
         btn.innerText = `${optionPrefixes[index] || ''}${opt}`;
         if (userAnswers[qData.id] === opt) btn.classList.add('selected');
-
         btn.addEventListener('click', () => {
             document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             userAnswers[qData.id] = opt;
             
-            // ✅ Answer click karte hi bubble automatically Green ho jayega
-            renderQuestionPalette(); 
+            // EXPERT LOGIC: Poora palette destroy karne ke bajaye, sirf current active bubble dhoondo aur usko 'answered' (Green) class de do. O(1) Time Complexity!
+            const activeBubble = document.querySelector(`.q-bubble:nth-child(${currentQuestionIndex + 1})`);
+            if (activeBubble && !activeBubble.classList.contains('answered')) {
+                activeBubble.classList.add('answered');
+            }
         });
         container.appendChild(btn);
     });
@@ -1317,7 +1323,11 @@ function renderQuestion() {
 
     renderQuestionPalette();
 
-    if (window.MathJax) {
+    // EXPERT LOGIC: Pehle question aur options ko as a string check karo. Agar usme MathJax ke special symbols ($, \(, \[) hain, TBBHI MathJax engine chalao!
+    const fullTextString = qData.questionText + " " + qData.options.join(' ');
+    const containsMath = fullTextString.includes('$') || fullTextString.includes('\\(') || fullTextString.includes('\\[');
+    
+    if (window.MathJax && containsMath) {
         MathJax.typesetPromise([
             document.getElementById('question-text'),
             document.getElementById('options-container')
@@ -1402,7 +1412,6 @@ async function processSubmission() {
     } catch (err) { console.log("Exit Fullscreen Blocked"); }
 
     isPostExamRestricted = true;
-
     // 🛡️ ANTI-CHEAT FIX: Screen ko turant freeze kar do taaki offline mode mein answers change na kar sakein
     const optionsContainer = document.getElementById('options-container');
     if(optionsContainer) optionsContainer.style.pointerEvents = 'none';
@@ -1410,10 +1419,9 @@ async function processSubmission() {
     if(questionPalette) questionPalette.style.pointerEvents = 'none';
     document.getElementById('prev-btn').disabled = true;
     document.getElementById('next-btn').disabled = true;
-
-    // 🛡️ OFFLINE CHECK 1: Pata karo internet hai ya nahi
+    Object.freeze(userAnswers);
     if (!navigator.onLine) {
-        isTestActive = true; // Wapas true karo taaki baccha retry kar sake (lekin UI ab locked rahega)
+        isTestActive = true;
         showCustomPopup(
             "No Internet! 📡", 
             "Your answers are securely locked. Please turn on your internet and tap Retry to submit.", 
@@ -1951,11 +1959,6 @@ document.addEventListener('click', async (e) => {
 
                 let upCount = 0, expCount = 0, attCount = 0; // 🛡️ NAYA: Attempted count
 
-                const formatShortDate = (isoString) => {
-                    if (!isoString) return 'TBA';
-                    return new Date(isoString).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
-                };
-
                 data.bundleTests.forEach(test => {
                     const isCompleted = test.status === "completed";
                     const testDuration = parseInt(test.duration) || 60;
@@ -2181,10 +2184,6 @@ async function openExploreDemoScreen(bundleId, title, aboutText, price) {
         // 4. Syllabus Table Render Logic
         if (data.success && data.syllabus.length > 0 && tbody) {
             tbody.innerHTML = ""; 
-            const formatShortDate = (isoString) => {
-                if (!isoString) return 'TBA';
-                return new Date(isoString).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
-            };
 
             data.syllabus.forEach((item, index) => {
                 tbody.insertAdjacentHTML('beforeend', `
@@ -2460,43 +2459,3 @@ document.getElementById('share-rank-btn')?.addEventListener('click', () => {
         }
     }, 150); // ⏳ Yeh 150ms ka delay browser ko freeze hone se bachayega
 });
-
-
-// ==========================================
-// 🐍 NAYA: PYTHON MICROSERVICE TRIGGER ENGINE
-// ==========================================
-const pythonTestBtn = document.getElementById('menu-python-test-btn');
-
-if (pythonTestBtn) {
-    pythonTestBtn.addEventListener('click', async () => {
-        toggleDrawer(); // Side menu band karo
-        showLoader("Waking up Python Server..."); 
-
-        try {
-            const authToken = localStorage.getItem('auth_token');
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ 
-                    action: "callPython", 
-                    pyAction: "test_connection", 
-                    username: loggedInUser, 
-                    token: authToken 
-                })
-            });
-
-            const result = JSON.parse(await response.text());
-            hideLoader();
-
-            if (result.success) {
-                // Success hone par Premium Popup dikhayenge
-                showCustomPopup("Python Connected! 🎉", result.message, "success");
-            } else {
-                showCustomPopup("Connection Failed ❌", result.message, "danger");
-            }
-        } catch (error) {
-            hideLoader();
-            showCustomPopup("Network Error", "Could not reach the Python bridge. Check your connection.", "danger");
-        }
-    });
-}
