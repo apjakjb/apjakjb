@@ -1,9 +1,10 @@
 {
-  "id": "/apjakjb-test-portal",
+  "id": "/tests/",
   "name": "APJAKJB Premium Testing Portal",
   "short_name": "TestPortal",
   "description": "Premium native Android-style test series and learning portal for students.",
   "start_url": "./index.html?source=pwa",
+  "scope": "/tests/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "background_color": "#0F172A",
@@ -14,19 +15,19 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "icon-192x192.png",
+      "src": "./icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512x512.png",
+      "src": "./icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512x512.png",
+      "src": "./icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -38,21 +39,21 @@
       "short_name": "Free Tests",
       "description": "Attempt scheduled free live tests",
       "url": "./index.html?source=pwa_shortcut#live-tests-tab-910",
-      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "./icon-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Premium Test Series",
       "short_name": "Premium",
       "description": "Unlock All India Mock Tests",
       "url": "./index.html?source=pwa_shortcut#premium-tests-tab",
-      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "./icon-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Performance Results",
       "short_name": "My Ranks",
       "description": "View deep analytics and percentile",
       "url": "./index.html?source=pwa_shortcut#results-tab",
-      "icons": [{ "src": "icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "./icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }
