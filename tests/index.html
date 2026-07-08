@@ -95,7 +95,7 @@
     <div id="drawer-overlay" class="drawer-overlay" style="display: none;"></div>
     <aside id="side-drawer" class="side-drawer">
         <div class="drawer-header">
-            <span class="material-icons drawer-avatar">account_circle</span>
+            <div id="drawer-avatar-letter" class="drawer-avatar-dynamic">U</div>
             <div class="drawer-user-info">
                 <h4 id="drawer-username">Student Name</h4>
                 <p>Premium Account</p>
@@ -106,7 +106,8 @@
                 <span class="material-icons">home</span> Home Dashboard
             </button>
             <button class="drawer-item" id="menu-dark-toggle">
-                <span class="material-icons">dark_mode</span> Dark Theme
+                <span class="material-icons" id="drawer-theme-icon">dark_mode</span> 
+                <span id="drawer-theme-text">Dark Theme</span>
             </button>
             <button class="drawer-item" id="menu-update-btn">
                 <span class="material-icons" style="color: var(--primary);">system_update_alt</span> Check for Updates
@@ -284,6 +285,18 @@
                                 <p>All Subjects</p>
                             </div>
                         </div>
+
+
+
+
+
+
+
+
+
+
+
+
                         <div id="practice-tests-910-wrapper" style="display: none;">
                             <p class="section-title">Practice Tests (Class IX & X)</p>
                             <div id="practice-list-910" aria-live="polite"></div>
@@ -454,7 +467,7 @@
                 <div id="profile-tab" class="tab-view" style="display: none;">
                     <div class="screen-content">
                         <div class="profile-card-premium">
-                            <span class="material-icons profile-big-avatar">account_circle</span>
+                            <div id="profile-avatar-letter" class="profile-avatar-dynamic">U</div>
                             
                             <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 6px; height: 30px;">
                                 <h3 id="profile-student-name" style="margin: 0; line-height: 1;">Student Account</h3>
@@ -471,7 +484,7 @@
                             <div class="profile-detail-item">
                                 <span class="material-icons">email</span>
                                 <div class="detail-text">
-                                    <label>Registered Username</label>
+                                    <label>Registered Email</label>
                                     <p id="profile-meta-username">-</p>
                                 </div>
                             </div>
@@ -486,10 +499,10 @@
                         <p class="section-title">Preferences</p>
                         <div class="profile-details-list">
                             <div class="profile-detail-item actionable-item" id="profile-dark-toggle-row">
-                                <span class="material-icons">nights_stay</span>
+                                <span class="material-icons" id="profile-theme-icon">nights_stay</span>
                                 <div class="detail-text">
-                                    <label>Dark Interface</label>
-                                    <p>Toggle Night Mode look</p>
+                                    <label id="profile-theme-label">Dark Interface</label>
+                                    <p id="profile-theme-desc">Toggle Night Mode look</p>
                                 </div>
                                 <span class="material-icons toggle-arrow-icon">chevron_right</span>
                             </div>
