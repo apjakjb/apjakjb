@@ -2,9 +2,10 @@
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "com.sakhan.testportal",
+    "package_name": "com.apjakjb.testportal.twa",
     "sha256_cert_fingerprints": [
-      "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX"
+      "PWABUILDER_WALA_SHA256_YAHAN",
+      "GOOGLE_PLAY_CONSOLE_WALA_SHA256_YAHAN"
     ]
   }
 }]
