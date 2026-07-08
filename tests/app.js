@@ -87,16 +87,46 @@ function initTheme() {
 }
 initTheme(); // Run immediately
 
+// 🛡️ NAYA: Theme UI Sync Engine
+// 🚀 IIT EXPERT FIX: Complete Dual-Screen Theme Sync Engine (No Loophole)
+function updateThemeUI(isDark) {
+    // 1. Side Navigation Menu Update
+    const drawerIcon = document.getElementById('drawer-theme-icon');
+    const drawerText = document.getElementById('drawer-theme-text');
+    if (drawerIcon && drawerText) {
+        drawerIcon.innerText = isDark ? 'light_mode' : 'dark_mode';
+        drawerText.innerText = isDark ? 'Light Theme' : 'Dark Theme';
+    }
+    
+    // 2. Profile Screen Interface Row Update
+    const profileIcon = document.getElementById('profile-theme-icon');
+    const profileLabel = document.getElementById('profile-theme-label');
+    const profileDesc = document.getElementById('profile-theme-desc');
+    if (profileIcon && profileLabel && profileDesc) {
+        profileIcon.innerText = isDark ? 'light_mode' : 'nights_stay';
+        profileLabel.innerText = isDark ? 'Light Interface' : 'Dark Interface';
+        profileDesc.innerText = isDark ? 'Toggle Day Mode look' : 'Toggle Night Mode look';
+    }
+}
+
 function toggleDarkMode() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     if (isDark) {
         document.documentElement.removeAttribute('data-theme');
         localStorage.setItem('premium_portal_theme', 'light');
+        updateThemeUI(false);
     } else {
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('premium_portal_theme', 'dark');
+        updateThemeUI(true);
     }
 }
+
+// Ensure UI Syncs when DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+    const savedTheme = localStorage.getItem('premium_portal_theme');
+    updateThemeUI(savedTheme === 'dark');
+});
 
 // Side Drawer Navigation Logic
 const drawer = document.getElementById('side-drawer');
@@ -131,6 +161,30 @@ document.getElementById('menu-toggle-btn').addEventListener('click', () => {
     toggleDrawer();
 });
 drawerOverlay.addEventListener('click', toggleDrawer);
+
+// 🛡️ NAYA: Native Swipe-to-Close Engine (Bulletproof)
+let touchStartX = 0;
+let touchStartY = 0;
+
+drawer.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+drawer.addEventListener('touchend', (e) => {
+    const touchEndX = e.changedTouches[0].screenX;
+    const touchEndY = e.changedTouches[0].screenY;
+    
+    const swipeDistanceX = touchEndX - touchStartX;
+    const swipeDistanceY = Math.abs(touchEndY - touchStartY);
+    
+    // EXPERT LOGIC: Agar swipe Left side (-50px) gaya hai AUR vertical scroll (Y-axis) 50px se kam hai, tabhi menu band karo!
+    if (swipeDistanceX < -50 && swipeDistanceY < 50) {
+        if (drawer.classList.contains('open')) {
+            toggleDrawer();
+        }
+    }
+}, { passive: true });
 
 
 function switchTab(tabId, headerTitle, pushToHistory = true) {
@@ -472,6 +526,20 @@ function updateProfileUI() {
     document.getElementById('drawer-username').innerText = loggedInUserName;
     document.getElementById('profile-student-name').innerText = loggedInUserName;
     document.getElementById('profile-meta-username').innerText = loggedInUser;
+    
+    // 🚀 IIT EXPERT FIX: Extract First Letter aur Drawer + Profile Screen dono ko sync karo!
+    if (loggedInUserName) {
+        const cleanName = loggedInUserName.replace(/[^a-zA-Z0-9]/g, '');
+        const firstLetter = cleanName.length > 0 ? cleanName.charAt(0).toUpperCase() : 'U';
+        
+        // Drawer Box Letter Update
+        const avatarLetterDrawer = document.getElementById('drawer-avatar-letter');
+        if (avatarLetterDrawer) avatarLetterDrawer.innerText = firstLetter;
+        
+        // Profile Screen Letter Update
+        const avatarLetterProfile = document.getElementById('profile-avatar-letter');
+        if (avatarLetterProfile) avatarLetterProfile.innerText = firstLetter;
+    }
 }
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1809,8 +1877,10 @@ function initPremiumSlider() {
 document.addEventListener('DOMContentLoaded', initPremiumSlider);
 
 
+
+
 // ==========================================
-// 💳 PREMIUM RAZORPAY PAYMENT ENGINE (100% SECURE FOR BUNDLES)
+// 💳 PREMIUM RAZORPAY PAYMENT ENGINE (PLAY STORE COMPLIANT 🚀)
 // ==========================================
 document.addEventListener('click', async (e) => {
     const buyBtn = e.target.closest('.premium-buy-btn');
@@ -1825,7 +1895,21 @@ document.addEventListener('click', async (e) => {
             return;
         }
 
-        // 🛡️ BUTTON LOCK: Click hote hi button ko disable karo aur text change karo
+        // 🚨 THE MASTER LOOPHOLE FIX: Play Store Policy (Consumption Only Model)
+        // Check karo ki kya app Play Store (TWA / Standalone / PWA) se chal raha hai ya normal Chrome browser hai?
+        const isPlayStoreApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+        if (isPlayStoreApp) {
+            // 🛡️ Play Store Review Bypass: Agar app version hai, toh Razorpay block kardo aur user ko site par bhejo.
+            showCustomPopup(
+                "Purchase Restricted 🔒", 
+                "Due to Google Play policies, in-app purchases are disabled. To buy this Premium Test, please open <strong>apjakjb.in/tests/</strong> in your phone's Chrome browser.<br><br>Once purchased there, it will automatically unlock here in the app.", 
+                "info"
+            );
+            return; // Yahin se code rok do, Razorpay trigger hi nahi hoga!
+        }
+
+        // 🟢 Agar user website (Chrome/Safari) par hai, toh normal Razorpay flow chalne do
         buyBtn.disabled = true;
         const originalBtnHTML = buyBtn.innerHTML;
         buyBtn.innerHTML = `<span class="material-icons" style="font-size:16px; animation: spinGlow 1s linear infinite;">autorenew</span> Processing...`;
@@ -1900,7 +1984,6 @@ document.addEventListener('click', async (e) => {
                 "theme": { "color": "#F59E0B" },
                 "modal": {
                     "ondismiss": function() {
-                        // 🛡️ MAGIC UNLOCK: Agar user payment cancel karke popup band kare toh button waapas zinda ho jaye
                         buyBtn.disabled = false; 
                         buyBtn.innerHTML = originalBtnHTML; 
                         buyBtn.style.opacity = "1";
@@ -1922,6 +2005,8 @@ document.addEventListener('click', async (e) => {
         }
     }
 });
+
+
 
 // ==========================================
 // 📂 PREMIUM SERIES FOLDER ENGINE (DYNAMIC FETCH)
