@@ -1586,7 +1586,8 @@ let swRegistration = null; // ✅ NAYA: SW ko global banaya taaki button click p
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./firebase-messaging-sw.js', { updateViaCache: 'none' })
+        // 🚀 IIT EXPERT FIX: Explicit scope added to lock the Service Worker strictly to the /tests/ folder
+        navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './', updateViaCache: 'none' })
             .then((registration) => {
                 console.log('[PWA Engine] Firebase SW registered beautifully.');
                 swRegistration = registration;
