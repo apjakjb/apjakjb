@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Deletion Request | APJAKJB Premium Testing Portal</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --bg-color: #F9FAFB;
+            --text-main: #111827;
+            --text-muted: #4B5563;
+            --card-bg: #FFFFFF;
+            --border: #E5E7EB;
+            --danger: #EF4444;
+            --danger-light: #FEF2F2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .header-logo-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 60px;
+            height: 60px;
+            background: var(--danger-light);
+            color: var(--danger);
+            border-radius: 16px;
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .header h1 {
+            color: var(--text-main);
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            font-weight: 750;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: var(--danger);
+            border-radius: 4px;
+        }
+
+        .section p {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .section ul {
+            padding-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .section li {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .warning-box {
+            background: var(--danger-light);
+            border-left: 4px solid var(--danger);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+
+        .warning-box p {
+            margin: 0;
+            color: #991B1B;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .step-box {
+            background: #F3F4F6;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px dashed #D1D5DB;
+        }
+
+        .step-box h3 {
+            font-size: 16px;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--danger);
+            color: #FFFFFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #DC2626;
+        }
+
+        .contact-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .contact-footer strong {
+            color: var(--text-main);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px;
+                border-radius: 12px;
+            }
+            .header h1 {
+                font-size: 22px;
+            }
+            .btn-primary {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-logo-icon">🗑️</div>
+            <h1>Data Deletion Request</h1>
+            <p>APJAKJB Premium Testing Portal | Play Store Compliance</p>
+        </div>
+
+        <div class="section">
+            <h2>1. Your Right to Data Deletion</h2>
+            <p>At APJAKJB Test Portal, we respect your privacy and give you full control over your personal data. In compliance with Google Play's Data Safety policies and global privacy standards, you can request the permanent deletion of your account and all associated data at any time.</p>
+        </div>
+
+        <div class="section">
+            <h2>2. What Data Will Be Deleted?</h2>
+            <p>When you submit a data deletion request, we will permanently wipe the following information from our Firebase Database and Google Cloud servers:</p>
+            <ul>
+                <li><strong>Profile Data:</strong> Your registered Name, Email Address, and Device FCM Tokens.</li>
+                <li><strong>Performance Data:</strong> All your past test scores, detailed question analytics, and leaderboard rankings.</li>
+                <li><strong>Purchase History:</strong> Records of your premium test bundle unlocks.</li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <p><strong>⚠️ Warning:</strong> Account deletion is irreversible. Once your data is deleted, you will lose access to all your purchased premium test series and historical analytics. You cannot recover this data later.</p>
+        </div>
+
+        <div class="section">
+            <h2>3. How to Request Deletion</h2>
+            <p>To ensure security and verify your identity, we process deletion requests via email. Please follow these steps:</p>
+            
+            <div class="step-box">
+                <h3>Submit Your Request</h3>
+                <p>Send an email from your <strong>registered email address</strong> to our support team with the subject line <strong>"Account Deletion Request"</strong>.</p>
+                <p>Include your full name and a brief confirmation that you wish to permanently delete your data.</p>
+                
+                <!-- 🚀 EXPERT FIX: Pre-filled mailto link for seamless user experience -->
+                <a href="mailto:educationallvowel@gmail.com?subject=Account%20Deletion%20Request&body=Hello%20APJAKJB%20Support%20Team%2C%0A%0AI%20would%20like%20to%20request%20the%20permanent%20deletion%20of%20my%20account%20and%20all%20associated%20data%20from%20the%20Test%20Portal.%0A%0ARegistered%20Name%3A%20%5BEnter%20Your%20Name%5D%0ARegistered%20Email%3A%20%5BEnter%20Your%20Email%5D%0A%0APlease%20confirm%20once%20the%20deletion%20is%20processed.%0A%0AThank%20you." class="btn-primary">
+                    📧 Request Data Deletion
+                </a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. Processing Time</h2>
+            <p>Once we receive your email, our technical team will verify your identity. Your account and all associated data will be completely wiped from our live servers and backups within <strong>48 hours</strong>.</p>
+        </div>
+
+        <div class="contact-footer">
+            <p>If you have any issues, reach out to us at <strong>educationallvowel@gmail.com</strong> or call us at <strong>+91 88227 78233</strong>.</p>
+        </div>
+    </div>
+
+</body>
+</html>
