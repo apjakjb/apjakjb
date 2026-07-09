@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "com.sakhan.testportal",
-        "sha256_cert_fingerprints": ["94:87:5F:4A:22:EB:24:95:C5:D9:8C:1D:3B:7C:8F:B3:2A:30:AF:5F:F7:FB:32:06:14:32:4E:01:2D:55:EE:44"]
+        "sha256_cert_fingerprints": ["F5:CF:03:7A:8B:24:B3:9A:76:33:16:6F:4A:6A:79:D4:3D:E9:88:A8:E1:8B:78:EE:CC:73:7F:A3:1A:40:C5:C8"]
       }
 }]
