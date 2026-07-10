@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "com.sakhan.testportal",
-        "sha256_cert_fingerprints": ["B0:50:0F:D9:02:94:B2:F8:99:31:4E:9D:D8:F7:BF:C7:48:6B:FC:59:DE:1C:8D:B4:7B:41:83:D3:BA:56:D9:91"]
+        "package_name": "com.sakhan.testportals",
+        "sha256_cert_fingerprints": ["D8:C9:8B:EF:E6:3D:A6:DB:F9:FB:5C:9E:B2:96:B9:C4:83:83:B8:8C:61:24:75:BE:60:43:69:D1:19:88:9F:F4"]
       }
 }]
