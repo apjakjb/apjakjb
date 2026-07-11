@@ -570,7 +570,7 @@ updateProfileUI();
             errorMsg.innerText = "";
             loadDashboard();
             triggerSmartPushPrompt(); 
-            setTimeout(showPremiumWelcomeAd, 1500); // 🚀 Premium Ad Trigger
+            setTimeout(showPremiumWelcomeAd, 1500);
         } else {
             errorMsg.innerText = result.message;
         }
@@ -581,24 +581,26 @@ updateProfileUI();
     }
 });
 
-
-
-
 // ==========================================
 // 🚀 NAYA: PREMIUM GOOGLE LOGIN ENGINE (SECURE SYNC)
 // ==========================================
 const googleLoginBtn = document.getElementById('google-login-btn');
 
 if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', async () => {
-        showLoader("Connecting to Google Securely...");
+    googleLoginBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (googleLoginBtn.disabled) return;
+        googleLoginBtn.disabled = true;
+
         try {
-            const result = await auth.signInWithPopup(googleProvider);
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            const loginPromise = auth.signInWithPopup(provider);
+            showLoader("Connecting to Google Securely...");
+            const result = await loginPromise;
             const user = result.user;
             const email = user.email;
             const name = user.displayName || email.split('@')[0];
-
-            // 🛡️ THE FIX: Backend ko inform karo aur Secure Token fetch karo
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -610,8 +612,6 @@ if (googleLoginBtn) {
             if (backendResult.success) {
                 loggedInUser = email;
                 loggedInUserName = name;
-                
-                // ✅ Ab LocalStorage mein proper authentication parameters save honge
                 localStorage.setItem('student_username', loggedInUser);
                 localStorage.setItem('student_name', loggedInUserName);
                 localStorage.setItem('auth_token', backendResult.token); 
@@ -623,27 +623,26 @@ if (googleLoginBtn) {
                 triggerSmartPushPrompt(); 
             } else {
                 showCustomPopup("Access Denied", backendResult.message, "danger");
-                if(auth) auth.signOut(); // Invalid backend response par turant Firebase session destroy karo
+                if(auth) auth.signOut();
             }
             
         } catch (error) {
             console.error("Google Login Error:", error);
-            if (error.code !== 'auth/popup-closed-by-user') {
-                showCustomPopup("Login Failed", "Could not sign in with Google. Please try again.", "danger");
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                showCustomPopup("Login Failed", "Could not sign in with Google. Please check your connection or try again.", "danger");
             }
         } finally {
             hideLoader();
+            googleLoginBtn.disabled = false;
         }
     });
 }
-
 
 function handleLogout() {
     showCustomPopup("Secure Logout", "Are you sure you want to end your session?", "warning", async () => {
         showLoader("Destroying Secure Session...");
         
         try {
-            // 🔥 THE FIX: Backend ko signal bhejo ki Google Sheet se token uda de
             await fetch(API_URL, {
                 method: 'POST',
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
