@@ -582,24 +582,40 @@ updateProfileUI();
 });
 
 // ==========================================
-// 🚀 NAYA: PREMIUM GOOGLE LOGIN ENGINE (PWA/TWA REDIRECT FIX)
+// 🚀 THE BULLETPROOF GOOGLE LOGIN ENGINE (SYNCHRONOUS POPUP FIX)
 // ==========================================
+const googleLoginBtn = document.getElementById('google-login-btn');
 
-// 1. Redirect hone ke baad wapas app aane par result handle karna
-auth.getRedirectResult().then(async (result) => {
-    if (result && result.user) {
-        showLoader("Syncing with APJAKJB Server...");
+if (googleLoginBtn) {
+    // 🛡️ e.preventDefault() hata diya hai taaki browser ko pure native click feel ho
+    googleLoginBtn.addEventListener('click', async () => {
+        
+        if (googleLoginBtn.disabled) return;
+        googleLoginBtn.disabled = true;
+        
+        const provider = new firebase.auth.GoogleAuthProvider();
+        // 🛡️ select_account prompt zaroori hai taaki cache stuck na ho
+        provider.setCustomParameters({ prompt: 'select_account' });
+        
         try {
+            // 🔥 MASTER FIX: Click hote hi BINA KISI LOADER/DELAY ke seedha popup fire karo.
+            // Chrome isko 1st click mein hi 100% allow karega kyunki yeh direct user action hai.
+            const result = await auth.signInWithPopup(provider);
+            
+            // 🟢 Popup successful hone ke baad (jab user details aa jayein), tab loader show karo
+            showLoader("Syncing with APJAKJB Server...");
+            
             const user = result.user;
             const email = user.email;
             const name = user.displayName || email.split('@')[0];
 
+            // Backend Verification & Sync
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                redirect: "follow",
                 body: JSON.stringify({ action: "googleLogin", email: email, name: name })
             });
+            
             const backendResult = JSON.parse(await response.text());
 
             if (backendResult.success) {
@@ -620,33 +636,15 @@ auth.getRedirectResult().then(async (result) => {
                 if(auth) auth.signOut();
             }
         } catch (error) {
-            console.error("Backend Sync Error:", error);
-            showCustomPopup("Login Error", "Failed to securely connect to the portal.", "danger");
+            console.error("Google Login Error:", error);
+            // Agar user ne khud popup cross (band) kiya hai, toh error mat dikhao
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                showCustomPopup("Login Failed", "Could not sign in with Google. Please check your connection.", "danger");
+            }
         } finally {
             hideLoader();
+            googleLoginBtn.disabled = false; // Button wapas enable kar do
         }
-    }
-}).catch((error) => {
-    hideLoader();
-    console.error("Google Redirect Error:", error);
-});
-
-
-// 2. Button par Sirf 1-Click Redirect logic (No Popups!)
-const googleLoginBtn = document.getElementById('google-login-btn');
-if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        // Button disable kardo taaki double click na ho
-        if (googleLoginBtn.disabled) return;
-        googleLoginBtn.disabled = true;
-        
-        showLoader("Redirecting to Google...");
-        
-        const provider = new firebase.auth.GoogleAuthProvider();
-        // Redirect use kar rahe hain, isme TWA kabhi popup block nahi karega!
-        auth.signInWithRedirect(provider);
     });
 }
 
