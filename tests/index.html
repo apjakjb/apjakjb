@@ -2,22 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta id="app-viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 🚀 THE ULTIMATE ANTI-DESKTOP ENGINE (100% Bulletproof) -->
     <script>
         (function() {
-            function lockMobileNativeViewport() {
+            function neutralizeDesktopMode() {
                 var isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-                var screenW = window.screen.width;
-                var viewport = document.getElementById('app-viewport');
-                if (isTouch && window.innerWidth >= 800 && screenW < 800) {
-                    viewport.setAttribute("content", "width=" + screenW + ", initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+                
+                // Agar browser canvas physical screen se bada hai (Yani Chrome Desktop Mode forcefully ON hai)
+                if (isTouch && window.innerWidth > window.screen.width) {
+                    // Chrome ki scaling ko math se counter karna
+                    var scaleRatio = window.innerWidth / window.screen.width;
+                    document.documentElement.style.zoom = scaleRatio;
                 } else {
-                    viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+                    // Normal mobile view ya Real Desktop PC
+                    document.documentElement.style.zoom = 1;
                 }
             }
-            lockMobileNativeViewport();
-            window.addEventListener('resize', lockMobileNativeViewport);
-            window.addEventListener('orientationchange', lockMobileNativeViewport);
+            
+            // Screen render hone se pehle isko chalao taaki UI bilkul shrink na ho
+            neutralizeDesktopMode();
+            
+            // Rotation ya resize par bhi isko zinda rakho
+            window.addEventListener('resize', neutralizeDesktopMode);
+            window.addEventListener('orientationchange', neutralizeDesktopMode);
         })();
     </script>
     <meta name="theme-color" content="#4F46E5">
