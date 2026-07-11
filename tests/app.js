@@ -582,25 +582,18 @@ updateProfileUI();
 });
 
 // ==========================================
-// 🚀 NAYA: PREMIUM GOOGLE LOGIN ENGINE (SECURE SYNC)
+// 🚀 NAYA: PREMIUM GOOGLE LOGIN ENGINE (PWA/TWA REDIRECT FIX)
 // ==========================================
-const googleLoginBtn = document.getElementById('google-login-btn');
 
-if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        if (googleLoginBtn.disabled) return;
-        googleLoginBtn.disabled = true;
-
+// 1. Redirect hone ke baad wapas app aane par result handle karna
+auth.getRedirectResult().then(async (result) => {
+    if (result && result.user) {
+        showLoader("Syncing with APJAKJB Server...");
         try {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            provider.setCustomParameters({ prompt: 'select_account' });
-            const loginPromise = auth.signInWithPopup(provider);
-            showLoader("Connecting to Google Securely...");
-            const result = await loginPromise;
             const user = result.user;
             const email = user.email;
             const name = user.displayName || email.split('@')[0];
+
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -612,6 +605,7 @@ if (googleLoginBtn) {
             if (backendResult.success) {
                 loggedInUser = email;
                 loggedInUserName = name;
+                
                 localStorage.setItem('student_username', loggedInUser);
                 localStorage.setItem('student_name', loggedInUserName);
                 localStorage.setItem('auth_token', backendResult.token); 
@@ -625,18 +619,37 @@ if (googleLoginBtn) {
                 showCustomPopup("Access Denied", backendResult.message, "danger");
                 if(auth) auth.signOut();
             }
-            
         } catch (error) {
-            console.error("Google Login Error:", error);
-            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                showCustomPopup("Login Failed", "Could not sign in with Google. Please check your connection or try again.", "danger");
-            }
+            console.error("Backend Sync Error:", error);
+            showCustomPopup("Login Error", "Failed to securely connect to the portal.", "danger");
         } finally {
             hideLoader();
-            googleLoginBtn.disabled = false;
         }
+    }
+}).catch((error) => {
+    hideLoader();
+    console.error("Google Redirect Error:", error);
+});
+
+
+// 2. Button par Sirf 1-Click Redirect logic (No Popups!)
+const googleLoginBtn = document.getElementById('google-login-btn');
+if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Button disable kardo taaki double click na ho
+        if (googleLoginBtn.disabled) return;
+        googleLoginBtn.disabled = true;
+        
+        showLoader("Redirecting to Google...");
+        
+        const provider = new firebase.auth.GoogleAuthProvider();
+        // Redirect use kar rahe hain, isme TWA kabhi popup block nahi karega!
+        auth.signInWithRedirect(provider);
     });
 }
+
 
 function handleLogout() {
     showCustomPopup("Secure Logout", "Are you sure you want to end your session?", "warning", async () => {
