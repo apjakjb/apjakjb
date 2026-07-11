@@ -2,7 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta id="app-viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script>
+        (function() {
+            function lockMobileNativeViewport() {
+                var isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+                var screenW = window.screen.width;
+                var viewport = document.getElementById('app-viewport');
+                if (isTouch && window.innerWidth >= 800 && screenW < 800) {
+                    viewport.setAttribute("content", "width=" + screenW + ", initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+                } else {
+                    viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+                }
+            }
+            lockMobileNativeViewport();
+            window.addEventListener('resize', lockMobileNativeViewport);
+            window.addEventListener('orientationchange', lockMobileNativeViewport);
+        })();
+    </script>
     <meta name="theme-color" content="#4F46E5">
     <meta name="description" content="Premium Android-Style Test Series & Learning Portal">
     <meta name="apple-mobile-web-app-title" content="Premium Portal">
@@ -87,7 +104,7 @@
 <div id="welcome-ad-popup" class="ad-popup-overlay" style="display: none;" role="dialog" aria-modal="true">
         <div class="ad-popup-card-clean">
             <button id="close-ad-btn" class="ad-close-btn"><span class="material-icons">close</span></button>
-            <img src="./assets/Ads.gif" alt="Premium Offer" class="ad-gif-full-image">
+            <img src="./assets/zubeengarg.jpg" alt="Premium Offer" class="ad-gif-full-image">
         </div>
 </div>
 
