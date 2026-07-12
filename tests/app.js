@@ -520,7 +520,79 @@ function checkAuthSession() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", checkAuthSession);
+// ==========================================
+// 🚀 NAYA: REDIRECT RESULT INTERCEPTOR ENGINE
+// ==========================================
+async function processGoogleRedirectResult() {
+    // Agar user Google redirect se wapas aaya hai, toh turant loader show karo
+    if (sessionStorage.getItem('is_google_redirecting') === 'true') {
+        showLoader("Verifying Secure Google Session...");
+    }
+
+    try {
+        const result = await auth.getRedirectResult();
+        if (result && result.user) {
+            sessionStorage.removeItem('is_google_redirecting'); // Clean up
+            showLoader("Syncing with Test Portal Server...");
+            
+            const user = result.user;
+            const email = user.email;
+            const name = user.displayName || email.split('@')[0];
+
+            // Backend Verification & Sync
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "googleLogin", email: email, name: name })
+            });
+            
+            const backendResult = JSON.parse(await response.text());
+
+            if (backendResult.success) {
+                loggedInUser = email;
+                loggedInUserName = name;
+                
+                localStorage.setItem('student_username', loggedInUser);
+                localStorage.setItem('student_name', loggedInUserName);
+                localStorage.setItem('auth_token', backendResult.token); 
+                localStorage.setItem('auth_time', Date.now().toString());    
+
+                updateProfileUI();
+                document.getElementById('error-message').innerText = ""; 
+                loadDashboard();
+                triggerSmartPushPrompt(); 
+                setTimeout(showPremiumWelcomeAd, 1500);
+            } else {
+                showCustomPopup("Access Denied", backendResult.message, "danger");
+                if(auth) auth.signOut();
+            }
+            hideLoader();
+            return true; // Handle ho gaya
+        }
+    } catch (error) {
+        sessionStorage.removeItem('is_google_redirecting');
+        hideLoader();
+        console.error("Redirect Error:", error);
+        if (error.code !== 'auth/redirect-cancelled-by-user') {
+            showCustomPopup("Login Failed", "Google authentication was interrupted. Try again.", "danger");
+        }
+        return false;
+    }
+    
+    sessionStorage.removeItem('is_google_redirecting');
+    return false; // Koi redirect event nahi tha
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    // Sabse pehle check karo ki kya hum Google Redirect se wapas aaye hain
+    const isRedirectLogin = await processGoogleRedirectResult();
+    
+    // Agar redirect login NAHI tha, toh apna normal session check karo
+    if (!isRedirectLogin) {
+        checkAuthSession();
+    }
+});
+
 function updateProfileUI() {
     document.getElementById('welcome-text').innerText = `Hello Dear, ${loggedInUserName}`;
     document.getElementById('drawer-username').innerText = loggedInUserName;
@@ -582,69 +654,34 @@ updateProfileUI();
 });
 
 // ==========================================
-// 🚀 THE BULLETPROOF GOOGLE LOGIN ENGINE (SYNCHRONOUS POPUP FIX)
+// 🚀 THE BULLETPROOF GOOGLE LOGIN ENGINE (NATIVE REDIRECT FIX)
 // ==========================================
 const googleLoginBtn = document.getElementById('google-login-btn');
 
 if (googleLoginBtn) {
-    // 🛡️ e.preventDefault() hata diya hai taaki browser ko pure native click feel ho
-    googleLoginBtn.addEventListener('click', async () => {
-        
+    googleLoginBtn.addEventListener('click', () => {
         if (googleLoginBtn.disabled) return;
         googleLoginBtn.disabled = true;
         
+        const originalBtnHTML = googleLoginBtn.innerHTML;
+        googleLoginBtn.innerHTML = `<span class="material-icons" style="font-size:16px; animation: spinGlow 1s linear infinite;">autorenew</span> Connecting Securely...`;
+        googleLoginBtn.style.opacity = "0.7";
+        
         const provider = new firebase.auth.GoogleAuthProvider();
-        // 🛡️ select_account prompt zaroori hai taaki cache stuck na ho
         provider.setCustomParameters({ prompt: 'select_account' });
         
-        try {
-            // 🔥 MASTER FIX: Click hote hi BINA KISI LOADER/DELAY ke seedha popup fire karo.
-            // Chrome isko 1st click mein hi 100% allow karega kyunki yeh direct user action hai.
-            const result = await auth.signInWithPopup(provider);
-            
-            // 🟢 Popup successful hone ke baad (jab user details aa jayein), tab loader show karo
-            showLoader("Syncing with APJAKJB Server...");
-            
-            const user = result.user;
-            const email = user.email;
-            const name = user.displayName || email.split('@')[0];
-
-            // Backend Verification & Sync
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "googleLogin", email: email, name: name })
-            });
-            
-            const backendResult = JSON.parse(await response.text());
-
-            if (backendResult.success) {
-                loggedInUser = email;
-                loggedInUserName = name;
-                
-                localStorage.setItem('student_username', loggedInUser);
-                localStorage.setItem('student_name', loggedInUserName);
-                localStorage.setItem('auth_token', backendResult.token); 
-                localStorage.setItem('auth_time', Date.now().toString());    
-
-                updateProfileUI();
-                document.getElementById('error-message').innerText = ""; 
-                loadDashboard();
-                triggerSmartPushPrompt(); 
-            } else {
-                showCustomPopup("Access Denied", backendResult.message, "danger");
-                if(auth) auth.signOut();
-            }
-        } catch (error) {
-            console.error("Google Login Error:", error);
-            // Agar user ne khud popup cross (band) kiya hai, toh error mat dikhao
-            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                showCustomPopup("Login Failed", "Could not sign in with Google. Please check your connection.", "danger");
-            }
-        } finally {
-            hideLoader();
-            googleLoginBtn.disabled = false; // Button wapas enable kar do
-        }
+        // 🛡️ NAYA: Flag set karo taaki page reload hone par direct loader show ho
+        sessionStorage.setItem('is_google_redirecting', 'true');
+        
+        // 🔥 DIRECT NATIVE REDIRECT ENGINE (No Popup, 100% Success Rate)
+        auth.signInWithRedirect(provider).catch((error) => {
+            console.error("Google Redirect Error:", error);
+            sessionStorage.removeItem('is_google_redirecting');
+            googleLoginBtn.disabled = false;
+            googleLoginBtn.innerHTML = originalBtnHTML;
+            googleLoginBtn.style.opacity = "1";
+            showCustomPopup("Connection Failed", "Could not connect to Google Server. Check your internet.", "danger");
+        });
     });
 }
 
@@ -1905,22 +1942,16 @@ document.addEventListener('click', async (e) => {
             showCustomPopup("Error", "Invalid Bundle ID.", "danger");
             return;
         }
-
-        // 🚨 THE MASTER LOOPHOLE FIX: Play Store Policy (Consumption Only Model)
-        // Check karo ki kya app Play Store (TWA / Standalone / PWA) se chal raha hai ya normal Chrome browser hai?
         const isPlayStoreApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
         if (isPlayStoreApp) {
-            // 🛡️ Play Store Review Bypass: Agar app version hai, toh Razorpay block kardo aur user ko site par bhejo.
             showCustomPopup(
                 "Purchase Restricted 🔒", 
                 "Due to Google Play policies, in-app purchases are disabled. To buy this Premium Test, please open <strong>apjakjb.in/tests/</strong> in your phone's Chrome browser.<br><br>Once purchased there, it will automatically unlock here in the app.", 
                 "info"
             );
-            return; // Yahin se code rok do, Razorpay trigger hi nahi hoga!
+            return;
         }
-
-        // 🟢 Agar user website (Chrome/Safari) par hai, toh normal Razorpay flow chalne do
         buyBtn.disabled = true;
         const originalBtnHTML = buyBtn.innerHTML;
         buyBtn.innerHTML = `<span class="material-icons" style="font-size:16px; animation: spinGlow 1s linear infinite;">autorenew</span> Processing...`;
@@ -2341,7 +2372,7 @@ async function shareAppLogic() {
     if (navigator.share) {
         try {
             await navigator.share({
-                title: 'Test Portal by APJAKJB',
+                title: 'Test Portal by SA Khan',
                 text: shareMessage,
                 url: appLink // 🛑 URL MUST be passed here, not concatenated in text for Native APIs
             });
@@ -2521,7 +2552,7 @@ document.getElementById('share-rank-btn')?.addEventListener('click', () => {
                 const file = new File([blob], `Rank_${shareTestName.replace(/\s+/g, '_')}.jpg`, { type: 'image/jpeg' });
                 
                 const shareTitle = `🏆 My All India Rank: #${userRank !== -1 ? userRank : '-'}`;
-                const shareText = `🔥 I just secured Rank #${userRank !== -1 ? userRank : '-'} in ${shareTestName} on the APJAKJB Premium Portal!\n\nCan you beat my score? Attempt Free & Premium Mock Tests now.\n\n👇 Download/Access the App here:`;
+                const shareText = `🔥 I just secured Rank #${userRank !== -1 ? userRank : '-'} in ${shareTestName} on the Test Portal!\n\nCan you beat my score? Attempt Free & Premium Mock Tests now.\n\n👇 Download/Access the App here:`;
                 const shareUrl = "https://apjakjb.in/tests/";
 
                 // 🛡️ 3. Share menu khulne se pehle Loader smoothly Hide karo
