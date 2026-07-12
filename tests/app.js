@@ -3,7 +3,7 @@
 // ==========================================
 
 let isGoogleLoginProcessing = false;
-let visibilityTimeout = null;
+let visibilityTimeout = null; 
 
 // 🚀 MASTER ENGINE: Sync Google User to APJAKJB Server Guaranteed
 async function syncGoogleUserWithBackend(user) {
