@@ -488,16 +488,69 @@ function triggerSmartPushPrompt() {
 }
 
 
+
+
 // ==========================================
-// 4. AUTHENTICATION
+// 4. AUTHENTICATION & BULLETPROOF GOOGLE ENGINE
 // ==========================================
+
+// 🚀 MASTER ENGINE: Sync Google User to APJAKJB Server Guaranteed
+async function syncGoogleUserWithBackend(user) {
+    // 🛡️ ATOMIC LOCK: Agar processing pehle se chal rahi hai toh dobara run mat hone do
+    if (sessionStorage.getItem('google_sync_in_progress') === 'true') return;
+    sessionStorage.setItem('google_sync_in_progress', 'true');
+    sessionStorage.removeItem('is_google_redirecting'); // Lock instantly!
+
+    showLoader("Syncing with APJAKJB Server...");
+    try {
+        const email = user.email;
+        const name = user.displayName || email.split('@')[0];
+        const authToken = localStorage.getItem('auth_token');
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "googleLogin", email: email, name: name })
+        });
+        
+        const backendResult = JSON.parse(await response.text());
+
+        if (backendResult.success) {
+            loggedInUser = email;
+            loggedInUserName = name;
+            
+            localStorage.setItem('student_username', loggedInUser);
+            localStorage.setItem('student_name', loggedInUserName);
+            localStorage.setItem('auth_token', backendResult.token); 
+            localStorage.setItem('auth_time', Date.now().toString());    
+
+            updateProfileUI();
+            document.getElementById('error-message').innerText = ""; 
+            loadDashboard();
+            triggerSmartPushPrompt(); 
+            setTimeout(showPremiumWelcomeAd, 1500);
+        } else {
+            showCustomPopup("Access Denied", backendResult.message, "danger");
+            if(auth) auth.signOut();
+            navigate('login-screen');
+        }
+    } catch (error) {
+        console.error("Server Sync Error:", error);
+        showCustomPopup("Server Error", "Could not verify account with APJAKJB Server. Check your internet connection.", "danger");
+        if(auth) auth.signOut();
+        navigate('login-screen');
+    } finally {
+        sessionStorage.removeItem('google_sync_in_progress'); // Unlock
+        hideLoader(); 
+    }
+}
+
 function checkAuthSession() {
     const cachedUser = localStorage.getItem('student_username');
     const cachedName = localStorage.getItem('student_name');
     const cachedToken = localStorage.getItem('auth_token');
-    const authTimestamp = localStorage.getItem('auth_time'); // 🛡️ NAYA: Timestamp
+    const authTimestamp = localStorage.getItem('auth_time'); 
 
-    // 🛡️ 24-Hour Local Expiry Check (100% Bulletproof)
     const isTokenExpired = authTimestamp && (Date.now() - parseInt(authTimestamp) > 24 * 60 * 60 * 1000);
 
     if (cachedUser && cachedToken && !isTokenExpired) {
@@ -509,7 +562,6 @@ function checkAuthSession() {
         triggerSmartPushPrompt();
         setTimeout(showPremiumWelcomeAd, 1500); 
     } else {
-        // 🛡️ Agar token expire ho gaya hai, toh kachra saaf karo
         localStorage.removeItem('student_username');
         localStorage.removeItem('student_name');
         localStorage.removeItem('auth_token');
@@ -520,75 +572,56 @@ function checkAuthSession() {
     }
 }
 
-// ==========================================
-// 🚀 NAYA: REDIRECT RESULT INTERCEPTOR ENGINE
-// ==========================================
-async function processGoogleRedirectResult() {
-    // Agar user Google redirect se wapas aaya hai, toh turant loader show karo
-    if (sessionStorage.getItem('is_google_redirecting') === 'true') {
+// 🚀 THE DUAL-CATCH REDIRECT INTERCEPTOR (NEVER HANGS, NEVER FAILS)
+document.addEventListener("DOMContentLoaded", () => {
+    const isRedirecting = sessionStorage.getItem('is_google_redirecting') === 'true';
+
+    if (isRedirecting) {
         showLoader("Verifying Secure Google Session...");
-    }
-
-    try {
-        const result = await auth.getRedirectResult();
-        if (result && result.user) {
-            sessionStorage.removeItem('is_google_redirecting'); // Clean up
-            showLoader("Syncing with Test Portal Server...");
-            
-            const user = result.user;
-            const email = user.email;
-            const name = user.displayName || email.split('@')[0];
-
-            // Backend Verification & Sync
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "googleLogin", email: email, name: name })
-            });
-            
-            const backendResult = JSON.parse(await response.text());
-
-            if (backendResult.success) {
-                loggedInUser = email;
-                loggedInUserName = name;
-                
-                localStorage.setItem('student_username', loggedInUser);
-                localStorage.setItem('student_name', loggedInUserName);
-                localStorage.setItem('auth_token', backendResult.token); 
-                localStorage.setItem('auth_time', Date.now().toString());    
-
-                updateProfileUI();
-                document.getElementById('error-message').innerText = ""; 
-                loadDashboard();
-                triggerSmartPushPrompt(); 
-                setTimeout(showPremiumWelcomeAd, 1500);
-            } else {
-                showCustomPopup("Access Denied", backendResult.message, "danger");
-                if(auth) auth.signOut();
+        
+        // 🛡️ LAYER 3: 15-Second Safety Valve (Time-Bomb for hanging WebViews)
+        const safetyTimer = setTimeout(() => {
+            if (sessionStorage.getItem('is_google_redirecting') === 'true' && sessionStorage.getItem('google_sync_in_progress') !== 'true') {
+                sessionStorage.removeItem('is_google_redirecting');
+                hideLoader();
+                showCustomPopup("Connection Timeout ⚠️", "Google login took too long to respond. Please tap 'Continue with Google' again.", "warning");
+                checkAuthSession();
             }
-            hideLoader();
-            return true; // Handle ho gaya
-        }
-    } catch (error) {
-        sessionStorage.removeItem('is_google_redirecting');
-        hideLoader();
-        console.error("Redirect Error:", error);
-        if (error.code !== 'auth/redirect-cancelled-by-user') {
-            showCustomPopup("Login Failed", "Google authentication was interrupted. Try again.", "danger");
-        }
-        return false;
-    }
-    
-    sessionStorage.removeItem('is_google_redirecting');
-    return false; // Koi redirect event nahi tha
-}
+        }, 15000);
 
-document.addEventListener("DOMContentLoaded", async () => {
-    // Sabse pehle check karo ki kya hum Google Redirect se wapas aaye hain
-    const isRedirectLogin = await processGoogleRedirectResult();
-    
-    // Agar redirect login NAHI tha, toh apna normal session check karo
-    if (!isRedirectLogin) {
+        // 🛡️ LAYER 1A: Check Redirect Result Promise
+        auth.getRedirectResult().then(async (result) => {
+            if (result && result.user) {
+                clearTimeout(safetyTimer);
+                await syncGoogleUserWithBackend(result.user);
+            } else {
+                console.log("[Google Auth] Initial redirect null, waiting for AuthObserver...");
+            }
+        }).catch((error) => {
+            clearTimeout(safetyTimer);
+            console.error("Google Redirect Error:", error);
+            // 🛡️ THE FIX: Agar sync chalu ho chuka hai toh login screen pe mat feko!
+            if (sessionStorage.getItem('google_sync_in_progress') !== 'true') {
+                sessionStorage.removeItem('is_google_redirecting');
+                hideLoader();
+                if (error.code !== 'auth/redirect-cancelled-by-user') {
+                    showCustomPopup("Login Failed", "Google authentication was interrupted: " + error.message, "danger");
+                }
+                checkAuthSession();
+            }
+        });
+
+        // 🛡️ LAYER 1B: The Master Fallback Observer (Catches token when IndexedDB finishes loading)
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (user && sessionStorage.getItem('is_google_redirecting') === 'true') {
+                clearTimeout(safetyTimer);
+                unsubscribe(); // Ek baar catch karne ke baad listener band kar do
+                await syncGoogleUserWithBackend(user);
+            }
+        });
+
+    } else {
+        // Normal app launch
         checkAuthSession();
     }
 });
@@ -599,20 +632,18 @@ function updateProfileUI() {
     document.getElementById('profile-student-name').innerText = loggedInUserName;
     document.getElementById('profile-meta-username').innerText = loggedInUser;
     
-    // 🚀 IIT EXPERT FIX: Extract First Letter aur Drawer + Profile Screen dono ko sync karo!
     if (loggedInUserName) {
         const cleanName = loggedInUserName.replace(/[^a-zA-Z0-9]/g, '');
         const firstLetter = cleanName.length > 0 ? cleanName.charAt(0).toUpperCase() : 'U';
         
-        // Drawer Box Letter Update
         const avatarLetterDrawer = document.getElementById('drawer-avatar-letter');
         if (avatarLetterDrawer) avatarLetterDrawer.innerText = firstLetter;
         
-        // Profile Screen Letter Update
         const avatarLetterProfile = document.getElementById('profile-avatar-letter');
         if (avatarLetterProfile) avatarLetterProfile.innerText = firstLetter;
     }
 }
+
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const errorMsg = document.getElementById('error-message');
@@ -637,7 +668,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             localStorage.setItem('auth_token', result.token); 
             localStorage.setItem('auth_time', Date.now().toString()); 
             
-updateProfileUI();
+            updateProfileUI();
             document.getElementById('login-form').reset();
             errorMsg.innerText = "";
             loadDashboard();
@@ -654,7 +685,7 @@ updateProfileUI();
 });
 
 // ==========================================
-// 🚀 THE BULLETPROOF GOOGLE LOGIN ENGINE (NATIVE REDIRECT FIX)
+// 🚀 THE BULLETPROOF GOOGLE LOGIN ENGINE (NATIVE REDIRECT)
 // ==========================================
 const googleLoginBtn = document.getElementById('google-login-btn');
 
@@ -670,20 +701,21 @@ if (googleLoginBtn) {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         
-        // 🛡️ NAYA: Flag set karo taaki page reload hone par direct loader show ho
+        // 🛡️ THE TRICK: Set flag before leaving app so DOMContentLoaded knows we are returning
         sessionStorage.setItem('is_google_redirecting', 'true');
         
-        // 🔥 DIRECT NATIVE REDIRECT ENGINE (No Popup, 100% Success Rate)
         auth.signInWithRedirect(provider).catch((error) => {
-            console.error("Google Redirect Error:", error);
+            console.error("Google Redirect Trigger Error:", error);
             sessionStorage.removeItem('is_google_redirecting');
             googleLoginBtn.disabled = false;
             googleLoginBtn.innerHTML = originalBtnHTML;
             googleLoginBtn.style.opacity = "1";
-            showCustomPopup("Connection Failed", "Could not connect to Google Server. Check your internet.", "danger");
+            showCustomPopup("Connection Failed", "Could not connect to Google Server. Please check your internet connection.", "danger");
         });
     });
 }
+
+
 
 
 function handleLogout() {
@@ -705,6 +737,7 @@ function handleLogout() {
         localStorage.removeItem('student_username');
         localStorage.removeItem('student_name');
         localStorage.removeItem('auth_token'); 
+        localStorage.removeItem('auth_time');
         
         if(auth) auth.signOut();
         if(drawer.classList.contains('open')) toggleDrawer();
