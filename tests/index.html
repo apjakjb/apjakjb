@@ -3,27 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- 🚀 THE ULTIMATE ANTI-DESKTOP ENGINE (100% Bulletproof) -->
     <script>
         (function() {
             function neutralizeDesktopMode() {
                 var isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-                
-                // Agar browser canvas physical screen se bada hai (Yani Chrome Desktop Mode forcefully ON hai)
                 if (isTouch && window.innerWidth > window.screen.width) {
-                    // Chrome ki scaling ko math se counter karna
                     var scaleRatio = window.innerWidth / window.screen.width;
                     document.documentElement.style.zoom = scaleRatio;
                 } else {
-                    // Normal mobile view ya Real Desktop PC
                     document.documentElement.style.zoom = 1;
                 }
             }
-            
-            // Screen render hone se pehle isko chalao taaki UI bilkul shrink na ho
             neutralizeDesktopMode();
-            
-            // Rotation ya resize par bhi isko zinda rakho
             window.addEventListener('resize', neutralizeDesktopMode);
             window.addEventListener('orientationchange', neutralizeDesktopMode);
         })();
@@ -55,7 +46,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <title>Student Testing Portal</title>
+    <title>Test Portal</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -81,7 +72,7 @@
 <body oncontextmenu="return false;" onkeydown="if(event.keyCode==123) return false;">
     <noscript>
         <div style="background: #EF4444; color: white; padding: 20px; text-align: center; font-family: sans-serif; position: relative; z-index: 9999;">
-            Please enable JavaScript in your browser settings to use the Test Series Portal.
+            Please enable JavaScript in your browser settings to use the Test Portal.
         </div>
     </noscript>
     <div id="wave-loader" class="loader-overlay" style="display: none;" aria-hidden="true">
@@ -153,7 +144,7 @@
                 <span class="material-icons">logout</span> Sign Out
             </button>
             <div class="drawer-version-info">
-                App Version: v16.2
+                App Version: v3.0
             </div>
         </nav>
     </aside>
