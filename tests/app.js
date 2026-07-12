@@ -510,7 +510,7 @@ async function syncGoogleUserWithBackend(user) {
         visibilityTimeout = null;
     }
 
-    showLoader("Syncing with APJAKJB Server...");
+    showLoader("Syncing with Test Portal Server...");
     try {
         const email = user.email;
         const name = user.displayName || email.split('@')[0];
