@@ -11,24 +11,40 @@ firebase.initializeApp({
 });
 const messaging = firebase.messaging();
 
-// 🚀 IIT EXPERT FIX: Ab hum strictly 'payload.data' se read karenge (No crash, zero duplicates)
+// 🚀 IIT EXPERT FIX: OS Tagging & 5-Second Debounce Lock
+let lastNotifTime = 0;
+let lastNotifTitle = "";
+
 messaging.onBackgroundMessage((payload) => {
     console.log('[Firebase SW] Background Data Received: ', payload);
     
     const data = payload.data || {};
     const notificationTitle = data.title || '🚀 APJAKJB Portal Update';
+    const notificationBody = data.body || 'Tap to check out latest mock tests and updates.';
+    
+    // 🛡️ ANTI-SPAM GUARD: Agar 5 second ke andar exact same title ka push wapas aaye toh block kardo
+    const now = Date.now();
+    if (notificationTitle === lastNotifTitle && (now - lastNotifTime) < 5000) {
+        console.log('[Firebase SW] Duplicate background push suppressed.');
+        return;
+    }
+    lastNotifTime = now;
+    lastNotifTitle = notificationTitle;
+
     const notificationOptions = {
-        body: data.body || 'Tap to check out latest mock tests and updates.',
+        body: notificationBody,
         icon: './icon-192x192.png',
         badge: './icon-512x512.png', 
         image: data.imageUrl || '', 
+        tag: 'portal-master-push', // 🚀 THE MAGIC: OS merges duplicate popups into exactly 1 notification!
+        renotify: true, // Vibrate even if merging
         data: { url: data.url || './index.html?source=pwa#main-app-shell' },
         actions: [
             { action: 'start_test', title: '🚀 Attempt Now' },
             { action: 'view_dashboard', title: '📊 Dashboard' }
         ],
         vibrate: [200, 100, 200, 100, 200],
-        requireInteraction: false // Play Store / Native behaviour: 5 sec baad auto fold hoga
+        requireInteraction: false
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);
@@ -62,7 +78,7 @@ self.addEventListener('notificationclick', (event) => {
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v117'; // Version updated
+const CACHE_VERSION = 'premium-portal-v118'; // Version updated
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
