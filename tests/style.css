@@ -1383,10 +1383,12 @@ button {
 /* ==========================================
    💎 PREMIUM WELCOME AD POPUP (PURE IMAGE)
    ========================================== */
+
+/*
 .ad-popup-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.75); /* Darker background for better image focus */
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
     display: flex; justify-content: center; align-items: center;
@@ -1409,8 +1411,8 @@ button {
 .ad-gif-full-image {
     width: 100%;
     height: auto;
-    border-radius: 12px; /* Slight smooth curve for premium feel */
-    box-shadow: 0 15px 40px rgba(0,0,0,0.6); /* Deep shadow */
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
     display: block;
 }
 
@@ -1436,7 +1438,7 @@ button {
 }
 
 @keyframes fadeInAd { to { opacity: 1; } }
-@keyframes popUpAd { to { transform: scale(1); } }
+@keyframes popUpAd { to { transform: scale(1); } } */
 
 
 
