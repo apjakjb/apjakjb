@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbx93rUs42yU09GqIplKIK_-Oh6C0Fxaeej2qK-vuw3hhYkg7UcpEEqVNE_GQhOHwUO3Ag/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxgHxL3qDaI_7Kf9zfptevj_YHgplt9Bb1bqFp9FdsyjhR_vsVt1u3ribo9BUPJQH3flQ/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -537,7 +537,7 @@ async function syncGoogleUserWithBackend(user) {
             document.getElementById('error-message').innerText = ""; 
             loadDashboard();
             triggerSmartPushPrompt(); 
-            setTimeout(showPremiumWelcomeAd, 1500);
+            // setTimeout(showPremiumWelcomeAd, 1500); // 👈 TEMPORARILY HIDDEN
         } else {
             showCustomPopup("Access Denied", backendResult.message, "danger");
             if(auth) auth.signOut();
@@ -568,7 +568,7 @@ function checkAuthSession() {
         history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
         loadDashboard(); 
         triggerSmartPushPrompt();
-        setTimeout(showPremiumWelcomeAd, 1500); 
+        // setTimeout(showPremiumWelcomeAd, 1500); // 👈 TEMPORARILY HIDDEN
     } else {
         localStorage.removeItem('student_username');
         localStorage.removeItem('student_name');
@@ -641,7 +641,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             errorMsg.innerText = "";
             loadDashboard();
             triggerSmartPushPrompt(); 
-            setTimeout(showPremiumWelcomeAd, 1500);
+            // setTimeout(showPremiumWelcomeAd, 1500); // 👈 TEMPORARILY HIDDEN
         } else {
             errorMsg.innerText = result.message;
         }
@@ -1855,13 +1855,25 @@ function closeNaviBanner() {
     if (banner) banner.classList.remove('show');
 }
 
-// 3. Foreground In-App Notification Handler (No more ugly alerts!)
+// 3. Foreground In-App Notification Handler (With 5-Second Debounce Protection)
+let lastInAppPushTime = 0;
+let lastInAppTitle = "";
+
 messaging.onMessage((payload) => {
     console.log('[Firebase] Foreground Data Received: ', payload);
     const data = payload.data || payload.notification || {};
     const title = data.title || "🚀 Portal Notification";
     const body = data.body || "You have a new update in your test portal.";
     
+    // 🚀 IIT EXPERT FIX: Foreground Debounce (Prevents 3-4 duplicate banners/inbox items)
+    const now = Date.now();
+    if (title === lastInAppTitle && (now - lastInAppPushTime) < 5000) {
+        console.log('[Firebase] Duplicate in-app push ignored.');
+        return;
+    }
+    lastInAppPushTime = now;
+    lastInAppTitle = title;
+
     saveNotificationToInbox(title, body);
     showNaviStyleBanner(title, body);
 });
@@ -2586,6 +2598,9 @@ function copyToClipboard(text) {
 // 🚀 PREMIUM WELCOME AD ENGINE (PURE IMAGE)
 // ==========================================
 function showPremiumWelcomeAd() {
+    return; // 🚀 IIT MASTER SWITCH: Ye single line lagate hi popup 100% block ho jayega!
+    
+    /* TEMPORARILY COMMENTED OUT FOR CLOSED TESTING
     if (sessionStorage.getItem('welcomeAdShown')) return; 
     
     const adPopup = document.getElementById('welcome-ad-popup');
@@ -2597,6 +2612,7 @@ function showPremiumWelcomeAd() {
     document.getElementById('close-ad-btn').addEventListener('click', () => {
         adPopup.style.display = 'none';
     });
+    */
 }
 
 
