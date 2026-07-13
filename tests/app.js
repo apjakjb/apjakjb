@@ -1765,15 +1765,166 @@ if (menuUpdateBtn) {
     });
 }
 
-// Foreground In-App Notification Handler
+// =========================================================================
+// 🚀 NATIVE GPAY/NAVI STYLE PUSH ENGINE & BELL INBOX INTEGRATION
+// =========================================================================
+
+// 1. Memory & Storage for Push Inbox
+let inAppNotifications = JSON.parse(localStorage.getItem('portal_notif_inbox')) || [];
+
+function saveNotificationToInbox(title, body) {
+    const newNotif = {
+        title: title,
+        body: body,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        id: Date.now()
+    };
+    inAppNotifications.unshift(newNotif);
+    if (inAppNotifications.length > 20) inAppNotifications.pop(); // Keep top 20 only
+    localStorage.setItem('portal_notif_inbox', JSON.stringify(inAppNotifications));
+    updateBellBadge();
+}
+
+function updateBellBadge() {
+    let badge = document.getElementById('bell-unread-badge');
+    const notifBtn = document.getElementById('notification-btn');
+    if (notifBtn && !badge) {
+        notifBtn.style.position = "relative";
+        badge = document.createElement('span');
+        badge.id = 'bell-unread-badge';
+        badge.className = 'notif-badge';
+        notifBtn.appendChild(badge);
+    }
+    if (badge) {
+        if (inAppNotifications.length > 0) {
+            badge.style.display = "inline-block";
+            badge.innerText = inAppNotifications.length > 9 ? "9+" : inAppNotifications.length;
+        } else {
+            badge.style.display = "none";
+        }
+    }
+}
+
+// 2. Navi/GPay Floating Top Banner Engine
+let bannerTimeout;
+function showNaviStyleBanner(title, body) {
+    // 🛡️ ANTI-CHEAT GUARD: Test chalte waqt student ko bilkul disturb mat karo!
+    if (isTestActive) {
+        console.log("[Push Guard] Live exam active. Banner silenced and saved to inbox.");
+        return; 
+    }
+
+    let banner = document.getElementById('native-top-push-banner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'native-top-push-banner';
+        banner.className = 'native-push-banner';
+        banner.innerHTML = `
+            <div class="push-icon-box">
+                <span class="material-icons" style="font-size:24px;">notifications_active</span>
+            </div>
+            <div class="push-content">
+                <h4 id="push-banner-title">Title</h4>
+                <p id="push-banner-body">Body text</p>
+            </div>
+            <button class="push-close" onclick="closeNaviBanner()"><span class="material-icons">close</span></button>
+        `;
+        document.body.appendChild(banner);
+        
+        // Clicking banner opens dashboard/inbox
+        banner.addEventListener('click', (e) => {
+            if (!e.target.closest('.push-close')) {
+                closeNaviBanner();
+                openNotificationCenter();
+            }
+        });
+    }
+
+    document.getElementById('push-banner-title').innerText = title;
+    document.getElementById('push-banner-body').innerText = body;
+
+    clearTimeout(bannerTimeout);
+    setTimeout(() => banner.classList.add('show'), 50);
+
+    // Auto close smoothly after 4.5 seconds
+    bannerTimeout = setTimeout(closeNaviBanner, 4500);
+}
+
+function closeNaviBanner() {
+    const banner = document.getElementById('native-top-push-banner');
+    if (banner) banner.classList.remove('show');
+}
+
+// 3. Foreground In-App Notification Handler (No more ugly alerts!)
 messaging.onMessage((payload) => {
-    console.log('[Firebase] Foreground Message Received: ', payload);
-    showCustomPopup(
-        payload.notification.title, 
-        payload.notification.body, 
-        "info"
-    );
-}); 
+    console.log('[Firebase] Foreground Data Received: ', payload);
+    const data = payload.data || payload.notification || {};
+    const title = data.title || "🚀 Portal Notification";
+    const body = data.body || "You have a new update in your test portal.";
+    
+    saveNotificationToInbox(title, body);
+    showNaviStyleBanner(title, body);
+});
+
+// 4. Wire Up Notification Bell Button (`#notification-btn`)
+function openNotificationCenter() {
+    let modal = document.getElementById('notif-center-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'notif-center-modal';
+        modal.className = 'notif-modal-overlay';
+        modal.innerHTML = `
+            <div class="notif-modal-card">
+                <div class="notif-header">
+                    <h3><span class="material-icons" style="color:var(--primary);">notifications</span> Notification Center</h3>
+                    <button class="btn-icon" onclick="document.getElementById('notif-center-modal').style.display='none'"><span class="material-icons">close</span></button>
+                </div>
+                <div id="notif-list-container" class="notif-list"></div>
+                <button class="btn-secondary" style="margin-top:14px; width:100%; font-size:12px;" onclick="clearAllNotifications()">Clear All History</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+
+    const container = document.getElementById('notif-list-container');
+    container.innerHTML = "";
+    
+    if (inAppNotifications.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+    } else {
+        inAppNotifications.forEach(item => {
+            container.insertAdjacentHTML('beforeend', `
+                <div class="notif-item">
+                    <h5>${item.title}</h5>
+                    <p>${item.body}</p>
+                    <small><span class="material-icons" style="font-size:10px; vertical-align:middle;">schedule</span> ${item.time}</small>
+                </div>
+            `);
+        });
+    }
+    
+    modal.style.display = "flex";
+}
+
+function clearAllNotifications() {
+    inAppNotifications = [];
+    localStorage.removeItem('portal_notif_inbox');
+    updateBellBadge();
+    const container = document.getElementById('notif-list-container');
+    if (container) container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+}
+
+// Attach event listener to Bell Icon on load
+document.addEventListener("DOMContentLoaded", () => {
+    updateBellBadge();
+    const bellBtn = document.getElementById('notification-btn');
+    if (bellBtn) {
+        bellBtn.addEventListener('click', openNotificationCenter);
+    }
+});
 
 // ==========================================
 // 9. PREMIUM LEADERBOARD ENGINE
