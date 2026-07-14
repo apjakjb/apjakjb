@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxgHxL3qDaI_7Kf9zfptevj_YHgplt9Bb1bqFp9FdsyjhR_vsVt1u3ribo9BUPJQH3flQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwwMEqzRqHyERaSrZkGw2aE3G8WPoWyEqSTeO9UzLot456xUfMbhNQ29TtEFNl2bE06eA/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -1769,48 +1769,62 @@ if (menuUpdateBtn) {
 // 🚀 NATIVE GPAY/NAVI STYLE PUSH ENGINE & BELL INBOX INTEGRATION
 // =========================================================================
 
-// 1. Memory & Storage for Push Inbox
-let inAppNotifications = JSON.parse(localStorage.getItem('portal_notif_inbox')) || [];
-
+// 1. Native App Database (IndexedDB) for Push Inbox
 function saveNotificationToInbox(title, body) {
-    const newNotif = {
-        title: title,
-        body: body,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        id: Date.now()
+    const request = indexedDB.open('PremiumPortalDB', 1);
+    request.onupgradeneeded = (e) => {
+        if (!e.target.result.objectStoreNames.contains('notifications')) {
+            e.target.result.createObjectStore('notifications', { keyPath: 'id' });
+        }
     };
-    inAppNotifications.unshift(newNotif);
-    if (inAppNotifications.length > 20) inAppNotifications.pop(); // Keep top 20 only
-    localStorage.setItem('portal_notif_inbox', JSON.stringify(inAppNotifications));
-    updateBellBadge();
+    request.onsuccess = (e) => {
+        const tx = e.target.result.transaction('notifications', 'readwrite');
+        tx.objectStore('notifications').put({
+            id: Date.now(),
+            title: title,
+            body: body,
+            time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+        });
+        tx.oncomplete = () => updateBellBadge();
+    };
 }
 
 function updateBellBadge() {
-    let badge = document.getElementById('bell-unread-badge');
-    const notifBtn = document.getElementById('notification-btn');
-    if (notifBtn && !badge) {
-        notifBtn.style.position = "relative";
-        badge = document.createElement('span');
-        badge.id = 'bell-unread-badge';
-        badge.className = 'notif-badge';
-        notifBtn.appendChild(badge);
-    }
-    if (badge) {
-        if (inAppNotifications.length > 0) {
-            badge.style.display = "inline-block";
-            badge.innerText = inAppNotifications.length > 9 ? "9+" : inAppNotifications.length;
-        } else {
-            badge.style.display = "none";
-        }
-    }
+    const request = indexedDB.open('PremiumPortalDB', 1);
+    request.onsuccess = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('notifications')) return;
+        
+        const countReq = db.transaction('notifications', 'readonly').objectStore('notifications').count();
+        countReq.onsuccess = () => {
+            const count = countReq.result;
+            let badge = document.getElementById('bell-unread-badge');
+            const notifBtn = document.getElementById('notification-btn');
+            
+            if (notifBtn && !badge) {
+                notifBtn.style.position = "relative";
+                badge = document.createElement('span');
+                badge.id = 'bell-unread-badge';
+                badge.className = 'notif-badge';
+                notifBtn.appendChild(badge);
+            }
+            if (badge) {
+                if (count > 0) {
+                    badge.style.display = "inline-block";
+                    badge.innerText = count > 9 ? "9+" : count;
+                } else {
+                    badge.style.display = "none";
+                }
+            }
+        };
+    };
 }
 
 // 2. Navi/GPay Floating Top Banner Engine
 let bannerTimeout;
 function showNaviStyleBanner(title, body) {
-    // 🛡️ ANTI-CHEAT GUARD: Test chalte waqt student ko bilkul disturb mat karo!
     if (isTestActive) {
-        console.log("[Push Guard] Live exam active. Banner silenced and saved to inbox.");
+        console.log("[Push Guard] Live exam active. Banner silenced.");
         return; 
     }
 
@@ -1831,7 +1845,6 @@ function showNaviStyleBanner(title, body) {
         `;
         document.body.appendChild(banner);
         
-        // Clicking banner opens dashboard/inbox
         banner.addEventListener('click', (e) => {
             if (!e.target.closest('.push-close')) {
                 closeNaviBanner();
@@ -1845,8 +1858,6 @@ function showNaviStyleBanner(title, body) {
 
     clearTimeout(bannerTimeout);
     setTimeout(() => banner.classList.add('show'), 50);
-
-    // Auto close smoothly after 4.5 seconds
     bannerTimeout = setTimeout(closeNaviBanner, 4500);
 }
 
@@ -1855,22 +1866,17 @@ function closeNaviBanner() {
     if (banner) banner.classList.remove('show');
 }
 
-// 3. Foreground In-App Notification Handler (With 5-Second Debounce Protection)
+// 3. Foreground In-App Notification Handler
 let lastInAppPushTime = 0;
 let lastInAppTitle = "";
 
 messaging.onMessage((payload) => {
-    console.log('[Firebase] Foreground Data Received: ', payload);
     const data = payload.data || payload.notification || {};
     const title = data.title || "🚀 Portal Notification";
     const body = data.body || "You have a new update in your test portal.";
     
-    // 🚀 IIT EXPERT FIX: Foreground Debounce (Prevents 3-4 duplicate banners/inbox items)
     const now = Date.now();
-    if (title === lastInAppTitle && (now - lastInAppPushTime) < 5000) {
-        console.log('[Firebase] Duplicate in-app push ignored.');
-        return;
-    }
+    if (title === lastInAppTitle && (now - lastInAppPushTime) < 5000) return;
     lastInAppPushTime = now;
     lastInAppTitle = title;
 
@@ -1878,7 +1884,7 @@ messaging.onMessage((payload) => {
     showNaviStyleBanner(title, body);
 });
 
-// 4. Wire Up Notification Bell Button (`#notification-btn`)
+// 4. Wire Up Notification Bell Button
 function openNotificationCenter() {
     let modal = document.getElementById('notif-center-modal');
     if (!modal) {
@@ -1888,7 +1894,7 @@ function openNotificationCenter() {
         modal.innerHTML = `
             <div class="notif-modal-card">
                 <div class="notif-header">
-                    <h3><span class="material-icons" style="color:var(--primary);">notifications</span> Notification Center</h3>
+                    <h3><span class="material-icons" style="color:var(--primary);">notifications</span> Notification Board</h3>
                     <button class="btn-icon" onclick="document.getElementById('notif-center-modal').style.display='none'"><span class="material-icons">close</span></button>
                 </div>
                 <div id="notif-list-container" class="notif-list"></div>
@@ -1902,36 +1908,60 @@ function openNotificationCenter() {
     }
 
     const container = document.getElementById('notif-list-container');
-    container.innerHTML = "";
-    
-    if (inAppNotifications.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
-    } else {
-        inAppNotifications.forEach(item => {
-            container.insertAdjacentHTML('beforeend', `
-                <div class="notif-item">
-                    <h5>${item.title}</h5>
-                    <p>${item.body}</p>
-                    <small><span class="material-icons" style="font-size:10px; vertical-align:middle;">schedule</span> ${item.time}</small>
-                </div>
-            `);
-        });
-    }
-    
+    container.innerHTML = `<div style="text-align:center; padding:20px;"><span class="material-icons" style="animation: spinGlow 1s linear infinite;">autorenew</span></div>`;
     modal.style.display = "flex";
+
+    // Fetch dynamically from IndexedDB
+    const request = indexedDB.open('PremiumPortalDB', 1);
+    request.onsuccess = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('notifications')) {
+            container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+            return;
+        }
+        
+        const store = db.transaction('notifications', 'readonly').objectStore('notifications');
+        const getReq = store.getAll();
+        
+        getReq.onsuccess = () => {
+            const list = getReq.result.sort((a, b) => b.id - a.id); // Sort by newest first
+            container.innerHTML = "";
+            
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+            } else {
+                list.slice(0, 30).forEach(item => { // Show top 30
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="notif-item">
+                            <h5>${item.title}</h5>
+                            <p>${item.body}</p>
+                            <small><span class="material-icons" style="font-size:10px; vertical-align:middle;">schedule</span> ${item.time}</small>
+                        </div>
+                    `);
+                });
+            }
+        };
+    };
 }
 
 function clearAllNotifications() {
-    inAppNotifications = [];
-    localStorage.removeItem('portal_notif_inbox');
-    updateBellBadge();
-    const container = document.getElementById('notif-list-container');
-    if (container) container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+    const request = indexedDB.open('PremiumPortalDB', 1);
+    request.onsuccess = (e) => {
+        const db = e.target.result;
+        if (db.objectStoreNames.contains('notifications')) {
+            const tx = db.transaction('notifications', 'readwrite');
+            tx.objectStore('notifications').clear();
+            tx.oncomplete = () => {
+                updateBellBadge();
+                const container = document.getElementById('notif-list-container');
+                if (container) container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">History cleared.</p></div>`;
+            };
+        }
+    };
 }
 
-// Attach event listener to Bell Icon on load
 document.addEventListener("DOMContentLoaded", () => {
-    updateBellBadge();
+    updateBellBadge(); // Initialize badge from DB
     const bellBtn = document.getElementById('notification-btn');
     if (bellBtn) {
         bellBtn.addEventListener('click', openNotificationCenter);
@@ -2075,7 +2105,6 @@ if (contactBtn) {
 }
 
 
-
 // ==========================================
 // 🌟 PREMIUM AUTO IMAGE SLIDER ENGINE
 // ==========================================
@@ -2139,13 +2168,35 @@ document.addEventListener('click', async (e) => {
             return;
         }
         const isPlayStoreApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
         if (isPlayStoreApp) {
             showCustomPopup(
                 "Purchase Restricted 🔒", 
-                "Due to Google Play policies, in-app purchases are disabled. To buy this Premium Test, please open <strong>apjakjb.in/tests/</strong> in your phone's Chrome browser.<br><br>Once purchased there, it will automatically unlock here in the app.", 
-                "info"
+                "Due to Google Play policies, direct purchases are disabled inside the app.<br><br>Tap <strong>Open Web Portal</strong> to safely buy this package in your browser. It will automatically unlock here.", 
+                "info",
+                () => {
+                    // 1. URL external browser mein smoothly open karo
+                    window.open("https://apjakjb.in/tests/", "_blank");
+                    
+                    // 2. Future popups ke liye button text wapas default set karo
+                    document.getElementById('popup-confirm-btn').innerText = "Confirm";
+                    document.getElementById('popup-cancel-btn').innerText = "Cancel";
+                },
+                true // True = Cancel/Close button show karega
             );
+
+            // 🛡️ NATIVE UI TRICK: Sirf isi popup ke liye dynamically button texts change karo
+            const confirmBtnNode = document.getElementById('popup-confirm-btn');
+            const cancelBtnNode = document.getElementById('popup-cancel-btn');
+            
+            confirmBtnNode.innerText = "Open Web Portal";
+            cancelBtnNode.innerText = "Close";
+
+            // 🛡️ ANTI-BUG GUARD: Agar student 'Close' dabaye, toh UI text wapas default par reset ho jaye (bina memory leak ke)
+            cancelBtnNode.addEventListener('click', () => {
+                confirmBtnNode.innerText = "Confirm";
+                cancelBtnNode.innerText = "Cancel";
+            }, { once: true }); // { once: true } ensures memory automatically free ho jaye
+
             return;
         }
         buyBtn.disabled = true;
