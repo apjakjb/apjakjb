@@ -3,7 +3,7 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-com
 
 firebase.initializeApp({
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
-    authDomain: "testportal-9562c.firebaseapp.com", 
+    authDomain: "testportal-9562c.firebaseapp.com",
     projectId: "testportal-9562c",
     storageBucket: "testportal-9562c.firebasestorage.app",
     messagingSenderId: "737523775575",
@@ -18,7 +18,7 @@ let lastNotifTitle = "";
 // 🚀 PRO-ENGINEER FIX: Promise-wrapped IndexedDB writer to prevent OS thread termination
 function savePushToNativeInbox(title, body) {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open('PremiumPortalDB', 1);
+        const request = indexedDB.open('PremiumPortalDB', 2); // 🚀 NAYA: Version 2 forces database upgrade  
         request.onupgradeneeded = (event) => {
             const db = event.target.result;
             if (!db.objectStoreNames.contains('notifications')) {
@@ -82,7 +82,7 @@ messaging.onBackgroundMessage((payload) => {
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v125'; // Version updated to trigger fresh install
+const CACHE_VERSION = 'premium-portal-v127'; // Version updated to trigger fresh install
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
