@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbwwMEqzRqHyERaSrZkGw2aE3G8WPoWyEqSTeO9UzLot456xUfMbhNQ29TtEFNl2bE06eA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxSvHtSPOLCUP18aOrCpjsnld_HGQsVzWxSeGZnmDjBAkrQ5_p_3vqdHLJ5A25-jHlfBQ/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -16,12 +16,17 @@ const firebaseConfig = {
     appId: "1:737523775575:web:26db3649ede4845e688b12"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging();
-const database = firebase.database();
-const auth = firebase.auth(); 
-const googleProvider = new firebase.auth.GoogleAuthProvider();
+// 🚀 CRITICAL SAFETY: Safe Firebase Initialization with Defer Support
+let messaging, database, auth, googleProvider;
+try {
+    firebase.initializeApp(firebaseConfig);
+    messaging = firebase.messaging();
+    database = firebase.database();
+    auth = firebase.auth(); 
+    googleProvider = new firebase.auth.GoogleAuthProvider();
+} catch (err) {
+    console.error("Firebase initialization delayed or offline:", err);
+}
 
 // ==========================================
 // DOM ELEMENTS & GLOBAL STATE
