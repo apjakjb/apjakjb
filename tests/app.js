@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxSvHtSPOLCUP18aOrCpjsnld_HGQsVzWxSeGZnmDjBAkrQ5_p_3vqdHLJ5A25-jHlfBQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxySgfZl2jJKxWwuiUO9CeztoRYLGPe3p1jRYEfHRJ-6-7cnsahIUS-I-lEHIUeAezTMg/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -496,64 +496,76 @@ function triggerSmartPushPrompt() {
 
 
 // ==========================================
-// 4. AUTHENTICATION & PWA POPUP-HACK ENGINE (FINAL BULLETPROOF)
+// 4. AUTHENTICATION ENGINE (REDIRECT-BASED — TWA / INSTALLED PWA SAFE)
 // ==========================================
+// 🛡️ WHY REDIRECT INSTEAD OF POPUP:
+// signInWithPopup() opens accounts.google.com in a second browsing context (a new
+// Custom Tab / browser task on Android). Google's Cross-Origin-Opener-Policy header
+// on accounts.google.com blocks that second context from reliably signalling its
+// result back to window.opener once it's running inside an installed PWA / Android
+// TWA. That's exactly why the old code needed a 5-second "wait and hope" timer after
+// catching auth/popup-closed-by-user — it was guessing whether login had actually
+// finished in the background. Guessing is why it sometimes took 6-7 attempts.
+// signInWithRedirect() instead does a normal full-page navigation to Google and back,
+// which always works the same way regardless of popup/COOP/WebView restrictions.
 
 let isGoogleLoginProcessing = false;
-let visibilityTimeout = null;
+const GOOGLE_REDIRECT_FLAG = 'google_redirect_pending';
 
-// 🚀 MASTER ENGINE: Sync Google User to APJAKJB Server Guaranteed
+// If we're bouncing back from Google mid-redirect, show the loader immediately so the
+// user never sees a flash of the login screen while getRedirectResult() resolves.
+if (sessionStorage.getItem(GOOGLE_REDIRECT_FLAG) === 'true') {
+    showLoader("Completing Google Sign-In...");
+}
+
 async function syncGoogleUserWithBackend(user) {
     if (sessionStorage.getItem('google_sync_in_progress') === 'true') return;
     sessionStorage.setItem('google_sync_in_progress', 'true');
-    
-    // 🛡️ Lock the fallback timer immediately so it doesn't kill our loader
-    isGoogleLoginProcessing = false;
-    if (visibilityTimeout) {
-        clearTimeout(visibilityTimeout);
-        visibilityTimeout = null;
-    }
 
     showLoader("Syncing with Test Portal Server...");
     try {
         const email = user.email;
         const name = user.displayName || email.split('@')[0];
-        const authToken = localStorage.getItem('auth_token');
+        // 🛡️ Send the Firebase ID token too so the backend can verify this request
+        // really came from Google instead of just trusting a client-supplied email.
+        const idToken = await user.getIdToken();
 
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "googleLogin", email: email, name: name })
+            body: JSON.stringify({ action: "googleLogin", email: email, name: name, idToken: idToken })
         });
-        
+
         const backendResult = JSON.parse(await response.text());
 
         if (backendResult.success) {
             loggedInUser = email;
             loggedInUserName = name;
-            
+
             localStorage.setItem('student_username', loggedInUser);
             localStorage.setItem('student_name', loggedInUserName);
-            localStorage.setItem('auth_token', backendResult.token); 
-            localStorage.setItem('auth_time', Date.now().toString());    
+            localStorage.setItem('auth_token', backendResult.token);
+            localStorage.setItem('auth_time', Date.now().toString());
 
             updateProfileUI();
-            document.getElementById('error-message').innerText = ""; 
+            document.getElementById('error-message').innerText = "";
             loadDashboard();
-            triggerSmartPushPrompt(); 
+            triggerSmartPushPrompt();
             setTimeout(showPremiumWelcomeAd, 1500);
         } else {
             showCustomPopup("Access Denied", backendResult.message, "danger");
-            if(auth) auth.signOut();
+            if (auth) auth.signOut();
             navigate('login-screen');
         }
     } catch (error) {
         console.error("Server Sync Error:", error);
-        showCustomPopup("Network Drop", "Sync interrupted. Please check your connection and tap Login again.", "warning");
+        showCustomPopup("Network Drop", "Sync interrupted. Please check your connection and try Google Sign-In again.", "warning");
         navigate('login-screen');
     } finally {
         sessionStorage.removeItem('google_sync_in_progress');
-        hideLoader(); 
+        sessionStorage.removeItem(GOOGLE_REDIRECT_FLAG);
+        isGoogleLoginProcessing = false;
+        hideLoader();
     }
 }
 
@@ -561,24 +573,27 @@ function checkAuthSession() {
     const cachedUser = localStorage.getItem('student_username');
     const cachedName = localStorage.getItem('student_name');
     const cachedToken = localStorage.getItem('auth_token');
-    const authTimestamp = localStorage.getItem('auth_time'); 
+    const authTimestamp = localStorage.getItem('auth_time');
 
     const isTokenExpired = authTimestamp && (Date.now() - parseInt(authTimestamp) > 24 * 60 * 60 * 1000);
 
     if (cachedUser && cachedToken && !isTokenExpired) {
         loggedInUser = cachedUser;
-        loggedInUserName = cachedName || cachedUser.split('@')[0]; 
+        loggedInUserName = cachedName || cachedUser.split('@')[0];
         updateProfileUI();
         history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
-        loadDashboard(); 
+        loadDashboard();
         triggerSmartPushPrompt();
         setTimeout(showPremiumWelcomeAd, 1500);
+    } else if (sessionStorage.getItem(GOOGLE_REDIRECT_FLAG) === 'true') {
+        // Mid-redirect: don't bounce to the login screen, let getRedirectResult() finish first.
+        return;
     } else {
         localStorage.removeItem('student_username');
         localStorage.removeItem('student_name');
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_time');
-        
+
         history.replaceState({ screen: 'login-screen' }, "", "#login-screen");
         navigate('login-screen', false);
     }
@@ -586,16 +601,41 @@ function checkAuthSession() {
 
 document.addEventListener("DOMContentLoaded", checkAuthSession);
 
-// 🛡️ NAYA: Bulletproof safety lock (Prevents crash if Firebase loads late)
 if (auth) {
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
+    // LOCAL persistence is required for the auth state to survive the full-page
+    // navigation away to accounts.google.com and back.
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((err) => {
+        console.error("Auth persistence error:", err);
+    });
+
+    // 🛡️ Step 1 (primary path): resolve the redirect result. This is what actually
+    // completes a Google sign-in after the browser returns from accounts.google.com.
+    auth.getRedirectResult().then((result) => {
+        if (result && result.user) {
+            isGoogleLoginProcessing = true;
+            syncGoogleUserWithBackend(result.user);
+        } else {
+            sessionStorage.removeItem(GOOGLE_REDIRECT_FLAG);
+            if (hideLoader) hideLoader();
+        }
+    }).catch((error) => {
+        console.error("Redirect sign-in error:", error);
+        sessionStorage.removeItem(GOOGLE_REDIRECT_FLAG);
+        hideLoader();
+        showCustomPopup("Login Failed", "Google sign-in did not complete: " + error.message, "danger");
+        navigate('login-screen');
+    });
+
+    // 🛡️ Step 2 (safety net only): covers an already-cached Firebase session, e.g. the
+    // user re-opens the installed app while a valid Firebase session still exists.
+    auth.onAuthStateChanged((user) => {
+        if (user && !isGoogleLoginProcessing) {
             const hasLocalToken = localStorage.getItem('auth_token') !== null;
-            const authTimestamp = localStorage.getItem('auth_time'); 
+            const authTimestamp = localStorage.getItem('auth_time');
             const isTokenExpired = authTimestamp && (Date.now() - parseInt(authTimestamp) > 24 * 60 * 60 * 1000);
-            
-            if (!hasLocalToken || isTokenExpired || isGoogleLoginProcessing) {
-                await syncGoogleUserWithBackend(user);
+
+            if (!hasLocalToken || isTokenExpired) {
+                syncGoogleUserWithBackend(user);
             }
         }
     });
@@ -606,14 +646,14 @@ function updateProfileUI() {
     document.getElementById('drawer-username').innerText = loggedInUserName;
     document.getElementById('profile-student-name').innerText = loggedInUserName;
     document.getElementById('profile-meta-username').innerText = loggedInUser;
-    
+
     if (loggedInUserName) {
         const cleanName = loggedInUserName.replace(/[^a-zA-Z0-9]/g, '');
         const firstLetter = cleanName.length > 0 ? cleanName.charAt(0).toUpperCase() : 'U';
-        
+
         const avatarLetterDrawer = document.getElementById('drawer-avatar-letter');
         if (avatarLetterDrawer) avatarLetterDrawer.innerText = firstLetter;
-        
+
         const avatarLetterProfile = document.getElementById('profile-avatar-letter');
         if (avatarLetterProfile) avatarLetterProfile.innerText = firstLetter;
     }
@@ -624,7 +664,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const errorMsg = document.getElementById('error-message');
     const usernameInput = document.getElementById('username').value.trim();
     const passwordInput = document.getElementById('password').value.trim();
-    
+
     showLoader("Authenticating Session...");
     try {
         const response = await fetch(API_URL, {
@@ -640,14 +680,14 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             loggedInUserName = usernameInput;
             localStorage.setItem('student_username', loggedInUser);
             localStorage.setItem('student_name', loggedInUserName);
-            localStorage.setItem('auth_token', result.token); 
-            localStorage.setItem('auth_time', Date.now().toString()); 
-            
+            localStorage.setItem('auth_token', result.token);
+            localStorage.setItem('auth_time', Date.now().toString());
+
             updateProfileUI();
             document.getElementById('login-form').reset();
             errorMsg.innerText = "";
             loadDashboard();
-            triggerSmartPushPrompt(); 
+            triggerSmartPushPrompt();
             setTimeout(showPremiumWelcomeAd, 1500);
         } else {
             errorMsg.innerText = result.message;
@@ -662,8 +702,9 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 const googleLoginBtn = document.getElementById('google-login-btn');
 
 if (googleLoginBtn) {
+    const originalGoogleBtnHTML = googleLoginBtn.innerHTML;
+
     googleLoginBtn.addEventListener('click', () => {
-        // 🛡️ NAYA: Safe Fallback if network drops
         if (!auth || typeof firebase === 'undefined') {
             showCustomPopup("Connection Error", "Google Login service is currently unreachable. Please check your internet or try Admin Login.", "danger");
             return;
@@ -671,62 +712,24 @@ if (googleLoginBtn) {
 
         if (googleLoginBtn.disabled) return;
         googleLoginBtn.disabled = true;
-        
-        const originalBtnHTML = googleLoginBtn.innerHTML;
-        googleLoginBtn.innerHTML = `<span class="material-icons" style="font-size:16px; animation: spinGlow 1s linear infinite;">autorenew</span> Connecting Securely...`;
+
+        googleLoginBtn.innerHTML = `<span class="material-icons" style="font-size:16px; animation: spinGlow 1s linear infinite;">autorenew</span> Redirecting to Google...`;
         googleLoginBtn.style.opacity = "0.7";
-        
+
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        
-        isGoogleLoginProcessing = true;
+
         showLoader("Opening Secure Gateway...");
-        
-        auth.signInWithPopup(provider).then((result) => {
-            console.log("Popup resolved natively.");
+        sessionStorage.setItem(GOOGLE_REDIRECT_FLAG, 'true');
+
+        // Full-page redirect. Execution normally stops here — the browser navigates away.
+        auth.signInWithRedirect(provider).catch((error) => {
+            sessionStorage.removeItem(GOOGLE_REDIRECT_FLAG);
+            hideLoader();
             googleLoginBtn.disabled = false;
-            googleLoginBtn.innerHTML = originalBtnHTML;
+            googleLoginBtn.innerHTML = originalGoogleBtnHTML;
             googleLoginBtn.style.opacity = "1";
-        }).catch((error) => {
-            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                console.log("PWA WebView Detached. Waiting for background login...");
-                
-                const loaderText = document.getElementById('loader-text');
-                if(loaderText) loaderText.innerText = "Finishing Login... Please wait.";
-
-                const startSafetyTimer = () => {
-                    visibilityTimeout = setTimeout(() => {
-                        if (isGoogleLoginProcessing && sessionStorage.getItem('google_sync_in_progress') !== 'true') {
-                            hideLoader();
-                            isGoogleLoginProcessing = false;
-                            googleLoginBtn.disabled = false;
-                            googleLoginBtn.innerHTML = originalBtnHTML;
-                            googleLoginBtn.style.opacity = "1";
-                        }
-                    }, 5000); 
-                };
-
-                // 🛡️ HACKER FIX: Agar screen pehle se hi visible hai, toh sidha timer chalao
-                if (document.visibilityState === 'hidden') {
-                    const checkAppFocus = () => {
-                        if (document.visibilityState === 'visible') {
-                            document.removeEventListener('visibilitychange', checkAppFocus);
-                            startSafetyTimer();
-                        }
-                    };
-                    document.addEventListener('visibilitychange', checkAppFocus);
-                } else {
-                    startSafetyTimer();
-                }
-
-            } else {
-                hideLoader();
-                isGoogleLoginProcessing = false;
-                googleLoginBtn.disabled = false;
-                googleLoginBtn.innerHTML = originalBtnHTML;
-                googleLoginBtn.style.opacity = "1";
-                showCustomPopup("Connection Failed", "Error: " + error.message, "danger");
-            }
+            showCustomPopup("Connection Failed", "Error: " + error.message, "danger");
         });
     });
 }
@@ -1784,7 +1787,7 @@ if (menuUpdateBtn) {
 
 // 1. Native App Database (IndexedDB) for Push Inbox
 function saveNotificationToInbox(title, body) {
-    const request = indexedDB.open('PremiumPortalDB', 1);
+    const request = indexedDB.open('PremiumPortalDB', 2);
     request.onupgradeneeded = (e) => {
         if (!e.target.result.objectStoreNames.contains('notifications')) {
             e.target.result.createObjectStore('notifications', { keyPath: 'id' });
@@ -1803,7 +1806,7 @@ function saveNotificationToInbox(title, body) {
 }
 
 function updateBellBadge() {
-    const request = indexedDB.open('PremiumPortalDB', 1);
+    const request = indexedDB.open('PremiumPortalDB', 2);
     request.onsuccess = (e) => {
         const db = e.target.result;
         if (!db.objectStoreNames.contains('notifications')) return;
@@ -1925,7 +1928,7 @@ function openNotificationCenter() {
     modal.style.display = "flex";
 
     // Fetch dynamically from IndexedDB
-    const request = indexedDB.open('PremiumPortalDB', 1);
+    const request = indexedDB.open('PremiumPortalDB', 2);
     request.onsuccess = (e) => {
         const db = e.target.result;
         if (!db.objectStoreNames.contains('notifications')) {
@@ -1958,7 +1961,7 @@ function openNotificationCenter() {
 }
 
 function clearAllNotifications() {
-    const request = indexedDB.open('PremiumPortalDB', 1);
+    const request = indexedDB.open('PremiumPortalDB', 2);
     request.onsuccess = (e) => {
         const db = e.target.result;
         if (db.objectStoreNames.contains('notifications')) {
