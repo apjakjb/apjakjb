@@ -1383,8 +1383,6 @@ button {
 /* ==========================================
    💎 PREMIUM WELCOME AD POPUP (PURE IMAGE)
    ========================================== */
-
-/*
 .ad-popup-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -1438,7 +1436,7 @@ button {
 }
 
 @keyframes fadeInAd { to { opacity: 1; } }
-@keyframes popUpAd { to { transform: scale(1); } } */
+@keyframes popUpAd { to { transform: scale(1); } }
 
 
 
