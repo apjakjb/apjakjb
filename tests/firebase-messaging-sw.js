@@ -15,42 +15,44 @@ const messaging = firebase.messaging();
 let lastNotifTime = 0;
 let lastNotifTitle = "";
 
-// 🚀 NAYA NATIVE DATABASE ENGINE: Background messages ko phone storage me save karega!
+// 🚀 PRO-ENGINEER FIX: Promise-wrapped IndexedDB writer to prevent OS thread termination
 function savePushToNativeInbox(title, body) {
-    const request = indexedDB.open('PremiumPortalDB', 1);
-    request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains('notifications')) {
-            db.createObjectStore('notifications', { keyPath: 'id' });
-        }
-    };
-    request.onsuccess = (event) => {
-        const db = event.target.result;
-        const tx = db.transaction('notifications', 'readwrite');
-        tx.objectStore('notifications').put({
-            id: Date.now(),
-            title: title,
-            body: body,
-            time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-        });
-    };
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('PremiumPortalDB', 1);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('notifications')) {
+                db.createObjectStore('notifications', { keyPath: 'id' });
+            }
+        };
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const tx = db.transaction('notifications', 'readwrite');
+            const store = tx.objectStore('notifications');
+            store.put({
+                id: Date.now(),
+                title: title,
+                body: body,
+                time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+            });
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
+        };
+        request.onerror = () => reject(request.error);
+    });
 }
 
 messaging.onBackgroundMessage((payload) => {
     console.log('[Firebase SW] Background Data Received: ', payload);
     
-    const data = payload.data || {};
+    const data = payload.data || payload.notification || {};
     const notificationTitle = data.title || '🚀 APJAKJB Portal Update';
     const notificationBody = data.body || 'Tap to check out latest mock tests and updates.';
     
-    // 🛡️ ANTI-SPAM GUARD: Duplicate background push blocker
     const now = Date.now();
     if (notificationTitle === lastNotifTitle && (now - lastNotifTime) < 5000) return;
     lastNotifTime = now;
     lastNotifTitle = notificationTitle;
-
-    // 🚀 BACKGROUND SYNC: System alert dikhane se pehle message ko database me save karo!
-    savePushToNativeInbox(notificationTitle, notificationBody);
 
     const notificationOptions = {
         body: notificationBody,
@@ -68,42 +70,23 @@ messaging.onBackgroundMessage((payload) => {
         requireInteraction: false
     };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-// Notification Button Click Listener Engine
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    let targetUrl = event.notification.data.url;
+    // 🛡️ THE MAGIC: Force SW to stay alive until DB write AND Notification are complete
+    const promiseChain = Promise.all([
+        savePushToNativeInbox(notificationTitle, notificationBody).catch(err => console.log('DB Save Failed:', err)),
+        self.registration.showNotification(notificationTitle, notificationOptions)
+    ]);
     
-    if (event.action === 'start_test') {
-        targetUrl = './index.html?source=pwa#main-app-shell';
-    } else if (event.action === 'view_dashboard') {
-        targetUrl = './index.html?source=pwa#main-app-shell';
-    }
-
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            for (let client of windowClients) {
-                if (client.url.includes('index.html') && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            if (clients.openWindow) {
-                return clients.openWindow(targetUrl);
-            }
-        })
-    );
-}); 
+    return promiseChain;
+});
 
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v121'; // Version updated
+const CACHE_VERSION = 'premium-portal-v123'; // Version updated to trigger fresh install
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
-// Core assets for instant offline shell load
+// 🚀 CRITICAL FIX: Pre-caching external SDKs prevents Splash Screen freezing on weak networks!
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -112,8 +95,15 @@ const ASSETS_TO_CACHE = [
     './manifest.json',
     './icon-192x192.png',
     './icon-512x512.png',
-    'https://fonts.googleapis.com/icon?family=Material+Icons'
+    'https://fonts.googleapis.com/icon?family=Material+Icons',
+    'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js',
+    'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js',
+    'https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js',
+    'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js',
+    'https://checkout.razorpay.com/v1/checkout.js',
+    'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
 ];
+
 
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') { 
