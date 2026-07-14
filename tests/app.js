@@ -444,11 +444,10 @@ function showCustomPopup(title, message, type = 'info', confirmCallback = null, 
 }
 
 
-// Request Firebase Push Notification & Link User to RTDB Safely
 function triggerSmartPushPrompt() {
-    // Basic browser support check
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-        console.log("[Firebase] Push notifications not supported in this browser.");
+    // 🛡️ NAYA: Basic browser & messaging support check (Bulletproof)
+    if (!('Notification' in window) || !('serviceWorker' in navigator) || !messaging) {
+        console.log("[Firebase] Push notifications not supported or engine offline.");
         return;
     }
 
@@ -587,17 +586,20 @@ function checkAuthSession() {
 
 document.addEventListener("DOMContentLoaded", checkAuthSession);
 
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        const hasLocalToken = localStorage.getItem('auth_token') !== null;
-        const authTimestamp = localStorage.getItem('auth_time'); 
-        const isTokenExpired = authTimestamp && (Date.now() - parseInt(authTimestamp) > 24 * 60 * 60 * 1000);
-        
-        if (!hasLocalToken || isTokenExpired || isGoogleLoginProcessing) {
-            await syncGoogleUserWithBackend(user);
+// 🛡️ NAYA: Bulletproof safety lock (Prevents crash if Firebase loads late)
+if (auth) {
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            const hasLocalToken = localStorage.getItem('auth_token') !== null;
+            const authTimestamp = localStorage.getItem('auth_time'); 
+            const isTokenExpired = authTimestamp && (Date.now() - parseInt(authTimestamp) > 24 * 60 * 60 * 1000);
+            
+            if (!hasLocalToken || isTokenExpired || isGoogleLoginProcessing) {
+                await syncGoogleUserWithBackend(user);
+            }
         }
-    }
-});
+    });
+}
 
 function updateProfileUI() {
     document.getElementById('welcome-text').innerText = `Hello Dear, ${loggedInUserName}`;
@@ -661,6 +663,12 @@ const googleLoginBtn = document.getElementById('google-login-btn');
 
 if (googleLoginBtn) {
     googleLoginBtn.addEventListener('click', () => {
+        // 🛡️ NAYA: Safe Fallback if network drops
+        if (!auth || typeof firebase === 'undefined') {
+            showCustomPopup("Connection Error", "Google Login service is currently unreachable. Please check your internet or try Admin Login.", "danger");
+            return;
+        }
+
         if (googleLoginBtn.disabled) return;
         googleLoginBtn.disabled = true;
         
