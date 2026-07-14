@@ -9,11 +9,32 @@ firebase.initializeApp({
     messagingSenderId: "737523775575",
     appId: "1:737523775575:web:26db3649ede4845e688b12"
 });
-const messaging = firebase.messaging(); 
+const messaging = firebase.messaging();
 
 // 🚀 IIT EXPERT FIX: OS Tagging & 5-Second Debounce Lock
 let lastNotifTime = 0;
 let lastNotifTitle = "";
+
+// 🚀 NAYA NATIVE DATABASE ENGINE: Background messages ko phone storage me save karega!
+function savePushToNativeInbox(title, body) {
+    const request = indexedDB.open('PremiumPortalDB', 1);
+    request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains('notifications')) {
+            db.createObjectStore('notifications', { keyPath: 'id' });
+        }
+    };
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+        const tx = db.transaction('notifications', 'readwrite');
+        tx.objectStore('notifications').put({
+            id: Date.now(),
+            title: title,
+            body: body,
+            time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+        });
+    };
+}
 
 messaging.onBackgroundMessage((payload) => {
     console.log('[Firebase SW] Background Data Received: ', payload);
@@ -22,22 +43,22 @@ messaging.onBackgroundMessage((payload) => {
     const notificationTitle = data.title || '🚀 APJAKJB Portal Update';
     const notificationBody = data.body || 'Tap to check out latest mock tests and updates.';
     
-    // 🛡️ ANTI-SPAM GUARD: Agar 5 second ke andar exact same title ka push wapas aaye toh block kardo
+    // 🛡️ ANTI-SPAM GUARD: Duplicate background push blocker
     const now = Date.now();
-    if (notificationTitle === lastNotifTitle && (now - lastNotifTime) < 5000) {
-        console.log('[Firebase SW] Duplicate background push suppressed.');
-        return;
-    }
+    if (notificationTitle === lastNotifTitle && (now - lastNotifTime) < 5000) return;
     lastNotifTime = now;
     lastNotifTitle = notificationTitle;
+
+    // 🚀 BACKGROUND SYNC: System alert dikhane se pehle message ko database me save karo!
+    savePushToNativeInbox(notificationTitle, notificationBody);
 
     const notificationOptions = {
         body: notificationBody,
         icon: './icon-192x192.png',
         badge: './icon-512x512.png', 
         image: data.imageUrl || '', 
-        tag: 'portal-master-push', // 🚀 THE MAGIC: OS merges duplicate popups into exactly 1 notification!
-        renotify: true, // Vibrate even if merging
+        tag: 'portal-master-push', 
+        renotify: true, 
         data: { url: data.url || './index.html?source=pwa#main-app-shell' },
         actions: [
             { action: 'start_test', title: '🚀 Attempt Now' },
@@ -78,7 +99,7 @@ self.addEventListener('notificationclick', (event) => {
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v120'; // Version updated
+const CACHE_VERSION = 'premium-portal-v121'; // Version updated
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
@@ -135,15 +156,28 @@ self.addEventListener('fetch', (event) => {
         return; 
     }
 
-    // 🛡️ THE DINOSAUR KILLER (Guarantees Play Store Approval)
+
+
+// 🛡️ THE NATIVE INSTANT-LOADER (Kills Chrome Horizontal Loading Bar)
     if (event.request.mode === 'navigate') {
         event.respondWith(
-            fetch(event.request).catch(() => {
-                return caches.match('./index.html').then((cachedResponse) => {
-                    if (cachedResponse) {
-                        return cachedResponse;
-                    }
-                    // IIT EXPERT LEVEL: Hardcoded offline HTML. PWA Builder bots will NEVER see a crash!
+            caches.match('./index.html').then((cachedResponse) => {
+                // 🚀 IIT EXPERT FIX: Agar file cache mein hai, toh INSTANTLY load karo (0 network delay).
+                // Isse Chrome ka loading bar aane ka time hi nahi milega aur app 100% native feel dega!
+                if (cachedResponse) {
+                    // Background mein silent update karo taaki future updates aate rahein (No loopholes)
+                    fetch(event.request).then((networkResponse) => {
+                        caches.open(STATIC_CACHE_NAME).then((cache) => {
+                            cache.put('./index.html', networkResponse);
+                        });
+                    }).catch(() => {}); // Offline hone par chup raho
+                    
+                    return cachedResponse;
+                }
+                
+                // Agar pehli baar app khul raha hai aur cache nahi hai
+                return fetch(event.request).catch(() => {
+                    // 🛡️ THE DINOSAUR KILLER: Hardcoded offline HTML fallback
                     return new Response(
                         `<!DOCTYPE html>
                         <html lang="en" style="background:#0F172A; color:white; font-family:sans-serif; height:100%; display:flex; justify-content:center; align-items:center; text-align:center;">
@@ -162,6 +196,8 @@ self.addEventListener('fetch', (event) => {
         );
         return;
     }
+
+
 
     // Font Caching Strategy
     if (requestUrl.origin === 'https://fonts.googleapis.com' || requestUrl.origin === 'https://fonts.gstatic.com') {
