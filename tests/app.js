@@ -537,7 +537,7 @@ async function syncGoogleUserWithBackend(user) {
             document.getElementById('error-message').innerText = ""; 
             loadDashboard();
             triggerSmartPushPrompt(); 
-            // setTimeout(showPremiumWelcomeAd, 1500); // 👈 TEMPORARILY HIDDEN
+            setTimeout(showPremiumWelcomeAd, 1500);
         } else {
             showCustomPopup("Access Denied", backendResult.message, "danger");
             if(auth) auth.signOut();
@@ -568,7 +568,7 @@ function checkAuthSession() {
         history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
         loadDashboard(); 
         triggerSmartPushPrompt();
-        // setTimeout(showPremiumWelcomeAd, 1500); // 👈 TEMPORARILY HIDDEN
+        setTimeout(showPremiumWelcomeAd, 1500);
     } else {
         localStorage.removeItem('student_username');
         localStorage.removeItem('student_name');
@@ -641,7 +641,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             errorMsg.innerText = "";
             loadDashboard();
             triggerSmartPushPrompt(); 
-            // setTimeout(showPremiumWelcomeAd, 1500); // 👈 TEMPORARILY HIDDEN
+            setTimeout(showPremiumWelcomeAd, 1500);
         } else {
             errorMsg.innerText = result.message;
         }
@@ -2526,15 +2526,6 @@ async function openExploreDemoScreen(bundleId, title, aboutText, price) {
     }
 }
 
-
-
-
-
-
-
-
-
-
 // Click Listener jo is master function ko trigger karega
 document.addEventListener('click', (e) => {
     // Agar dashboard ke "Explore Demo" pe click kiya
@@ -2598,9 +2589,8 @@ function copyToClipboard(text) {
 // 🚀 PREMIUM WELCOME AD ENGINE (PURE IMAGE)
 // ==========================================
 function showPremiumWelcomeAd() {
-    return; // 🚀 IIT MASTER SWITCH: Ye single line lagate hi popup 100% block ho jayega!
+    return;
     
-    /* TEMPORARILY COMMENTED OUT FOR CLOSED TESTING
     if (sessionStorage.getItem('welcomeAdShown')) return; 
     
     const adPopup = document.getElementById('welcome-ad-popup');
@@ -2612,7 +2602,6 @@ function showPremiumWelcomeAd() {
     document.getElementById('close-ad-btn').addEventListener('click', () => {
         adPopup.style.display = 'none';
     });
-    */
 }
 
 
