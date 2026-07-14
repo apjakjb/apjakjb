@@ -3,7 +3,7 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-com
 
 firebase.initializeApp({
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
-    authDomain: "testportal-9562c.firebaseapp.com",
+    authDomain: "testportal-9562c.firebaseapp.com", 
     projectId: "testportal-9562c",
     storageBucket: "testportal-9562c.firebasestorage.app",
     messagingSenderId: "737523775575",
