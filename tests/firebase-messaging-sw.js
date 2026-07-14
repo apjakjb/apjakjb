@@ -9,7 +9,7 @@ firebase.initializeApp({
     messagingSenderId: "737523775575",
     appId: "1:737523775575:web:26db3649ede4845e688b12"
 });
-const messaging = firebase.messaging();
+const messaging = firebase.messaging(); 
 
 // 🚀 IIT EXPERT FIX: OS Tagging & 5-Second Debounce Lock
 let lastNotifTime = 0;
