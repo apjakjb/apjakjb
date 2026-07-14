@@ -78,7 +78,7 @@ self.addEventListener('notificationclick', (event) => {
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v119'; // Version updated
+const CACHE_VERSION = 'premium-portal-v120'; // Version updated
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
