@@ -2526,6 +2526,15 @@ async function openExploreDemoScreen(bundleId, title, aboutText, price) {
     }
 }
 
+
+
+
+
+
+
+
+
+
 // Click Listener jo is master function ko trigger karega
 document.addEventListener('click', (e) => {
     // Agar dashboard ke "Explore Demo" pe click kiya
@@ -2589,8 +2598,6 @@ function copyToClipboard(text) {
 // 🚀 PREMIUM WELCOME AD ENGINE (PURE IMAGE)
 // ==========================================
 function showPremiumWelcomeAd() {
-    return;
-    
     if (sessionStorage.getItem('welcomeAdShown')) return; 
     
     const adPopup = document.getElementById('welcome-ad-popup');
