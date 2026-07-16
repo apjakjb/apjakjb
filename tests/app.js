@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxFckV67fn5coZEQWRUn3ZzdhsEEuStEkjiQbSiq63am-R1XNcfe8KDNxQWJZ7TN7NO0A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwRHk7U_5rmSftsC6qcCdg3fdK4CCzwhVtLY6HWfYNdTBakQV_RfQywDqeKZU91IUX6_g/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -255,12 +255,19 @@ function switchTab(tabId, headerTitle, pushToHistory = true) {
 
 // Attach Event Listeners to UI Elements
 document.getElementById('tab-btn-home').addEventListener('click', () => switchTab('home-tab', 'Home'));
+// 🤖 NAYA: AI Quiz Tab Listener (Zero Loophole '?.' safety applied)
+document.getElementById('tab-btn-ai')?.addEventListener('click', () => switchTab('ai-tab', 'AI Smart Examiner'));
 document.getElementById('tab-btn-results').addEventListener('click', () => switchTab('results-tab', 'Results'));
 document.getElementById('tab-btn-profile').addEventListener('click', () => switchTab('profile-tab', 'Profile'));
 
 // Map Drawer Links to Tabs
 document.getElementById('menu-home-btn').addEventListener('click', () => {
     switchTab('home-tab', 'Home Dashboard');
+    toggleDrawer();
+});
+// 🤖 NAYA: Drawer AI Button Listener
+document.getElementById('menu-ai-btn')?.addEventListener('click', () => {
+    switchTab('ai-tab', 'AI Smart Examiner');
     toggleDrawer();
 });
 
@@ -1442,8 +1449,7 @@ function updateTimerDisplay() {
 
 
 
-
-// ✅ NAYA: Question Render Engine with Palette Sync
+// ✅ UPGRADED: Question Render Engine with Instant AI Feedback
 function renderQuestion() {
     const qData = currentQuestions[currentQuestionIndex];
     document.getElementById('question-counter').innerText = `${currentQuestionIndex + 1}/${currentQuestions.length}`;
@@ -1451,21 +1457,86 @@ function renderQuestion() {
     
     const container = document.getElementById('options-container');
     container.innerHTML = '';
+    
+    // Check if question was already answered in AI mode (when user navigates back)
+    const isAnsweredInAI = isCurrentTestAI && userAnswers[qData.id];
 
     qData.options.forEach((opt, index) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.innerText = `${optionPrefixes[index] || ''}${opt}`;
-        if (userAnswers[qData.id] === opt) btn.classList.add('selected');
+        btn.dataset.rawValue = opt; // Safe raw value store kar rahe hain
+        
+        // Agar normal test hai aur pehle se selected hai
+        if (!isCurrentTestAI && userAnswers[qData.id] === opt) btn.classList.add('selected');
+
+        // Agar AI Practice Test hai aur question ka answer diya ja chuka hai (Reviewing previous question)
+        if (isAnsweredInAI) {
+            btn.style.pointerEvents = 'none'; // Lock button
+            if (opt === qData.correctAnswer) {
+                btn.style.backgroundColor = "var(--success)";
+                btn.style.color = "white";
+                btn.style.borderColor = "var(--success)";
+                btn.innerHTML = `${optionPrefixes[index] || ''}${opt} <span class="material-icons" style="float:right; font-size:18px;">check_circle</span>`;
+            } else if (opt === userAnswers[qData.id]) {
+                btn.style.backgroundColor = "var(--danger)";
+                btn.style.color = "white";
+                btn.style.borderColor = "var(--danger)";
+                btn.innerHTML = `${optionPrefixes[index] || ''}${opt} <span class="material-icons" style="float:right; font-size:18px;">cancel</span>`;
+            }
+        }
+
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            userAnswers[qData.id] = opt;
-            
-            // EXPERT LOGIC: Poora palette destroy karne ke bajaye, sirf current active bubble dhoondo aur usko 'answered' (Green) class de do. O(1) Time Complexity!
             const activeBubble = document.querySelector(`.q-bubble:nth-child(${currentQuestionIndex + 1})`);
-            if (activeBubble && !activeBubble.classList.contains('answered')) {
-                activeBubble.classList.add('answered');
+            
+            if (isCurrentTestAI) {
+                // 🤖 AI PRACTICE MODE: IMMEDIATE FEEDBACK ENGINE
+                if (userAnswers[qData.id]) return; // Ek baar click kar diya toh lock
+                
+                userAnswers[qData.id] = opt;
+                
+                if (opt === qData.correctAnswer) {
+                    // 🎉 Sahi Jawab
+                    btn.style.backgroundColor = "var(--success)";
+                    btn.style.color = "white";
+                    btn.style.borderColor = "var(--success)";
+                    btn.innerHTML = `${optionPrefixes[index] || ''}${opt} <span class="material-icons" style="float:right; font-size:18px;">check_circle</span>`;
+                    if (activeBubble) { activeBubble.classList.add('answered'); }
+                } else {
+                    // ❌ Galat Jawab
+                    btn.style.backgroundColor = "var(--danger)";
+                    btn.style.color = "white";
+                    btn.style.borderColor = "var(--danger)";
+                    btn.innerHTML = `${optionPrefixes[index] || ''}${opt} <span class="material-icons" style="float:right; font-size:18px;">cancel</span>`;
+                    
+                    if (activeBubble) {
+                        activeBubble.style.backgroundColor = "var(--danger)";
+                        activeBubble.style.color = "white";
+                        activeBubble.style.borderColor = "var(--danger)";
+                    }
+                    
+                    // Sahi answer ko automatically dhund kar green highlight karo
+                    document.querySelectorAll('.option-btn').forEach(b => {
+                        if (b.dataset.rawValue === qData.correctAnswer) {
+                            b.style.backgroundColor = "var(--success)";
+                            b.style.color = "white";
+                            b.style.borderColor = "var(--success)";
+                            b.innerHTML = `${b.innerText} <span class="material-icons" style="float:right; font-size:18px;">check_circle</span>`;
+                        }
+                    });
+                }
+                
+                // Saare options ko lock kar do taaki dubara click na ho sake
+                document.querySelectorAll('.option-btn').forEach(b => b.style.pointerEvents = 'none');
+
+            } else {
+                // 📝 NORMAL LIVE EXAM MODE (Purana Logic)
+                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                userAnswers[qData.id] = opt;
+                if (activeBubble && !activeBubble.classList.contains('answered')) {
+                    activeBubble.classList.add('answered');
+                }
             }
         });
         container.appendChild(btn);
@@ -1475,7 +1546,8 @@ function renderQuestion() {
     const nextBtn = document.getElementById('next-btn');
     
     if (currentQuestionIndex === currentQuestions.length - 1) {
-        nextBtn.innerHTML = `Submit Final <span class="material-icons btn-inline-icon">check_circle</span>`;
+        // Agar AI Test hai toh "Finish Practice" dikhao, warna "Submit Final"
+        nextBtn.innerHTML = isCurrentTestAI ? `Finish Practice <span class="material-icons btn-inline-icon">check_circle</span>` : `Submit Final <span class="material-icons btn-inline-icon">check_circle</span>`;
         nextBtn.style.backgroundColor = "var(--success)";
     } else {
         nextBtn.innerHTML = `Next <span class="material-icons btn-inline-icon">arrow_forward</span>`;
@@ -1484,7 +1556,6 @@ function renderQuestion() {
 
     renderQuestionPalette();
 
-    // EXPERT LOGIC: Pehle question aur options ko as a string check karo. Agar usme MathJax ke special symbols ($, \(, \[) hain, TBBHI MathJax engine chalao!
     const fullTextString = qData.questionText + " " + qData.options.join(' ');
     const containsMath = fullTextString.includes('$') || fullTextString.includes('\\(') || fullTextString.includes('\\[');
     
@@ -1540,15 +1611,76 @@ document.getElementById('prev-btn').addEventListener('click', () => {
     if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); }
 });
 
-document.getElementById('next-btn').addEventListener('click', () => {
+// ==========================================
+// 🚀 THE NEXT/FINISH BUTTON LOGIC ENGINE
+// ==========================================
+// 🛡️ ANTI-LOOPHOLE: Clone button to completely remove old duplicate listeners
+const existingNextBtn = document.getElementById('next-btn');
+const newNextBtn = existingNextBtn.cloneNode(true);
+existingNextBtn.parentNode.replaceChild(newNextBtn, existingNextBtn);
+
+newNextBtn.addEventListener('click', () => {
     if (currentQuestionIndex < currentQuestions.length - 1) {
-        currentQuestionIndex++; renderQuestion();
+        currentQuestionIndex++; 
+        renderQuestion();
     } else {
-        const answeredCount = Object.keys(userAnswers).length;
-        if (answeredCount < currentQuestions.length) {
-            showCustomPopup("Incomplete", `You answered ${answeredCount} of ${currentQuestions.length} questions. Submit?`, "warning", processSubmission, true);
+        // AAKHRI QUESTION PAR CLICK HUA!
+        if (window.isCurrentTestAI) {
+            // 🤖 Practice Mode - LOCAL SCORE CALCULATION (NO DB LOOPHOLE)
+            let aiScore = 0;
+            const totalAiQuestions = currentQuestions.length;
+            
+            // System check karega ki memory (RAM) mein kitne answer sahi hain
+            currentQuestions.forEach(q => {
+                if (userAnswers[q.id] === q.correctAnswer) {
+                    aiScore++;
+                }
+            });
+
+            // 🎯 Grade-Level Personalized Feedback Messages
+            let percentage = (aiScore / totalAiQuestions) * 100;
+            let customMsg = "";
+            let emoji = "";
+
+            if (percentage >= 90) {
+                emoji = "🔥";
+                customMsg = "Outstanding! Your concepts are crystal clear. You are definitely ready for the top IIT/NEET ranks!";
+            } else if (percentage >= 70) {
+                emoji = "🌟";
+                customMsg = "Great job! Your foundation is very solid. Just a little more polishing on this topic and you're perfect.";
+            } else if (percentage >= 40) {
+                emoji = "👍";
+                customMsg = "Good attempt! But you need to revise the core concepts of this chapter. Review the incorrect answers carefully.";
+            } else {
+                emoji = "💪";
+                customMsg = "Keep learning! Don't be demotivated. Read the chapter notes once more and try practicing again. You will improve!";
+            }
+
+            // Show Advanced Result Popup
+            showCustomPopup(
+                `Practice Complete! ${emoji}`, 
+                `You scored <strong style="color:var(--primary); font-size: 18px;">${aiScore}</strong> out of <strong>${totalAiQuestions}</strong> marks.<br><br>
+                <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; color: var(--text-main); font-weight: 600; line-height: 1.4;">
+                    ${customMsg}
+                </div><br>
+                <span style="font-size: 11px; color: var(--success); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <span class="material-icons" style="font-size: 14px;">verified</span> 100% Secure: No data was saved to the server.
+                </span>`, 
+                "success", 
+                () => {
+                    isTestActive = false;
+                    switchTab('home-tab', 'Home Dashboard'); // Ghar wapas bhej do
+                }
+            );
+
         } else {
-            showCustomPopup("Submit Test", "Submit your final answers?", "info", processSubmission, true);
+            // 📝 Normal Exam Mode - Submit to Google Sheets (Original Logic Intact)
+            const answeredCount = Object.keys(userAnswers).length;
+            if (answeredCount < currentQuestions.length) {
+                showCustomPopup("Incomplete", `You answered ${answeredCount} of ${currentQuestions.length} questions. Submit?`, "warning", processSubmission, true);
+            } else {
+                showCustomPopup("Submit Test", "Submit your final answers?", "info", processSubmission, true);
+            }
         }
     }
 });
@@ -2846,3 +2978,144 @@ document.getElementById('share-rank-btn')?.addEventListener('click', () => {
         }
     }, 150); // ⏳ Yeh 150ms ka delay browser ko freeze hone se bachayega
 });
+
+
+// ==========================================
+// 🤖 AI SMART EXAMINER - MASTER ENGINE (NO DB, NO TIMER)
+// ==========================================
+window.isCurrentTestAI = false; // 🛡️ Zero Loophole: Global variable so that renderQuestion never crashes
+let selectedAiQuestionCount = 10; 
+
+// 🛡️ SECURITY: Normal tests play karte waqt AI flag automatically false hoga taaki clash na ho
+const _origStartLiveTest = startLiveTest;
+startLiveTest = async function(testId, durationMins) {
+    window.isCurrentTestAI = false;
+    return _origStartLiveTest(testId, durationMins);
+};
+
+document.querySelectorAll('.ai-count-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.ai-count-btn').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        selectedAiQuestionCount = parseInt(e.currentTarget.getAttribute('data-count')) || 10;
+    });
+});
+
+
+// ==========================================
+// 🤖 AI SMART EXAMINER - DEEP DIAGNOSTIC ENGINE
+// ==========================================
+document.getElementById('btn-generate-ai-quiz')?.addEventListener('click', async () => {
+    const topic = document.getElementById('ai-topic-input').value.trim();
+    const subject = document.getElementById('ai-subject-select').value;
+    const classLvl = document.getElementById('ai-class-select').value;
+    const generateBtn = document.getElementById('btn-generate-ai-quiz');
+
+    if (!topic) {
+        showCustomPopup("Topic Required ⚠️", "Please enter a topic name.", "warning");
+        return;
+    }
+
+    if (generateBtn) generateBtn.disabled = true;
+    showLoader("Generating your test. Please Wait...");
+    
+    // 🛡️ TESTING TRAP 1: Log exact request params to Console
+    console.log("[AI Test Request] Payload:", { action: "generateAiTest", username: loggedInUser, subject, topic, classLvl, count: selectedAiQuestionCount });
+
+    try {
+        const authToken = localStorage.getItem('auth_token');
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            redirect: "follow",
+            body: JSON.stringify({
+                action: "generateAiTest",
+                username: loggedInUser,
+                token: authToken,
+                subject: subject,
+                topic: topic,
+                classLvl: classLvl,
+                count: selectedAiQuestionCount
+            })
+        });
+
+        // 🛡️ TESTING TRAP 2: Capture RAW Response before JSON parsing
+        const rawResponseText = await response.text();
+        console.log("[AI Test Response - RAW]:", rawResponseText);
+
+        let result;
+        try {
+            result = JSON.parse(rawResponseText);
+        } catch (jsonError) {
+            // 🚨 LOOPHOLE PREVENTER: If Google Script returned HTML instead of JSON
+            console.error("[JSON Parse Failure] Server did not return JSON:", rawResponseText);
+            hideLoader();
+            if (generateBtn) generateBtn.disabled = false;
+            showCustomPopup(
+                "Backend Syntax / Permission Error 🚨", 
+                `The server returned an invalid response instead of JSON.<br><br><strong>Technical Reason:</strong> <div style="background:#1e293b; color:#ef4444; padding:8px; border-radius:6px; font-size:11px; margin-top:5px; max-height:100px; overflow:auto; text-align:left;">${rawResponseText.slice(0, 300)}...</div><br>Please check Google Script deployment permissions (Must be set to 'Anyone').`, 
+                "danger"
+            );
+            return;
+        }
+
+        hideLoader();
+        if (generateBtn) generateBtn.disabled = false;
+
+        if (result.success && result.questions && result.questions.length > 0) {
+            console.log("✅ [AI Test Success] Questions Loaded:", result.questions.length);
+            currentQuestions = result.questions;
+            currentQuestionIndex = 0;
+            userAnswers = {}; 
+            window.isCurrentTestAI = true; 
+            
+            const testTitleEl = document.getElementById('test-title');
+            if (testTitleEl) testTitleEl.innerText = result.testTitle || `AI Quiz: ${subject}`;
+            
+            isTestActive = true; 
+            renderQuestion();
+            
+            clearInterval(timerInterval);
+            const timerDisplay = document.getElementById('timer');
+            if (timerDisplay) timerDisplay.innerText = "∞ Practice";
+            const timerIcon = document.getElementById('exam-timer-icon');
+            if (timerIcon) timerIcon.innerText = "self_improvement"; 
+            
+            switchTab('test-tab', 'Practice Mode'); 
+
+            try {
+                let elem = document.documentElement;
+                if (elem.requestFullscreen) { elem.requestFullscreen(); }
+                else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
+            } catch (err) { console.log("Fullscreen blocked"); }
+
+        } else {
+            // 🚨 TESTING TRAP 3: Exact Backend Error Message Shown Cleanly
+            console.error("[AI Generation Failed]:", result.message);
+            showCustomPopup(
+                "Generation Failed ❌", 
+                `<strong>Actual Real Reason:</strong><br><div style="background:#fee2e2; color:#991b1b; padding:10px; border-radius:8px; font-size:13px; margin-top:6px; text-align:left;">${result.message || "Unknown Backend Error"}</div>`, 
+                "danger"
+            );
+        }
+    } catch (error) {
+        hideLoader();
+        if (generateBtn) generateBtn.disabled = false;
+        console.error("[Fatal Network / Script Error]:", error);
+        showCustomPopup(
+            "Network / Fatal Error ⚠️", 
+            `Could not communicate with server.<br><br><strong>System Error:</strong> <code style="color:var(--danger);">${error.message}</code>`, 
+            "danger"
+        );
+    }
+});
+
+
+// 🛡️ Ensure Normal Test reseta icon back to Clock
+const _origStartLiveTest2 = startLiveTest;
+startLiveTest = async function(testId, durationMins) {
+    window.isCurrentTestAI = false;
+    const timerIcon = document.getElementById('exam-timer-icon');
+    if (timerIcon) timerIcon.innerText = "schedule"; // Reset back to clock
+    return _origStartLiveTest2(testId, durationMins);
+};
