@@ -1,6 +1,6 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
-
+ 
 firebase.initializeApp({
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
     authDomain: "testportal-9562c.firebaseapp.com",
