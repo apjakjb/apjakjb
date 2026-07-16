@@ -124,6 +124,9 @@
             <button class="drawer-item active" id="menu-home-btn">
                 <span class="material-icons">home</span> Home Dashboard
             </button>
+            <button class="drawer-item" id="menu-ai-btn">
+                <span class="material-icons" style="color: #F59E0B;">self_improvement</span> Xhondhan AI
+            </button>
             <button class="drawer-item" id="menu-dark-toggle">
                 <span class="material-icons" id="drawer-theme-icon">dark_mode</span> 
                 <span id="drawer-theme-text">Dark Theme</span>
@@ -461,6 +464,92 @@
                         <div id="premium-test-list" class="test-list-container"></div>
                     </div>
                 </div>
+
+
+                <!-- ========================================== -->
+                <!-- 🤖 AI SMART QUIZ GENERATOR TAB             -->
+                <!-- ========================================== -->
+                <div id="ai-tab" class="tab-view" style="display: none;">
+                    <div class="screen-content" style="padding-bottom: 90px;">
+                        
+                        <!-- AI Premium Glowing Banner -->
+                        <div class="ai-header-card">
+                            <div class="ai-badge-row">
+                                <span class="ai-pill"><span class="material-icons" style="font-size: 14px;">bolt</span> 100% Free & Unlimited</span>
+                                <span class="ai-pill" style="background: rgba(16, 185, 129, 0.2); color: #10B981;"><span class="material-icons" style="font-size: 14px;">verified_user</span> Zero DB Clutter</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 14px; margin-top: 14px;">
+                                <div class="ai-icon-ring">
+                                    <span class="material-icons" style="font-size: 32px; color: #04C704;">self_improvement</span>
+                                </div>
+                                <div>
+                                    <h2 style="color: #FFF; font-size: 20px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">Xhondhan AI</h2>
+                                    <p style="color: rgba(255,255,255,0.85); font-size: 10px; margin: 4px 0 0; font-weight: 500;">Powered by Test Portal ● SA Khan</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="section-title" style="margin-top: 22px;">Step 1: Select Target & Subject</p>
+                        <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 20px;">
+                            <div class="ai-form-group">
+                                <label><span class="material-icons">school</span> Target Class</label>
+                                <select id="ai-class-select" class="ai-input">
+                                    <option value="12">Class XII (Senior Secondary)</option>
+                                    <option value="11">Class XI (Senior Secondary)</option>
+                                    <option value="10">Class X (Matriculation)</option>
+                                    <option value="9">Class IX (Foundation)</option>
+                                </select>
+                            </div>
+
+                            <div class="ai-form-group" style="margin-top: 16px; margin-bottom: 0;">
+                                <label><span class="material-icons">menu_book</span> Select Subject</label>
+                                <select id="ai-subject-select" class="ai-input">
+                                    <option value="Physics">Physics</option>
+                                    <option value="Chemistry">Chemistry</option>
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="Biology">Biology</option>
+                                    <option value="Science">General Science</option>
+                                    <option value="Social Science">Social Science</option>
+                                    <option value="English">English</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <p class="section-title">Step 2: Enter Chapter / Topic Name</p>
+                        <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 24px;">
+                            <div class="ai-form-group" style="margin-bottom: 16px;">
+                                <label><span class="material-icons">biotech</span> Chapter or Specific Topic</label>
+                                <input type="text" id="ai-topic-input" class="ai-input" placeholder="e.g., Thermodynamics, Optics, Carbon Compounds..." maxlength="60" required>
+                                <small style="color: var(--text-muted); font-size: 11px; margin-top: 6px; display: block; font-weight: 500;">💡 Tip: Be specific for deeper IIT/NEET level practice questions!</small>
+                            </div>
+
+                            <div class="ai-form-group" style="margin-bottom: 0;">
+                                <label><span class="material-icons">format_list_numbered</span> Number of MCQs</label>
+                                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                                    <button type="button" class="ai-count-btn active" data-count="10">10 MCQs (Standard)</button>
+                                    <button type="button" class="ai-count-btn" data-count="15">15 MCQs (Deep Practice)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Generate Action Button -->
+                        <button type="button" id="btn-generate-ai-quiz" class="btn-primary ai-generate-btn">
+                            <span class="material-icons ai-sparkle-icon" style="font-size: 20px;">auto_awesome</span> 
+                            Generate Instant AI Test
+                        </button>
+
+                        <div style="text-align: center; margin-top: 16px;">
+                            <p style="font-size: 11px; color: var(--text-muted); font-weight: 600;">
+                                <span class="material-icons" style="font-size: 14px; vertical-align: middle; color: var(--success);">verified</span> Questions generate dynamically in RAM & submit securely to DB.
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
+
+
+
                 <div id="results-tab" class="tab-view" style="display: none;">
                     <div class="screen-content">
                         <div class="tab-header-block">
@@ -544,7 +633,7 @@
                     <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: var(--card-bg); border-bottom: 1px solid var(--border);">
                         <span id="question-counter" class="badge" style="font-size: 14px; font-weight: 800;">0/0</span>
                         <div class="timer-wrapper">
-                            <span class="material-icons timer-icon" style="font-size:18px;">schedule</span>
+                            <span class="material-icons timer-icon" id="exam-timer-icon" style="font-size:18px;">schedule</span>
                             <div id="timer" class="timer-badge" style="font-size:15px;">00:00</div>
                         </div>
                     </div>
@@ -743,6 +832,10 @@
                 <button class="nav-tab-btn active" id="tab-btn-home">
                     <span class="material-icons">home</span>
                     <span class="tab-label">Home</span>
+                </button>
+                <button class="nav-tab-btn" id="tab-btn-ai">
+                    <span class="material-icons">self_improvement</span>
+                    <span class="tab-label">Xhondhan</span>
                 </button>
                 <button class="nav-tab-btn" id="tab-btn-results">
                     <span class="material-icons">analytics</span>
