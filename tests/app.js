@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbwRHk7U_5rmSftsC6qcCdg3fdK4CCzwhVtLY6HWfYNdTBakQV_RfQywDqeKZU91IUX6_g/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzdPBQLoNMDfd-gZY3oKz0a3aK59RHaeSi22QRjCLcT21SBuX9wRbpSkW6rm2z7730SAw/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
