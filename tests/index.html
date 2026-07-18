@@ -493,24 +493,23 @@
                         <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 20px;">
                             <div class="ai-form-group">
                                 <label><span class="material-icons">school</span> Target Class</label>
-                                <select id="ai-class-select" class="ai-input">
-                                    <option value="12">Class XII (Senior Secondary)</option>
-                                    <option value="11">Class XI (Senior Secondary)</option>
-                                    <option value="10">Class X (Matriculation)</option>
-                                    <option value="9">Class IX (Foundation)</option>
+                                <select id="ai-class-select" class="ai-input" required>
+                                    <option value="" disabled selected>Select Class</option>
+                                    <option value="Class IX">Class IX</option>
+                                    <option value="Class X (HSLC)">Class X (HSLC)</option>
+                                    <option value="Class XI (HS 1st Year)">Class XI (HS 1st Year)</option>
+                                    <option value="Class XII (HS 2nd Year)">Class XII (HS 2nd Year)</option>
+                                    <option value="ADRE (HS Level)">ADRE (HS Level)</option>
+                                    <option value="TET (HS Level)">TET (HS Level)</option>
+                                    <option value="ADRE (Degree Level)">ADRE (Degree Level)</option>
+                                    <option value="TET (Degree Level)">TET (Degree Level)</option>
                                 </select>
                             </div>
 
                             <div class="ai-form-group" style="margin-top: 16px; margin-bottom: 0;">
                                 <label><span class="material-icons">menu_book</span> Select Subject</label>
-                                <select id="ai-subject-select" class="ai-input">
-                                    <option value="Physics">Physics</option>
-                                    <option value="Chemistry">Chemistry</option>
-                                    <option value="Mathematics">Mathematics</option>
-                                    <option value="Biology">Biology</option>
-                                    <option value="Science">General Science</option>
-                                    <option value="Social Science">Social Science</option>
-                                    <option value="English">English</option>
+                                <select id="ai-subject-select" class="ai-input" disabled required>
+                                    <option value="" disabled selected>Select subject</option>
                                 </select>
                             </div>
                         </div>
