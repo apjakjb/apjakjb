@@ -82,7 +82,7 @@ messaging.onBackgroundMessage((payload) => {
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v131'; // Version updated to trigger fresh install
+const CACHE_VERSION = 'premium-portal-v132'; // Version updated to trigger fresh install
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
