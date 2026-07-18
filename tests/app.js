@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbx1kae1lP0W992WvBZnkPC5r44YDWJE9QBE9Wio7m4FqerStt71362B1Szi_5ppyleMuQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxjCzdWhOHVrJwKdeyAtqNh-jWl3ZTi6bZou8hBqFW9qAOkCS2zxDc6Knsr7kSsGBn5mA/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -3016,14 +3016,70 @@ document.querySelectorAll('.ai-count-btn').forEach(btn => {
 // ==========================================
 // 🤖 AI SMART EXAMINER - DEEP DIAGNOSTIC ENGINE
 // ==========================================
+// ==========================================
+// 🛡️ DYNAMIC AI SUBJECT SELECTION LOGIC
+// ==========================================
+const aiClassSelect = document.getElementById('ai-class-select');
+const aiSubjectSelect = document.getElementById('ai-subject-select');
+
+// Mapping of Classes to their specific subjects for Assam boards
+const aiSubjectsMap = {
+    'Class IX': ['Mathematics', 'Science', 'English', 'Social Science', 'Geography (E)', 'History (E)', 'Advance Mathematics (E)', 'IT/ITeS NSQF (E)'],
+    'Class X (HSLC)': ['Mathematics', 'Science', 'English', 'Social Science', 'Geography (E)', 'History (E)', 'Advance Mathematics (E)', 'IT/ITeS NSQF (E)'],
+    'Class XI (HS 1st Year)': ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'English', 'Geography', 'Economics', 'Political Science', 'Education', 'History', 'Accountancy', 'Business Studies'],
+    'Class XII (HS 2nd Year)': ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'English', 'Geography', 'Economics', 'Political Science', 'Education', 'History', 'Accountancy', 'Business Studies'],
+    'ADRE (HS Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'General Mathematics'],
+    'TET (HS Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'General Mathematics'],
+    'ADRE (Degree Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'General Mathematics', 'Comprehension and English Language'],
+    'TET (Degree Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'General Mathematics', 'Comprehension and English Language']
+};
+
+// Event listener to populate subjects based on class selection
+if (aiClassSelect && aiSubjectSelect) {
+    aiClassSelect.addEventListener('change', function() {
+        const selectedClass = this.value;
+        const subjects = aiSubjectsMap[selectedClass] || [];
+        
+        // Reset subject dropdown
+        aiSubjectSelect.innerHTML = '<option value="" disabled selected>Select subject</option>';
+        
+        if (subjects.length > 0) {
+            aiSubjectSelect.disabled = false;
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                aiSubjectSelect.appendChild(option);
+            });
+        } else {
+            aiSubjectSelect.disabled = true;
+        }
+    });
+}
+
 document.getElementById('btn-generate-ai-quiz')?.addEventListener('click', async () => {
-    const topic = document.getElementById('ai-topic-input').value.trim();
-    const subject = document.getElementById('ai-subject-select').value;
-    const classLvl = document.getElementById('ai-class-select').value;
+    const topicInput = document.getElementById('ai-topic-input');
+    const subjectSelect = document.getElementById('ai-subject-select');
+    const classSelect = document.getElementById('ai-class-select');
     const generateBtn = document.getElementById('btn-generate-ai-quiz');
 
+    const topic = topicInput ? topicInput.value.trim() : "";
+    const subject = subjectSelect ? subjectSelect.value : "";
+    const classLvl = classSelect ? classSelect.value : "";
+
+    // Comprehensive validation ensuring no loopholes
+    if (!classLvl) {
+        showCustomPopup("Target Required ⚠️", "Please select a target class or exam.", "warning");
+        return;
+    }
+    
+    if (!subject) {
+        showCustomPopup("Subject Required ⚠️", "Please select a subject.", "warning");
+        return;
+    }
+
     if (!topic) {
-        showCustomPopup("Topic Required ⚠️", "Please enter a topic name.", "warning");
+        showCustomPopup("Topic Required ⚠️", "Please enter a specific topic or chapter name.", "warning");
         return;
     }
 
