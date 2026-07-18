@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbwHWm4Z2pN6Gq3PDixFAzWQmRQ8JIDUGnN6ubTv-Z-n_070bWXsuN57e6MgVQmX-COq4w/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx1kae1lP0W992WvBZnkPC5r44YDWJE9QBE9Wio7m4FqerStt71362B1Szi_5ppyleMuQ/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -3059,14 +3059,14 @@ document.getElementById('btn-generate-ai-quiz')?.addEventListener('click', async
         try {
             result = JSON.parse(rawResponseText);
         } catch (jsonError) {
-            // 🚨 LOOPHOLE PREVENTER: If Google Script returned HTML instead of JSON
-            console.error("[JSON Parse Failure] Server did not return JSON:", rawResponseText);
+            // 🚨 IIT LOGIC: Log raw error in console for Admin, but show friendly message to student
+            console.error("[JSON Parse Failure / Backend Error]:", rawResponseText);
             hideLoader();
             if (generateBtn) generateBtn.disabled = false;
             showCustomPopup(
-                "Backend Syntax / Permission Error 🚨", 
-                `The server returned an invalid response instead of JSON.<br><br><strong>Technical Reason:</strong> <div style="background:#1e293b; color:#ef4444; padding:8px; border-radius:6px; font-size:11px; margin-top:5px; max-height:100px; overflow:auto; text-align:left;">${rawResponseText.slice(0, 300)}...</div><br>Please check Google Script deployment permissions (Must be set to 'Anyone').`, 
-                "danger"
+                "Service Temporarily Busy 🛠️", 
+                "Xhondhan AI server is to busy. Please try again later.", 
+                "warning"
             );
             return;
         }
@@ -3099,24 +3099,25 @@ document.getElementById('btn-generate-ai-quiz')?.addEventListener('click', async
                 let elem = document.documentElement;
                 if (elem.requestFullscreen) { elem.requestFullscreen(); }
                 else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
-            } catch (err) { console.log("Fullscreen blocked"); }
+            } catch (err) { console.log("Fullscreen natively blocked by browser."); }
 
         } else {
-            // 🚨 TESTING TRAP 3: Exact Backend Error Message Shown Cleanly
+            // 🚨 IIT LOGIC: Log actual API issue in console, show professional message to user
             console.error("[AI Generation Failed]:", result.message);
             showCustomPopup(
-                "Generation Failed ❌", 
-                `<strong>Actual Real Reason:</strong><br><div style="background:#fee2e2; color:#991b1b; padding:10px; border-radius:8px; font-size:13px; margin-top:6px; text-align:left;">${result.message || "Unknown Backend Error"}</div>`, 
-                "danger"
+                "High Server Traffic 🚀", 
+                "A lot of student is generating test. Try again right now.", 
+                "info"
             );
         }
     } catch (error) {
         hideLoader();
         if (generateBtn) generateBtn.disabled = false;
+        // 🚨 IIT LOGIC: Log network failure, show clean connection message
         console.error("[Fatal Network / Script Error]:", error);
         showCustomPopup(
-            "Network / Fatal Error ⚠️", 
-            `Could not communicate with server.<br><br><strong>System Error:</strong> <code style="color:var(--danger);">${error.message}</code>`, 
+            "Connection Lost 📡", 
+            "Slow internet connection. Please try again...", 
             "danger"
         );
     }
