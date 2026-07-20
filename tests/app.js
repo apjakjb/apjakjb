@@ -4,7 +4,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbztRERQTM-_kWvkQrzyERwXNHQlWIII46WqgQAs3IqKPLZnqEWZDu-PLaKiXg0vrdeUtA/exec";
 
 // ========================================== 
-// FIREBASE ENGINE & DATABASE  
+// FIREBASE ENGINE & DATABASE 
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
