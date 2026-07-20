@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxjCzdWhOHVrJwKdeyAtqNh-jWl3ZTi6bZou8hBqFW9qAOkCS2zxDc6Knsr7kSsGBn5mA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbztRERQTM-_kWvkQrzyERwXNHQlWIII46WqgQAs3IqKPLZnqEWZDu-PLaKiXg0vrdeUtA/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -16,14 +16,15 @@ const firebaseConfig = {
     appId: "1:737523775575:web:26db3649ede4845e688b12"
 };
 
-// 🚀 CRITICAL SAFETY: Safe Firebase Initialization with Defer Support
-let messaging, database, auth, googleProvider;
+
+
+// 🚀 CRITICAL SAFETY: Safe Firebase Initialization with Defer Support (Google Auth Removed)
+let messaging, database, auth;
 try {
     firebase.initializeApp(firebaseConfig);
     messaging = firebase.messaging();
     database = firebase.database();
     auth = firebase.auth(); 
-    googleProvider = new firebase.auth.GoogleAuthProvider();
 } catch (err) {
     console.error("Firebase initialization delayed or offline:", err);
 }
@@ -54,6 +55,7 @@ let currentLeaderboardData = []; // 🛡️ NAYA: Data for Share Image
 let currentSubjectClassLvl = '9'; 
 let globalLiveTests1112 = []; // 🛡️ NAYA: Storage for XI/XII Subject filtering
 let currentSubjectClassLvl1112 = '11'; // 🛡️ NAYA: Default tab for XI/XII
+let isCurrentTestAI = false; // 🛡️ THE FIX: Secure Lexical Scoping (Hidden from Window Object)
 
 const optionPrefixes = ['(a) ', '(b) ', '(c) ', '(d) '];
 
@@ -62,6 +64,20 @@ const optionPrefixes = ['(a) ', '(b) ', '(c) ', '(d) '];
 // ==========================================
 // 🚀 GLOBAL UTILITY FUNCTIONS (OPTIMIZED)
 // ==========================================
+// 🛡️ IIT EXPERT XSS SHIELD: Neutralizes malicious HTML tags from user inputs
+const escapeHTML = (str) => {
+    if (!str) return "";
+    return String(str).replace(/[&<>'"]/g, 
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag] || tag)
+    );
+};
+
 const formatShortDate = (isoString) => {
     if (!isoString) return 'TBA';
     return new Date(isoString).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
@@ -503,34 +519,38 @@ function triggerSmartPushPrompt() {
 
 
 // ==========================================
-// 4. AUTHENTICATION & PWA POPUP-HACK ENGINE (FINAL BULLETPROOF)
+// 4. BULLETPROOF FIREBASE EMAIL AUTH & BACKEND SYNC ENGINE
 // ==========================================
 
-let isGoogleLoginProcessing = false;
-let visibilityTimeout = null;
+let isFirebaseAuthProcessing = false;
+let isSignUpMode = false; // Toggle between Login & Sign Up
 
-// 🚀 MASTER ENGINE: Sync Google User to APJAKJB Server Guaranteed
-async function syncGoogleUserWithBackend(user) {
-    if (sessionStorage.getItem('google_sync_in_progress') === 'true') return;
-    sessionStorage.setItem('google_sync_in_progress', 'true');
+
+
+// 🚀 MASTER ENGINE: Sync Firebase User to APJAKJB Server Guaranteed (IDOR PROOF)
+async function syncFirebaseUserWithBackend(user, customStudentName = null) {
+    if (sessionStorage.getItem('firebase_sync_in_progress') === 'true') return;
+    sessionStorage.setItem('firebase_sync_in_progress', 'true');
     
-    // 🛡️ Lock the fallback timer immediately so it doesn't kill our loader
-    isGoogleLoginProcessing = false;
-    if (visibilityTimeout) {
-        clearTimeout(visibilityTimeout);
-        visibilityTimeout = null;
-    }
-
-    showLoader("Syncing with Test Portal Server...");
+    isFirebaseAuthProcessing = false;
+    showLoader("Syncing Secure Session with Portal...");
     try {
         const email = user.email;
-        const name = user.displayName || email.split('@')[0];
+        const name = customStudentName || user.displayName || email.split('@')[0];
+        
+        // 🛡️ IIT EXPERT FIX: Client email ke bajaye Firebase ka cryptographic JWT Token nikaalo
+        const secureIdToken = await user.getIdToken(true); 
         const authToken = localStorage.getItem('auth_token');
 
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "googleLogin", email: email, name: name })
+            body: JSON.stringify({ 
+                action: "firebaseAuthSync", 
+                email: email, 
+                name: name,
+                idToken: secureIdToken // <-- Passing cryptographically signed token
+            })
         });
         
         const backendResult = JSON.parse(await response.text());
@@ -545,25 +565,32 @@ async function syncGoogleUserWithBackend(user) {
             localStorage.setItem('auth_time', Date.now().toString());    
 
             updateProfileUI();
-            document.getElementById('error-message').innerText = ""; 
+            const errorMsg = document.getElementById('error-message');
+            if(errorMsg) errorMsg.innerText = ""; 
+            
+            // 🛡️ IIT LOGIC FIX: Auth pass hone ke baad App Shell me enter karwana mandatory hai!
+            navigate('main-app-shell');
+            switchTab('home-tab', 'Home Dashboard');
+            
             loadDashboard();
             triggerSmartPushPrompt(); 
             setTimeout(showPremiumWelcomeAd, 1500);
         } else {
-            showCustomPopup("Access Denied", backendResult.message, "danger");
+            showCustomPopup("Access Denied 🚨", backendResult.message, "danger");
             if(auth) auth.signOut();
             navigate('login-screen');
         }
     } catch (error) {
         console.error("Server Sync Error:", error);
-        showCustomPopup("Network Drop", "Sync interrupted. Please check your connection and tap Login again.", "warning");
+        showCustomPopup("Network Drop", "Sync interrupted. Please check your internet connection.", "warning");
         navigate('login-screen');
     } finally {
-        sessionStorage.removeItem('google_sync_in_progress');
+        sessionStorage.removeItem('firebase_sync_in_progress');
         hideLoader(); 
     }
 }
 
+// 🚀 ZERO-TRUST GATEKEEPER: Never allow shell access without active server verification
 function checkAuthSession() {
     const cachedUser = localStorage.getItem('student_username');
     const cachedName = localStorage.getItem('student_name');
@@ -576,24 +603,26 @@ function checkAuthSession() {
         loggedInUser = cachedUser;
         loggedInUserName = cachedName || cachedUser.split('@')[0]; 
         updateProfileUI();
-        history.replaceState({ screen: 'main-app-shell' }, "", "#main-app-shell");
-        loadDashboard(); 
-        triggerSmartPushPrompt();
-        setTimeout(showPremiumWelcomeAd, 1500);
-    } else {
-        localStorage.removeItem('student_username');
-        localStorage.removeItem('student_name');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_time');
         
-        history.replaceState({ screen: 'login-screen' }, "", "#login-screen");
-        navigate('login-screen', false);
+        showLoader("Verifying Secure Session...");
+        
+        // 🛡️ IIT LOGIC FIX: Auto-login ke time server verification ke baad Dashboard switch karna zaroori hai!
+        loadDashboard().then(() => {
+            if (localStorage.getItem('auth_token')) {
+                navigate('main-app-shell');
+                switchTab('home-tab', 'Home Dashboard');
+                triggerSmartPushPrompt();
+                setTimeout(showPremiumWelcomeAd, 1500);
+            }
+        });
+    } else {
+        forceSilentLogout();
     }
 }
 
 document.addEventListener("DOMContentLoaded", checkAuthSession);
 
-// 🛡️ NAYA: Bulletproof safety lock (Prevents crash if Firebase loads late)
+// 🛡️ Bulletproof Auto-Session Restore (If already logged in via email)
 if (auth) {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -601,8 +630,8 @@ if (auth) {
             const authTimestamp = localStorage.getItem('auth_time'); 
             const isTokenExpired = authTimestamp && (Date.now() - parseInt(authTimestamp) > 24 * 60 * 60 * 1000);
             
-            if (!hasLocalToken || isTokenExpired || isGoogleLoginProcessing) {
-                await syncGoogleUserWithBackend(user);
+            if (!hasLocalToken || isTokenExpired || isFirebaseAuthProcessing) {
+                await syncFirebaseUserWithBackend(user);
             }
         }
     });
@@ -626,117 +655,252 @@ function updateProfileUI() {
     }
 }
 
-document.getElementById('login-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const errorMsg = document.getElementById('error-message');
-    const usernameInput = document.getElementById('username').value.trim();
-    const passwordInput = document.getElementById('password').value.trim();
-    
-    showLoader("Authenticating Session...");
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            redirect: "follow",
-            body: JSON.stringify({ action: "login", username: usernameInput, password: passwordInput })
-        });
-        const result = JSON.parse(await response.text());
 
-        if (result.success) {
-            loggedInUser = usernameInput;
-            loggedInUserName = usernameInput;
-            localStorage.setItem('student_username', loggedInUser);
-            localStorage.setItem('student_name', loggedInUserName);
-            localStorage.setItem('auth_token', result.token); 
-            localStorage.setItem('auth_time', Date.now().toString()); 
-            
-            updateProfileUI();
-            document.getElementById('login-form').reset();
-            errorMsg.innerText = "";
-            loadDashboard();
-            triggerSmartPushPrompt(); 
-            setTimeout(showPremiumWelcomeAd, 1500);
-        } else {
-            errorMsg.innerText = result.message;
-        }
-    } catch (error) {
-        errorMsg.innerText = "Network connection failed. Please try again.";
-    } finally {
-        hideLoader();
-    }
-});
 
-const googleLoginBtn = document.getElementById('google-login-btn');
 
-if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', () => {
-        // 🛡️ NAYA: Safe Fallback if network drops
-        if (!auth || typeof firebase === 'undefined') {
-            showCustomPopup("Connection Error", "Google Login service is currently unreachable. Please check your internet or try Admin Login.", "danger");
+// ==========================================
+// 🚀 SMART STUDENT EMAIL AUTH & FORGOT PASSWORD ENGINE
+// ==========================================
+const tabStudentLogin = document.getElementById('tab-student-login');
+const tabStudentSignup = document.getElementById('tab-student-signup');
+const studentNameWrapper = document.getElementById('student-name-wrapper');
+const forgotPassWrapper = document.getElementById('forgot-pass-wrapper');
+const studentAuthSubmitBtn = document.getElementById('student-auth-submit-btn');
+const studentAuthError = document.getElementById('student-auth-error');
+
+// 🔄 IIT-Grade Smart Tab Switch Helper Functions
+function switchToLoginMode(prefillEmail = "", customMsg = "") {
+    isSignUpMode = false;
+    if(tabStudentLogin) tabStudentLogin.classList.add('active');
+    if(tabStudentSignup) tabStudentSignup.classList.remove('active');
+    if(studentNameWrapper) studentNameWrapper.style.display = 'none';
+    if(forgotPassWrapper) forgotPassWrapper.style.display = 'block';
+    document.getElementById('student-name')?.removeAttribute('required');
+    if(studentAuthSubmitBtn) studentAuthSubmitBtn.innerHTML = `<span class="material-icons" style="font-size: 18px;">login</span> Login to Portal`;
+    if(prefillEmail) document.getElementById('student-email').value = prefillEmail;
+    if(studentAuthError) studentAuthError.innerHTML = customMsg; // Use innerHTML for <b> tags
+}
+
+function switchToSignupMode(prefillEmail = "", customMsg = "") {
+    isSignUpMode = true;
+    if(tabStudentSignup) tabStudentSignup.classList.add('active');
+    if(tabStudentLogin) tabStudentLogin.classList.remove('active');
+    if(studentNameWrapper) studentNameWrapper.style.display = 'block';
+    if(forgotPassWrapper) forgotPassWrapper.style.display = 'none';
+    document.getElementById('student-name')?.setAttribute('required', 'true');
+    if(studentAuthSubmitBtn) studentAuthSubmitBtn.innerHTML = `<span class="material-icons" style="font-size: 18px;">person_add</span> Create Free Account`;
+    if(prefillEmail) document.getElementById('student-email').value = prefillEmail;
+    if(studentAuthError) studentAuthError.innerHTML = customMsg; // Use innerHTML for <b> tags
+}
+
+if (tabStudentLogin && tabStudentSignup) {
+    tabStudentLogin.addEventListener('click', () => { studentAuthError.innerHTML = ""; switchToLoginMode(); });
+    tabStudentSignup.addEventListener('click', () => { studentAuthError.innerHTML = ""; switchToSignupMode(); });
+}
+
+// 🎯 Smart Form Submission with Zero-Loophole Auto-Switching
+const studentAuthForm = document.getElementById('student-auth-form');
+if (studentAuthForm) {
+    studentAuthForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!auth) {
+            showCustomPopup("Connection Error", "Firebase Authentication engine is offline or unreachable.", "danger");
             return;
         }
 
-        if (googleLoginBtn.disabled) return;
-        googleLoginBtn.disabled = true;
-        
-        const originalBtnHTML = googleLoginBtn.innerHTML;
-        googleLoginBtn.innerHTML = `<span class="material-icons" style="font-size:16px; animation: spinGlow 1s linear infinite;">autorenew</span> Connecting Securely...`;
-        googleLoginBtn.style.opacity = "0.7";
-        
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-        
-        isGoogleLoginProcessing = true;
-        showLoader("Opening Secure Gateway...");
-        
-        auth.signInWithPopup(provider).then((result) => {
-            console.log("Popup resolved natively.");
-            googleLoginBtn.disabled = false;
-            googleLoginBtn.innerHTML = originalBtnHTML;
-            googleLoginBtn.style.opacity = "1";
-        }).catch((error) => {
-            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                console.log("PWA WebView Detached. Waiting for background login...");
-                
-                const loaderText = document.getElementById('loader-text');
-                if(loaderText) loaderText.innerText = "Finishing Login... Please wait.";
+        const email = document.getElementById('student-email').value.trim();
+        const password = document.getElementById('student-password').value.trim();
+        const fullNameInput = document.getElementById('student-name')?.value.trim();
 
-                const startSafetyTimer = () => {
-                    visibilityTimeout = setTimeout(() => {
-                        if (isGoogleLoginProcessing && sessionStorage.getItem('google_sync_in_progress') !== 'true') {
-                            hideLoader();
-                            isGoogleLoginProcessing = false;
-                            googleLoginBtn.disabled = false;
-                            googleLoginBtn.innerHTML = originalBtnHTML;
-                            googleLoginBtn.style.opacity = "1";
-                        }
-                    }, 5000); 
-                };
+        studentAuthError.innerHTML = "";
+        studentAuthSubmitBtn.disabled = true;
+        const originalBtnHTML = studentAuthSubmitBtn.innerHTML;
+        studentAuthSubmitBtn.innerHTML = `<span class="material-icons" style="font-size: 16px; animation: spinGlow 1s linear infinite;">autorenew</span> Processing...`;
+        studentAuthSubmitBtn.style.opacity = "0.7";
 
-                // 🛡️ HACKER FIX: Agar screen pehle se hi visible hai, toh sidha timer chalao
-                if (document.visibilityState === 'hidden') {
-                    const checkAppFocus = () => {
-                        if (document.visibilityState === 'visible') {
-                            document.removeEventListener('visibilitychange', checkAppFocus);
-                            startSafetyTimer();
-                        }
-                    };
-                    document.addEventListener('visibilitychange', checkAppFocus);
-                } else {
-                    startSafetyTimer();
+        isFirebaseAuthProcessing = true;
+
+        try {
+            if (isSignUpMode) {
+                if (!fullNameInput || fullNameInput.length < 3) {
+                    throw new Error("Please enter your genuine Full Name (Min 3 characters) for the Rank List.");
                 }
-
+                showLoader("Creating Secure Account...");
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                await user.updateProfile({ displayName: fullNameInput });
+                await syncFirebaseUserWithBackend(user, fullNameInput);
             } else {
-                hideLoader();
-                isGoogleLoginProcessing = false;
-                googleLoginBtn.disabled = false;
-                googleLoginBtn.innerHTML = originalBtnHTML;
-                googleLoginBtn.style.opacity = "1";
-                showCustomPopup("Connection Failed", "Error: " + error.message, "danger");
+                showLoader("Authenticating Student...");
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                await syncFirebaseUserWithBackend(userCredential.user);
             }
-        });
+        } catch (error) {
+            hideLoader();
+            isFirebaseAuthProcessing = false;
+            console.error("Auth Error:", error);
+
+
+            // 🔥 MASTER LOGIC 1: Agar Signup me Email pehle se exist hai -> Auto Switch to Login!
+            if (error.code === 'auth/email-already-in-use') {
+                const safeEmail = escapeHTML(email); // 🛡️ XSS Proof
+                showCustomPopup(
+                    "Email ID Already Exists", 
+                    `<b>${safeEmail}</b> is already registered. We are sending you to <b>Login Screen</b>. Please Login now.`, 
+                    "info", 
+                    () => { switchToLoginMode(email, "👆 Email already registered. Please Login now"); }
+                );
+            }
+
+            // 🛡️ IIT EXPERT FIX: Generic Security Message to Prevent Email Enumeration
+            else if (
+                error.code === 'auth/user-not-found' || 
+                error.code === 'auth/invalid-credential' || 
+                error.code === 'auth/wrong-password' ||
+                error.code === 'auth/invalid-email'
+            ) {
+                studentAuthError.innerHTML = "❌ Invalid credentials. Please check your credentials or create a new account.";
+            } else if (error.code === 'auth/weak-password') {
+                studentAuthError.innerHTML = "⚠️ The password is too weak. Use atleast 6 characters alphanumeric password.";
+            } else if (error.code === 'auth/network-request-failed') {
+                studentAuthError.innerHTML = "⚠️ Internet connection slow hai. Please try again.";
+            } else {
+                studentAuthError.innerHTML = error.message || "Authentication failed. Try again.";
+            }
+        } finally {
+            studentAuthSubmitBtn.disabled = false;
+            studentAuthSubmitBtn.innerHTML = originalBtnHTML;
+            studentAuthSubmitBtn.style.opacity = "1";
+        }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+// 🔐 ZERO-LOOPHOLE FORGOT PASSWORD ENGINE
+const forgotPassLink = document.getElementById('forgot-password-link');
+if (forgotPassLink) {
+    forgotPassLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const emailInput = document.getElementById('student-email').value.trim();
+        
+        if (!emailInput) {
+            showCustomPopup("Email Required ⚠️", "Kripya upar box mein apna <b>Student Email Address</b> likhein, fir <b>'Forgot Password'</b> par click karein taaki hum link bhej sakein.", "warning");
+            document.getElementById('student-email').focus();
+            return;
+        }
+
+        showLoader("Sending Reset Link...");
+        try {
+            await auth.sendPasswordResetEmail(emailInput);
+            hideLoader();
+            const safeEmail = escapeHTML(emailInput); // 🛡️ XSS Proof
+            showCustomPopup(
+                "Reset Link Sent! 📩", 
+                `Humne <b>${safeEmail}</b> par password reset link bhej diya hai.<br><br>👉 Apna email inbox (aur <b>Spam folder</b>) check karein aur naya password banakar wapas login karein.`, 
+                "success"
+            );
+        } catch (err) {
+            hideLoader();
+            // 🛡️ IIT EXPERT FIX: Prevent Email Enumeration Attack (OWASP Standard)
+            // Hamesha generic success message dikhao taaki hacker guess na kar sake.
+            const safeEmail = escapeHTML(emailInput);
+            showCustomPopup(
+                "Request Received 📩", 
+                `Agar <b>${safeEmail}</b> humare system mein registered hai, toh password reset link bhej diya gaya hai.<br><br>👉 Apna inbox (aur Spam folder) check karein.`, 
+                "success"
+            );
+        }
     });
 }
+
+// 🛡️ SECRET ADMIN MODAL TOGGLE ENGINE (UNTOUCHED ADMIN LOGIC PRESERVED)
+const openAdminBtn = document.getElementById('open-admin-btn');
+const closeAdminModalBtn = document.getElementById('close-admin-modal-btn');
+const adminLoginModal = document.getElementById('admin-login-modal');
+
+if (openAdminBtn && adminLoginModal) {
+    openAdminBtn.addEventListener('click', () => {
+        adminLoginModal.style.display = 'flex';
+        document.getElementById('error-message').innerText = "";
+    });
+}
+if (closeAdminModalBtn && adminLoginModal) {
+    closeAdminModalBtn.addEventListener('click', () => {
+        adminLoginModal.style.display = 'none';
+    });
+}
+
+
+
+
+// 🛡️ IIT EXPERT FIX: Secure Admin Form Submission Handler
+const adminLoginForm = document.getElementById('login-form');
+if (adminLoginForm) {
+    adminLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Stop page refresh
+        const adminUser = document.getElementById('username').value.trim();
+        const adminPass = document.getElementById('password').value.trim();
+        const errorMsg = document.getElementById('error-message');
+        const loginBtn = document.getElementById('login-btn');
+        
+        errorMsg.innerText = "";
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = `<span class="material-icons" style="font-size: 16px; animation: spinGlow 1s linear infinite;">autorenew</span> Verifying...`;
+        
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "login", username: adminUser, password: adminPass })
+            });
+            
+            const result = JSON.parse(await response.text());
+            
+            if (result.success) {
+                // Valid Admin! Setup secure session
+                loggedInUser = adminUser;
+                loggedInUserName = "Administrator";
+                localStorage.setItem('student_username', adminUser);
+                localStorage.setItem('student_name', "Administrator");
+                localStorage.setItem('auth_token', result.token);
+                localStorage.setItem('auth_time', Date.now().toString());
+                
+                adminLoginModal.style.display = 'none';
+                updateProfileUI();
+                
+                // 🛡️ IIT LOGIC FIX: Admin login hone par bhi UI switch hona chahiye
+                navigate('main-app-shell');
+                switchTab('home-tab', 'Home Dashboard');
+                
+                loadDashboard(); // Enter portal securely
+            } else {
+                errorMsg.innerText = "❌ " + result.message; // Shows backend invalid message
+            }
+        } catch (err) {
+            errorMsg.innerText = "❌ Network error. Check connection.";
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = `Authorize Access`;
+        }
+    });
+}
+
+
+
 
 function handleLogout() {
     showCustomPopup("Secure Logout", "Are you sure you want to end your session?", "warning", async () => {
@@ -786,8 +950,6 @@ let dashboardTimerInterval;
 
 
 async function loadDashboard() {
-    navigate('main-app-shell');
-    switchTab('home-tab', 'Home Dashboard');
     
 const practiceList910 = document.getElementById('practice-list-910');
     const practiceList1112 = document.getElementById('practice-list-1112');
@@ -1631,13 +1793,13 @@ const newNextBtn = existingNextBtn.cloneNode(true);
 existingNextBtn.parentNode.replaceChild(newNextBtn, existingNextBtn);
 
 newNextBtn.addEventListener('click', () => {
-    if (currentQuestionIndex < currentQuestions.length - 1) {
-        currentQuestionIndex++; 
-        renderQuestion();
-    } else {
-        // AAKHRI QUESTION PAR CLICK HUA!
-        if (window.isCurrentTestAI) {
-            // 🤖 Practice Mode - LOCAL SCORE CALCULATION (NO DB LOOPHOLE)
+        if (currentQuestionIndex < currentQuestions.length - 1) {
+            currentQuestionIndex++; 
+            renderQuestion();
+        } else {
+            // AAKHRI QUESTION PAR CLICK HUA!
+            if (isCurrentTestAI) {
+                // 🤖 Practice Mode - LOCAL SCORE CALCULATION (NO DB LOOPHOLE)
             let aiScore = 0;
             const totalAiQuestions = currentQuestions.length;
             
@@ -2994,13 +3156,12 @@ document.getElementById('share-rank-btn')?.addEventListener('click', () => {
 // ==========================================
 // 🤖 AI SMART EXAMINER - MASTER ENGINE (NO DB, NO TIMER)
 // ==========================================
-window.isCurrentTestAI = false; // 🛡️ Zero Loophole: Global variable so that renderQuestion never crashes
 let selectedAiQuestionCount = 10; 
 
 // 🛡️ SECURITY: Normal tests play karte waqt AI flag automatically false hoga taaki clash na ho
 const _origStartLiveTest = startLiveTest;
 startLiveTest = async function(testId, durationMins) {
-    window.isCurrentTestAI = false;
+    isCurrentTestAI = false;
     return _origStartLiveTest(testId, durationMins);
 };
 
@@ -3028,10 +3189,10 @@ const aiSubjectsMap = {
     'Class X (HSLC)': ['Mathematics', 'Science', 'English', 'Social Science', 'Geography (E)', 'History (E)', 'Advance Mathematics (E)', 'IT/ITeS NSQF (E)'],
     'Class XI (HS 1st Year)': ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'English', 'Geography', 'Economics', 'Political Science', 'Education', 'History', 'Accountancy', 'Business Studies'],
     'Class XII (HS 2nd Year)': ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'English', 'Geography', 'Economics', 'Political Science', 'Education', 'History', 'Accountancy', 'Business Studies'],
-    'ADRE (HS Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'General Mathematics'],
-    'TET (HS Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'General Mathematics'],
-    'ADRE (Degree Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'General Mathematics', 'Comprehension and English Language'],
-    'TET (Degree Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'General Mathematics', 'Comprehension and English Language']
+    'ADRE (HS Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English'],
+    'TET (HS Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English'],
+    'ADRE (Degree Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'Comprehension and English Language'],
+    'TET (Degree Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'Comprehension and English Language']
 };
 
 // Event listener to populate subjects based on class selection
@@ -3135,7 +3296,7 @@ document.getElementById('btn-generate-ai-quiz')?.addEventListener('click', async
             currentQuestions = result.questions;
             currentQuestionIndex = 0;
             userAnswers = {}; 
-            window.isCurrentTestAI = true; 
+            isCurrentTestAI = true; 
             
             const testTitleEl = document.getElementById('test-title');
             if (testTitleEl) testTitleEl.innerText = result.testTitle || `AI Quiz: ${subject}`;
@@ -3183,7 +3344,7 @@ document.getElementById('btn-generate-ai-quiz')?.addEventListener('click', async
 // 🛡️ Ensure Normal Test reseta icon back to Clock
 const _origStartLiveTest2 = startLiveTest;
 startLiveTest = async function(testId, durationMins) {
-    window.isCurrentTestAI = false;
+    isCurrentTestAI = false;
     const timerIcon = document.getElementById('exam-timer-icon');
     if (timerIcon) timerIcon.innerText = "schedule"; // Reset back to clock
     return _origStartLiveTest2(testId, durationMins);
