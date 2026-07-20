@@ -155,81 +155,130 @@
         </nav>
     </aside>
     <main id="app-frame" aria-label="Main Application Frame">
-        <section id="login-screen" class="screen active" aria-labelledby="login-title">
-            <div class="screen-content center-content">
-                <div class="login-logo-area">
-                    <img src="./icon-512x512.png" alt="Portal Logo" class="app-logo-image">
-                </div> <br>
-                <span style="text-align: center; margin-top: -20px; margin-bottom: 25px; font-size: 15px; color: var(--text-muted); display: block;">Welcome to the <span style="color: blue; font-weight: bold;">Test</span><span style="color: red; font-weight: bold;">Portal</span> of Assam</span>               
-                <div class="trust-stats-container">
-                    <div class="trust-stat-box">
-                        <span class="material-icons" style="color: var(--primary);">groups</span>
-                        <div class="stat-info">
-                            <h4>500+</h4>
-                            <p>Students</p>
-                        </div>
-                    </div>
-                    <div class="trust-stat-box">
-                        <span class="material-icons" style="color: var(--success);">verified</span>
-                        <div class="stat-info">
-                            <h4>98%</h4>
-                            <p>Success</p>
-                        </div>
-                    </div>
-                    <div class="trust-stat-box">
-                        <span class="material-icons" style="color: var(--warning);">library_books</span>
-                        <div class="stat-info">
-                            <h4>100+</h4>
-                            <p>Mock Tests</p>
-                        </div>
-                    </div>
-                </div> 
-                
-                <button type="button" id="google-login-btn" class="btn-primary" style="background-color: indigo; color: white; border: 1px solid #DADCE0; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 25px;">
-                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20c11 0 19.878-8.547 20-19.199C44 23.491 43.834 22.25 43.611 20.083z"/>
-                        <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"/>
-                        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
-                        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571c.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24C44 22.659 43.862 21.35 43.611 20.083z"/>
-                    </svg>
-                    Continue with Google
+
+
+        <!-- ========================================================= -->
+        <!-- 🚀 PREMIUM FIXED LOGIN SCREEN (ZERO SCROLL & SMART UI)    -->
+        <!-- ========================================================= -->
+        <section id="login-screen" class="screen active" style="overflow: hidden; padding: 12px 16px; justify-content: space-between; height: 100%;" aria-labelledby="login-title">
+            
+            <!-- Top Bar: Brand Badge & Secret Admin Button -->
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding-top: 4px;">
+                <span style="font-size: 11px; font-weight: 800; color: var(--primary); background: rgba(79, 70, 229, 0.1); padding: 5px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; letter-spacing: 0.5px;">
+                    <span class="material-icons" style="font-size: 14px;">verified</span> INDIA's NO. 1  TEST PORTAL
+                </span>
+                <button type="button" id="open-admin-btn" style="background: transparent; border: 1px solid var(--border-dark); padding: 5px 10px; border-radius: 18px; font-size: 11px; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s ease;">
+                    <span class="material-icons" style="font-size: 14px; color: var(--primary);">admin_panel_settings</span> Admin Login
                 </button>
-                <div style="display: flex; align-items: center; text-align: center; margin-bottom: 20px;">
-                    <div style="flex: 1; border-bottom: 1px solid var(--border-dark);"></div>
-                    <span style="padding: 0 12px; color: var(--text-muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Admin Access</span>
-                    <div style="flex: 1; border-bottom: 1px solid var(--border-dark);"></div>
-                </div>
-                <form id="login-form">
-                    <div class="input-wrapper">
-                        <span class="material-icons input-icon" aria-hidden="true">admin_panel_settings</span>
-                        <input type="text" id="username" placeholder="Username" required maxlength="30" pattern="[a-zA-Z0-9_]+" autocomplete="username" aria-label="Admin ID">
-                    </div>
-                    <div class="input-wrapper">
-                        <span class="material-icons input-icon" aria-hidden="true">lock</span>
-                        <input type="password" id="password" placeholder="Password" required autocomplete="current-password" aria-label="Password">
-                    </div>
-                    <p id="error-message" class="error" aria-live="polite"></p>
-                    <button type="submit" id="login-btn" class="btn-secondary" style="border: 1px solid var(--border-dark); background: blue; color: white;">Admin Log In</button>
-                </form>
-                <!-- 🛡️ NAYA: PREMIUM TRUST FOOTER -->
-
-
-                <div class="login-trust-footer">
-                    <p class="privacy-promise">
-                        <span class="material-icons">security</span> 100% Secure & Zero Ads Guarantee
-                    </p>
-                    <p class="made-with-love">
-                        Crafted with <span style="color: #EF4444;">❤</span> for Assamese Students
-                    </p>
-                    <div class="legal-links">
-                        <a href="https://apjakjb.in/privacy-policy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
-                        <span style="color: var(--border-dark); margin: 0 4px;">•</span>
-                        <a href="https://apjakjb.in/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>
-                    </div>
-                </div>
-
             </div>
+
+            <!-- Compact Logo & Welcome Header -->
+            <div class="login-header-compact" style="text-align: center; margin: 4px 0;">
+                <img src="./icon-512x512.png" alt="Portal Logo" class="app-logo-image" style="width: 64px; height: 64px; margin-bottom: 6px; border-radius: 14px; object-fit: contain;">
+                <h2 id="login-title" style="font-size: 20px; font-weight: 900; color: var(--text-main); margin: 0; letter-spacing: -0.5px;">Test<span style="color: #EF4444;">Portal</span></h2>
+                <p style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 2px;">ADRE, Assam TET, HSLC, HS Exams</p>
+            </div>
+
+            <!-- 3 Trust Stat Badges (Ultra-Compact) -->
+            <div class="trust-stats-container" style="margin-bottom: 10px; display: flex; justify-content: space-between; gap: 8px; width: 100%;">
+                <div class="trust-stat-box" style="flex: 1; background: var(--card-bg); border: 1px solid var(--border-dark); border-radius: 14px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                    <span class="material-icons" style="font-size: 18px; margin-bottom: 2px; color: var(--primary); background: rgba(79, 70, 229, 0.1); padding: 6px; border-radius: 8px;">groups</span>
+                    <h4 style="font-size: 13px; font-weight: 800; color: var(--text-main); margin: 0;">500+</h4>
+                    <p style="font-size: 8px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-top: 2px;">Students</p>
+                </div>
+                <div class="trust-stat-box" style="flex: 1; background: var(--card-bg); border: 1px solid var(--border-dark); border-radius: 14px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                    <span class="material-icons" style="font-size: 18px; margin-bottom: 2px; color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 6px; border-radius: 8px;">verified</span>
+                    <h4 style="font-size: 13px; font-weight: 800; color: var(--text-main); margin: 0;">98%</h4>
+                    <p style="font-size: 8px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-top: 2px;">Success</p>
+                </div>
+                <div class="trust-stat-box" style="flex: 1; background: var(--card-bg); border: 1px solid var(--border-dark); border-radius: 14px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                    <span class="material-icons" style="font-size: 18px; margin-bottom: 2px; color: var(--warning); background: rgba(245, 158, 11, 0.1); padding: 6px; border-radius: 8px;">library_books</span>
+                    <h4 style="font-size: 13px; font-weight: 800; color: var(--text-main); margin: 0;">100+</h4>
+                    <p style="font-size: 8px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-top: 2px;">Mocks</p>
+                </div>
+            </div> 
+
+            <!-- Student Auth Card (Login & Sign Up) -->
+            <div class="student-auth-card" id="student-auth-container" style="background: var(--card-bg); border: 1.5px solid var(--primary); border-radius: 20px; padding: 14px; width: 100%; box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.15); margin-bottom: 6px;">
+                <div class="student-auth-tabs" style="display: flex; background: var(--bg-color); border-radius: 14px; padding: 4px; border: 1px solid var(--border-dark);">
+                    <!-- 🛡️ IIT FIX: Inline hardcoded CSS styles removed! Ab style.css ka '.active' JS ke sath 100% smoothly switch hoga -->
+                    <button type="button" class="auth-tab-btn active" id="tab-student-login">Student Login</button>
+                    <button type="button" class="auth-tab-btn" id="tab-student-signup">New Account</button>
+                </div>
+                
+                <form id="student-auth-form" style="margin-top: 12px;">
+                    <!-- Student Name Field (Only visible during Sign Up) -->
+                    <div class="input-wrapper" id="student-name-wrapper" style="display: none; margin-bottom: 10px; position: relative;">
+                        <span class="material-icons input-icon" style="font-size: 18px; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">badge</span>
+                        <input type="text" id="student-name" placeholder="Full Name (For Rank List)" maxlength="40" autocomplete="name" style="width: 100%; padding: 12px 14px 12px 38px; border: 1.5px solid var(--border-dark); border-radius: 14px; font-size: 13px; outline: none; background: var(--card-bg); color: var(--text-main);">
+                    </div>
+
+                    <div class="input-wrapper" style="margin-bottom: 10px; position: relative;">
+                        <span class="material-icons input-icon" style="font-size: 18px; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">email</span>
+                        <input type="email" id="student-email" placeholder="Student Email Address" required autocomplete="email" style="width: 100%; padding: 12px 14px 12px 38px; border: 1.5px solid var(--border-dark); border-radius: 14px; font-size: 13px; outline: none; background: var(--card-bg); color: var(--text-main);">
+                    </div>
+
+                    <div class="input-wrapper" style="margin-bottom: 8px; position: relative;">
+                        <span class="material-icons input-icon" style="font-size: 18px; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">lock</span>
+                        <input type="password" id="student-password" placeholder="Password (Min. 6 characters)" required minlength="6" autocomplete="current-password" style="width: 100%; padding: 12px 40px 12px 38px; border: 1.5px solid var(--border-dark); border-radius: 14px; font-size: 13px; outline: none; background: var(--card-bg); color: var(--text-main);">
+                        <!-- 🛡️ IIT UX FIX: Native Eye Icon for Password Visibility -->
+                        <span class="material-icons toggle-password" onclick="const pass = document.getElementById('student-password'); if(pass.type === 'password'){pass.type='text'; this.innerText='visibility';} else {pass.type='password'; this.innerText='visibility_off';}" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px; cursor: pointer;">visibility_off</span>
+                    </div>
+
+                    <!-- 🚀 NEW: FORGOT PASSWORD LINK (Only in Login Mode) -->
+                    <div id="forgot-pass-wrapper" style="text-align: right; margin-bottom: 10px;">
+                        <a href="#" id="forgot-password-link" style="font-size: 11px; font-weight: 700; color: var(--primary); text-decoration: none;">Forgot Password?</a>
+                    </div>
+
+                    <p id="student-auth-error" class="error" style="margin-bottom: 8px; font-size: 11px; color: var(--danger); text-align: center; height: auto; min-height: 14px; font-weight: 700;"></p>
+
+                    <button type="submit" id="student-auth-submit-btn" class="btn-primary" style="width: 100%; border: none; border-radius: 14px; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; padding: 12px; font-size: 14px; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">
+                        <span class="material-icons" style="font-size: 18px;">login</span> Login to Portal
+                    </button>
+                </form>
+            </div>
+
+            <!-- Compact Footer Guarantee -->
+            <div class="login-trust-footer" style="text-align: center; width: 100%; margin-top: 0; padding-bottom: 4px;">
+                <p class="privacy-promise" style="color: var(--success); font-weight: 750; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: rgba(16, 185, 129, 0.1); border-radius: 20px; margin-bottom: 4px; padding: 4px 10px; font-size: 10px;">
+                    <span class="material-icons" style="font-size: 12px;">security</span> 100% Secure & Zero Ads Guarantee
+                </p>
+                <div class="legal-links" style="font-size: 9px;">
+                    <a href="https://apjakjb.in/privacy-policy.html" target="_blank" style="color: var(--nav-inactive); font-weight: 600; text-transform: uppercase; text-decoration: none;">Privacy Policy</a>
+                    <span style="color: var(--border-dark); margin: 0 4px;">•</span>
+                    <a href="https://apjakjb.in/terms.html" target="_blank" style="color: var(--nav-inactive); font-weight: 600; text-transform: uppercase; text-decoration: none;">Terms of Service</a>
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- 🔒 SECRET HIDDEN ADMIN LOGIN MODAL (100% UNTOUCHED LOGIC) -->
+            <!-- ========================================================= -->
+            <div id="admin-login-modal" class="popup-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: none; justify-content: center; align-items: center; z-index: 99999; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                <div class="popup-card" style="background: var(--card-bg); border-radius: 20px; width: 100%; max-width: 340px; padding: 24px 20px; text-align: left; border: 1.5px solid var(--primary); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h4 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                            <span class="material-icons">admin_panel_settings</span> Admin Gateway
+                        </h4>
+                        <button type="button" id="close-admin-modal-btn" class="btn-icon" style="background: transparent; color: var(--text-muted); border: none; border-radius: 50%; cursor: pointer; padding: 4px;"><span class="material-icons">close</span></button>
+                    </div>
+                    
+                    <form id="login-form">
+                        <div class="input-wrapper" style="margin-bottom: 12px; position: relative;">
+                            <span class="material-icons input-icon" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">person</span>
+                            <input type="text" id="username" placeholder="Admin Username" required maxlength="30" autocomplete="username" style="width: 100%; border: 1.5px solid var(--border-dark); border-radius: 14px; outline: none; background: var(--card-bg); color: var(--text-main); padding: 12px 14px 12px 38px; font-size: 13px;">
+                        </div>
+                        <div class="input-wrapper" style="margin-bottom: 12px; position: relative;">
+                            <span class="material-icons input-icon" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">lock</span>
+                            <input type="password" id="password" placeholder="Admin Password" required autocomplete="current-password" style="width: 100%; border: 1.5px solid var(--border-dark); border-radius: 14px; outline: none; background: var(--card-bg); color: var(--text-main); padding: 12px 14px 12px 38px; font-size: 13px;">
+                        </div>
+                        <p id="error-message" class="error" style="color: var(--danger); font-weight: 700; margin-bottom: 10px; font-size: 11px; text-align: center; height: auto; min-height: 14px;"></p>
+                        <button type="submit" id="login-btn" class="btn-primary" style="width: 100%; border: none; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; background: #1E293B; color: white; padding: 12px; font-size: 13px;">Authorize Access</button>
+                    </form>
+                </div>
+            </div>
+
         </section>
+
         <section id="main-app-shell" class="screen" style="display: none;">
             <header class="app-header">
                 <div class="header-left">
@@ -518,7 +567,7 @@
                         <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 24px;">
                             <div class="ai-form-group" style="margin-bottom: 16px;">
                                 <label><span class="material-icons">biotech</span> Chapter or Specific Topic</label>
-                                <input type="text" id="ai-topic-input" class="ai-input" placeholder="e.g., Thermodynamics, Optics, Carbon Compounds..." maxlength="60" required>
+                                <input type="text" id="ai-topic-input" class="ai-input" placeholder="e.g., Respiration in Assamese" maxlength="60" required>
                                 <small style="color: var(--text-muted); font-size: 11px; margin-top: 6px; display: block; font-weight: 500;">💡 Tip: Be specific for deeper IIT/NEET level practice questions!</small>
                             </div>
 
