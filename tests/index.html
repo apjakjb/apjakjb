@@ -158,9 +158,27 @@
 
 
         <!-- ========================================================= -->
-        <!-- 🚀 PREMIUM FIXED LOGIN SCREEN (ZERO SCROLL & SMART UI)    -->
+        <!-- 🚀 0ms NATIVE BOOTLOADER ENGINE (ZERO FLICKER UI)         -->
         <!-- ========================================================= -->
-        <section id="login-screen" class="screen active" style="overflow: hidden; padding: 12px 16px; justify-content: space-between; height: 100%;" aria-labelledby="login-title">
+        <script>
+            (function() {
+                var token = localStorage.getItem('auth_token');
+                var time = localStorage.getItem('auth_time');
+                var isExpired = time && (Date.now() - parseInt(time) > 24 * 60 * 60 * 1000);
+                var style = document.createElement('style');
+                style.id = 'native-bootloader-style';
+                // DOM paint hone se pehle CSS inject karke exact screen lock kar do
+                if (token && !isExpired) {
+                    style.innerHTML = '#login-screen { display: none !important; } #main-app-shell { display: flex !important; opacity: 1 !important; transform: none !important; }';
+                } else {
+                    style.innerHTML = '#login-screen { display: flex !important; opacity: 1 !important; transform: none !important; } #main-app-shell { display: none !important; }';
+                }
+                document.head.appendChild(style);
+            })();
+        </script>
+
+        <!-- 🚀 PREMIUM FIXED LOGIN SCREEN (ZERO SCROLL & SMART UI)    -->
+        <section id="login-screen" class="screen" style="overflow: hidden; padding: 12px 16px; justify-content: space-between; height: 100%;" aria-labelledby="login-title">
             
             <!-- Top Bar: Brand Badge & Secret Admin Button -->
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding-top: 4px;">
@@ -909,7 +927,7 @@
             </button>
         </div>
     </div>
-    
+
     <!-- <script defer src="https://cdn.plyr.io/3.7.8/plyr.js"></script> -->
     <script defer src="app.js"></script>
 </body>
