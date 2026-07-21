@@ -590,7 +590,21 @@ async function syncFirebaseUserWithBackend(user, customStudentName = null) {
     }
 }
 
-// 🚀 ZERO-TRUST GATEKEEPER: Never allow shell access without active server verification
+// 🚀 DYNAMIC SDK LAZY-LOADER ENGINE (Chokes CPU 0% on startup)
+const loadExternalSDK = (src, id = null) => {
+    return new Promise((resolve, reject) => {
+        if (id && document.getElementById(id)) { resolve(); return; }
+        if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+        const script = document.createElement('script');
+        script.src = src;
+        if (id) script.id = id;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+};
+
+// 🚀 NATIVE INSTANT-OPEN GATEKEEPER (Stale-While-Revalidate Engine)
 function checkAuthSession() {
     const cachedUser = localStorage.getItem('student_username');
     const cachedName = localStorage.getItem('student_name');
@@ -604,13 +618,24 @@ function checkAuthSession() {
         loggedInUserName = cachedName || cachedUser.split('@')[0]; 
         updateProfileUI();
         
-        showLoader("Verifying Secure Session...");
+        // 🔥 STEP 1: INSTANT UI SWITCH (Zero Millisecond Wait!)
+        navigate('main-app-shell', false);
+        switchTab('home-tab', 'Home Dashboard', false);
         
-        // 🛡️ IIT LOGIC FIX: Auto-login ke time server verification ke baad Dashboard switch karna zaroori hai!
-        loadDashboard().then(() => {
+        // 🔥 STEP 2: INSTANT LOCAL DATA HYDRATION (Bina Internet ke purana dashboard turant dikhao)
+        const cachedDashboardJSON = localStorage.getItem('cached_dashboard_data');
+        if (cachedDashboardJSON) {
+            try {
+                const parsedData = JSON.parse(cachedDashboardJSON);
+                renderDashboardFromData(parsedData); // Directly render onto DOM instantly
+            } catch (e) { console.warn("Cache parse failed, falling back to network."); }
+        } else {
+            showLoader("Syncing Live Portal..."); // Sirf tab dikhao agar life me pehli baar khul raha ho
+        }
+
+        // 🔥 STEP 3: SILENT BACKGROUND SYNC (Server se naya data laao bina student ko disturb kiye)
+        loadDashboard(true).then(() => {
             if (localStorage.getItem('auth_token')) {
-                navigate('main-app-shell');
-                switchTab('home-tab', 'Home Dashboard');
                 triggerSmartPushPrompt();
                 setTimeout(showPremiumWelcomeAd, 1500);
             }
@@ -619,6 +644,7 @@ function checkAuthSession() {
         forceSilentLogout();
     }
 }
+
 
 document.addEventListener("DOMContentLoaded", checkAuthSession);
 
@@ -949,27 +975,121 @@ document.getElementById('profile-logout-btn').addEventListener('click', handleLo
 let dashboardTimerInterval;
 
 
-async function loadDashboard() {
-    
-const practiceList910 = document.getElementById('practice-list-910');
+// 🚀 HYDRATION HELPER: DOM ko instantly populate karne ke liye
+function renderDashboardFromData(result) {
+    const practiceList910 = document.getElementById('practice-list-910');
     const practiceList1112 = document.getElementById('practice-list-1112');
     const pastResultsContainer = document.getElementById('past-results-list');
-    
     const upcoming910 = document.getElementById('upcoming-live-list-910');
     const expired910 = document.getElementById('expired-live-list-910');
     const upcoming1112 = document.getElementById('upcoming-live-list-1112');
     const expired1112 = document.getElementById('expired-live-list-1112');
-    
-    // 💎 NAYA: Premium Test List Container
     const premiumTestList = document.getElementById('premium-test-list');
 
-    showLoader("Syncing Live Portal...");
-    clearInterval(dashboardTimerInterval); 
+    if (result.serverTime) {
+        serverTimeOffset = result.serverTime - Date.now();
+    }
 
+    [practiceList910, practiceList1112, pastResultsContainer, upcoming910, expired910, upcoming1112, expired1112, premiumTestList].forEach(el => {
+        if(el) el.innerHTML = "";
+    });
+    
+    globalLiveTests910 = []; 
+    globalLiveTests1112 = [];
+    testHistoryData = result.history || {}; 
+
+    let practiceCount910 = 0, practiceCount1112 = 0, completedCount = 0;
+    const nowMs = getSecureTime(); 
+
+    const isSeniorClass = (classStr) => {
+        const str = String(classStr).toUpperCase();
+        return str.includes('11') || str.includes('12') || str.includes('XI');
+    };
+
+    // 1. Practice Tests Render
+    (result.practiceTests || []).forEach(test => {
+        if (test.status === "completed") {
+            completedCount++; renderCompletedCard(test, pastResultsContainer);
+        } else {
+            const isSenior = isSeniorClass(test.classLvl);
+            if (isSenior) practiceCount1112++; else practiceCount910++;
+            const cardHTML = `
+                <div class="premium-test-card" data-test="${test.testId}" data-duration="${test.duration}" data-type="practice">
+                    <div class="ptc-header"><span class="ptc-subject">${test.subject}</span><span class="ptc-class">Class ${test.classLvl}</span></div>
+                    <h4 class="ptc-title">${test.title} <span class="new-badge" style="background:var(--primary); color:white;">NEW</span></h4>
+                    <div class="ptc-details">
+                        <p><span class="material-icons">event</span> <strong>Published:</strong> ${formatOnlyDate(test.publishedDate)}</p>
+                        <p><span class="material-icons">menu_book</span> <strong>Syllabus:</strong> ${test.syllabus}</p>
+                        <p><span class="material-icons">schedule</span> <strong>Duration:</strong> ${test.duration} Mins</p>
+                    </div>
+                    <div class="ptc-footer"><button class="btn-primary test-action-btn">Attempt Practice Test</button></div>
+                </div>`;
+            if(isSenior && practiceList1112) practiceList1112.insertAdjacentHTML('beforeend', cardHTML);
+            else if (!isSenior && practiceList910) practiceList910.insertAdjacentHTML('beforeend', cardHTML);
+        }
+    });
+
+    // 2. Free Live Tests Render
+    (result.liveTests || []).forEach(test => {
+        if (test.status === "completed") {
+            completedCount++; renderCompletedCard(test, pastResultsContainer);
+        } else {
+            const endTimeMs = new Date(test.endTime).getTime();
+            const isExpired = nowMs > endTimeMs; 
+            const isSenior = isSeniorClass(test.classLvl);
+            const cardHTML = `
+                <div class="premium-test-card live-test-card" data-test="${test.testId}" data-duration="${test.duration}" data-start="${test.startTime}" data-end="${test.endTime}" data-type="live">
+                    <div class="ptc-header"><span class="ptc-subject live-subject">${test.subject}</span><span class="ptc-class">Class ${test.classLvl}</span></div>
+                    <h4 class="ptc-title">${test.title} <span class="live-status-badge"></span></h4>
+                    <div class="ptc-details">
+                        <p><span class="material-icons">menu_book</span> <strong>Syllabus:</strong> ${test.syllabus}</p>
+                        <p><span class="material-icons">schedule</span> <strong>Duration:</strong> ${test.duration} Mins</p>
+                        <div class="ptc-timings">
+                            <div class="time-block"><span class="material-icons" style="color:var(--success)">event_available</span><div><small>Starts</small><br><b>${formatShortDate(test.startTime)}</b></div></div>
+                            <div class="time-block"><span class="material-icons" style="color:var(--danger)">event_busy</span><div><small>Ends</small><br><b>${formatShortDate(test.endTime)}</b></div></div>
+                        </div>
+                    </div>
+                    <div class="ptc-footer" style="flex-direction: column; gap: 8px;"><p class="live-timing-text" style="font-size: 13px; text-align:center; width:100%;"></p><button class="btn-primary test-action-btn" disabled>Wait...</button></div>
+                </div>`;
+            if (isSenior) globalLiveTests1112.push({ rawData: test, html: cardHTML, isExpired: isExpired });
+            else globalLiveTests910.push({ rawData: test, html: cardHTML, isExpired: isExpired });
+        }
+    });
+
+    // 3. Premium Bundles Render
+    (result.premiumBundles || []).forEach(bundle => {
+        const premiumCardHTML = `
+            <div class="bundle-premium-card premium-glow-card" data-bundle="${bundle.bundleId}">
+                <h3 class="bpc-title">${bundle.title}</h3>
+                <div class="bpc-header"><div class="bpc-tags"><span class="bpc-subject">${bundle.subject}</span><span class="bpc-class">Class ${bundle.classLvl}</span></div>${bundle.offerBadge ? `<div class="bpc-offer-badge"><span class="material-icons star-icon">auto_awesome</span> ${bundle.offerBadge}</div>` : ''}</div>
+                <div class="bpc-stats-grid">
+                    <div class="bpc-stat"><span class="material-icons primary-icon">menu_book</span><div><small>Syllabus</small><p>${bundle.syllabus}</p></div></div>
+                    <div class="bpc-stat"><span class="material-icons success-icon">format_list_numbered</span><div><small>TEST & MOCKS</small><p>${bundle.totalMocks}</p></div></div>
+                </div>
+                <div class="bpc-price-row"><div class="bpc-price-info"><span class="bpc-old-price">₹${bundle.originalPrice || 999}</span><span class="bpc-new-price">₹${bundle.offerPrice || 199}</span></div><div class="bpc-discount-tag">Save Big!</div></div>
+                <div class="bpc-actions">
+                    <button class="btn-secondary bpc-about-btn" data-about="${bundle.bundleId}">Explore Details</button>
+                    ${!bundle.isBought ? `<button class="btn-primary bpc-buy-btn premium-buy-btn" data-testid="${bundle.bundleId}" data-amount="${bundle.offerPrice}"><span class="material-icons" style="font-size:16px;">shopping_cart_checkout</span> Buy Now</button>` : `<button class="btn-primary bpc-open-btn premium-open-series-btn" data-series="${bundle.bundleId}" data-title="${bundle.title}">Purchased | Open Now</button>`}
+                </div>
+            </div>`;
+        if (premiumTestList) premiumTestList.insertAdjacentHTML('beforeend', premiumCardHTML);
+    });
+
+    if (practiceCount910 === 0 && practiceList910) practiceList910.innerHTML = emptyMsg("No practice tests for IX & X.");
+    if (practiceCount1112 === 0 && practiceList1112) practiceList1112.innerHTML = emptyMsg("No practice tests for XI & XII.");
+    if (completedCount === 0 && pastResultsContainer) pastResultsContainer.innerHTML = emptyMsg("You haven't attempted any tests yet.");
+
+    attachTestCardListeners();
+    startDashboardLiveEngine(); 
+}
+
+// 🚀 UPGRADED SILENT DASHBOARD SYNC
+async function loadDashboard(isSilent = false) {
+    if (!isSilent) showLoader("Syncing Live Portal...");
+    clearInterval(dashboardTimerInterval); 
 
     try {
         const authToken = localStorage.getItem('auth_token');
-        
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -979,195 +1099,22 @@ const practiceList910 = document.getElementById('practice-list-910');
         const result = JSON.parse(await response.text());
 
         if (result.success) {
-            // 🛡️ SYNC DEVICE TIME WITH SERVER TIME
-            if (result.serverTime) {
-                serverTimeOffset = result.serverTime - Date.now();
-            }
-
-            [practiceList910, practiceList1112, pastResultsContainer, upcoming910, expired910, upcoming1112, expired1112, premiumTestList].forEach(el => {
-                if(el) el.innerHTML = "";
-            });
-            
-            // 🛡️ NAYA FIX (Anti-Memory Leak): Puraane active tests ko array se permanently delete karo
-            globalLiveTests910 = []; 
-            globalLiveTests1112 = [];
-            
-            testHistoryData = result.history || {}; 
-
-            let practiceCount910 = 0, practiceCount1112 = 0, completedCount = 0;
-            const nowMs = getSecureTime(); // 🛡️ SECURE TIME USED HERE
-
-            // 🎯 Class Filter Engine (Sirf 11, 12 aur XI, XII ko filter karega)
-            const isSeniorClass = (classStr) => {
-                const str = String(classStr).toUpperCase();
-                return str.includes('11') || str.includes('12') || str.includes('XI');
-            };
-
-            // --- RENDER PRACTICE TESTS ---
-            (result.practiceTests || []).forEach(test => {
-                if (test.status === "completed") {
-                    completedCount++; renderCompletedCard(test, pastResultsContainer);
-                } else {
-                    const isSenior = isSeniorClass(test.classLvl);
-                    if (isSenior) practiceCount1112++; else practiceCount910++;
-
-                    const cardHTML = `
-                        <div class="premium-test-card" data-test="${test.testId}" data-duration="${test.duration}" data-type="practice">
-                            <div class="ptc-header">
-                                <span class="ptc-subject">${test.subject}</span>
-                                <span class="ptc-class">Class ${test.classLvl}</span>
-                            </div>
-                            <h4 class="ptc-title">${test.title} <span class="new-badge" style="background:var(--primary); color:white;">NEW</span></h4>
-                            <div class="ptc-details">
-                                <p><span class="material-icons">event</span> <strong>Published:</strong> ${formatOnlyDate(test.publishedDate)}</p>
-                                <p><span class="material-icons">menu_book</span> <strong>Syllabus:</strong> ${test.syllabus}</p>
-                                <p><span class="material-icons">schedule</span> <strong>Duration:</strong> ${test.duration} Mins</p>
-                            </div>
-                            <div class="ptc-footer">
-                                <button class="btn-primary test-action-btn">Attempt Practice Test</button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    if(isSenior && practiceList1112) practiceList1112.insertAdjacentHTML('beforeend', cardHTML);
-                    else if (!isSenior && practiceList910) practiceList910.insertAdjacentHTML('beforeend', cardHTML);
-                }
-            });
-
-
-
-            // 🟢 --- 1. RENDER FREE LIVE TESTS ---
-            (result.liveTests || []).forEach(test => {
-                if (test.status === "completed") {
-                    completedCount++; renderCompletedCard(test, pastResultsContainer);
-                } else {
-                    const endTimeMs = new Date(test.endTime).getTime();
-                    const isExpired = nowMs > endTimeMs; 
-                    const isSenior = isSeniorClass(test.classLvl);
-
-                    const cardHTML = `
-                        <div class="premium-test-card live-test-card" 
-                             data-test="${test.testId}" 
-                             data-duration="${test.duration}" 
-                             data-start="${test.startTime}" 
-                             data-end="${test.endTime}" 
-                             data-type="live">
-                            <div class="ptc-header">
-                                <span class="ptc-subject live-subject">${test.subject}</span>
-                                <span class="ptc-class">Class ${test.classLvl}</span>
-                            </div>
-                            <h4 class="ptc-title">${test.title} <span class="live-status-badge"></span></h4>
-                            <div class="ptc-details">
-                                <p><span class="material-icons">menu_book</span> <strong>Syllabus:</strong> ${test.syllabus}</p>
-                                <p><span class="material-icons">schedule</span> <strong>Duration:</strong> ${test.duration} Mins</p>
-                                <div class="ptc-timings">
-                                    <div class="time-block">
-                                        <span class="material-icons" style="color:var(--success)">event_available</span>
-                                        <div><small>Starts</small><br><b>${formatShortDate(test.startTime)}</b></div>
-                                    </div>
-                                    <div class="time-block">
-                                        <span class="material-icons" style="color:var(--danger)">event_busy</span>
-                                        <div><small>Ends</small><br><b>${formatShortDate(test.endTime)}</b></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="ptc-footer" style="flex-direction: column; gap: 8px;">
-                                <p class="live-timing-text" style="font-size: 13px; text-align:center; width:100%;"></p>
-                                <button class="btn-primary test-action-btn" disabled>Wait...</button>
-                            </div>
-                        </div>
-                    `;
-
-                    if (isSenior) {
-                        globalLiveTests1112.push({ rawData: test, html: cardHTML, isExpired: isExpired });
-                    } else {
-                        globalLiveTests910.push({ rawData: test, html: cardHTML, isExpired: isExpired });
-                    }
-                }
-            });
-
-
-            // 💎 --- 2. RENDER PREMIUM BUNDLES (Test Series) ---
-            (result.premiumBundles || []).forEach(bundle => {
-                const premiumCardHTML = `
-                    <div class="bundle-premium-card premium-glow-card" data-bundle="${bundle.bundleId}">
-                        <h3 class="bpc-title">${bundle.title}</h3>
-                        <div class="bpc-header">
-                            <div class="bpc-tags">
-                                <span class="bpc-subject">${bundle.subject}</span>
-                                <span class="bpc-class">Class ${bundle.classLvl}</span>
-                            </div>
-                            ${bundle.offerBadge ? `<div class="bpc-offer-badge"><span class="material-icons star-icon">auto_awesome</span> ${bundle.offerBadge}</div>` : ''}
-                        </div>
-                        <div class="bpc-stats-grid">
-                            <div class="bpc-stat">
-                                <span class="material-icons primary-icon">menu_book</span>
-                                <div>
-                                    <small>Syllabus</small>
-                                    <p>${bundle.syllabus}</p>
-                                </div>
-                            </div>
-                            <div class="bpc-stat">
-                                <span class="material-icons success-icon">format_list_numbered</span>
-                                <div>
-                                    <small>TEST & MOCKS</small>
-                                    <p>${bundle.totalMocks}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bpc-price-row">
-                            <div class="bpc-price-info">
-                                <span class="bpc-old-price">₹${bundle.originalPrice || 999}</span>
-                                <span class="bpc-new-price">₹${bundle.offerPrice || 199}</span>
-                            </div>
-                            <div class="bpc-discount-tag">Save Big!</div>
-                        </div>
-
-                        <div class="bpc-actions">
-                            <button class="btn-secondary bpc-about-btn" data-about="${bundle.bundleId}">
-                                Explore Details
-                            </button>
-                            
-                            ${!bundle.isBought ? 
-                                `<button class="btn-primary bpc-buy-btn premium-buy-btn" data-testid="${bundle.bundleId}" data-amount="${bundle.offerPrice}">
-                                    <span class="material-icons" style="font-size:16px;">shopping_cart_checkout</span> Buy Now
-                                </button>` 
-                                : 
-                                `<button class="btn-primary bpc-open-btn premium-open-series-btn" data-series="${bundle.bundleId}" data-title="${bundle.title}">
-                                    Purchased | Open Now
-                                </button>`
-                            }
-                        </div>
-                    </div>
-                `;
-                if (premiumTestList) premiumTestList.insertAdjacentHTML('beforeend', premiumCardHTML);
-            });
-
-            if (practiceCount910 === 0 && practiceList910) practiceList910.innerHTML = emptyMsg("No practice tests for IX & X.");
-            if (practiceCount1112 === 0 && practiceList1112) practiceList1112.innerHTML = emptyMsg("No practice tests for XI & XII.");
-            if (completedCount === 0 && pastResultsContainer) pastResultsContainer.innerHTML = emptyMsg("You haven't attempted any tests yet.");
-
-            attachTestCardListeners();
-            startDashboardLiveEngine(); 
+            // 🔥 NATIVE SUPERPOWER: Server se aate hi naye data ko local cache me save karo
+            localStorage.setItem('cached_dashboard_data', JSON.stringify(result));
+            renderDashboardFromData(result);
         } else {
-            // 🛡️ ANTI-HIJACK: Agar token galat hai toh turant logout karo
             if (result.message.includes("Unauthorized") || result.message.includes("Security Alert")) {
-                showCustomPopup("Session Expired 🔒", "Your secure session has expired or is invalid. Please log in again.", "warning", () => {
-                    forceSilentLogout();
-                });
-            } else {
+                showCustomPopup("Session Expired 🔒", "Your secure session has expired or is invalid. Please log in again.", "warning", () => { forceSilentLogout(); });
+            } else if (!isSilent) {
                 showCustomPopup("Error", result.message, "danger");
             }
         }
-
     } catch (e) {
-        showCustomPopup("Network Error", "Failed to sync dashboard. Check internet.", "danger");
+        if (!isSilent) showCustomPopup("Network Error", "Failed to sync dashboard. Check internet.", "danger");
     } finally {
-        hideLoader();
+        if (!isSilent) hideLoader();
     }
 }
-
 
 function renderCompletedCard(test, container) {
     const pastData = testHistoryData[test.testId];
@@ -1721,11 +1668,18 @@ function renderQuestion() {
     const fullTextString = qData.questionText + " " + qData.options.join(' ');
     const containsMath = fullTextString.includes('$') || fullTextString.includes('\\(') || fullTextString.includes('\\[');
     
-    if (window.MathJax && containsMath) {
-        MathJax.typesetPromise([
-            document.getElementById('question-text'),
-            document.getElementById('options-container')
-        ]).catch((err) => console.log('Math rendering error: ', err.message));
+    if (containsMath) {
+        // 🚀 Lazy Load MathJax strictly ONLY when math equation is present
+        if (!window.MathJax) {
+            window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }, startup: { typeset: false } };
+            loadExternalSDK("https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js", "MathJax-script").then(() => {
+                if(window.MathJax && window.MathJax.typesetPromise) {
+                    MathJax.typesetPromise([document.getElementById('question-text'), document.getElementById('options-container')]).catch(e => console.log(e));
+                }
+            });
+        } else if (window.MathJax.typesetPromise) {
+            MathJax.typesetPromise([document.getElementById('question-text'), document.getElementById('options-container')]).catch(e => console.log(e));
+        }
     }
 }
 
@@ -2522,11 +2476,18 @@ document.addEventListener('click', async (e) => {
         buyBtn.innerHTML = `<span class="material-icons" style="font-size:16px; animation: spinGlow 1s linear infinite;">autorenew</span> Processing...`;
         buyBtn.style.opacity = "0.7";
 
-        // 🛡️ SECURITY CHECK: Ensure Razorpay is loaded properly
+        // 🚀 LAZY-LOAD RAZORPAY GATEWAY ON BUY CLICK
         if (typeof Razorpay === 'undefined') {
-            buyBtn.disabled = false; buyBtn.innerHTML = originalBtnHTML; buyBtn.style.opacity = "1"; // Unlock
-            showCustomPopup("Connection Error", "Payment gateway is loading. Please check internet.", "warning");
-            return;
+            showLoader("Loading Payment Gateway...");
+            try {
+                await loadExternalSDK("https://checkout.razorpay.com/v1/checkout.js");
+                hideLoader();
+            } catch (err) {
+                hideLoader();
+                buyBtn.disabled = false; buyBtn.innerHTML = originalBtnHTML; buyBtn.style.opacity = "1";
+                showCustomPopup("Connection Error", "Could not load bank gateway. Please check internet.", "warning");
+                return;
+            }
         }
 
         showLoader("Generating Secure Bank Order...");
