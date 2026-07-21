@@ -48,15 +48,15 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Test Portal</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <!-- <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" /> -->
     <!-- 🚀 BULLETPROOF NON-BLOCKING SDK LOADERS (Prevents PWA Splash Screen Hangs) -->
     <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>    
-    <script defer src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
+    <!-- <script defer src="https://checkout.razorpay.com/v1/checkout.js"></script> -->
+    <!-- <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> -->
+    <!-- <script>
         MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
@@ -67,7 +67,7 @@
             }
         };
     </script>
-    <script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> -->
 </head>
 
 <body oncontextmenu="return false;" onkeydown="if(event.keyCode==123) return false;">
@@ -909,9 +909,8 @@
             </button>
         </div>
     </div>
-
-<!-- 🚀 BULLETPROOF: Defer added so app.js runs AFTER Firebase loads -->
-    <script defer src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    
+    <!-- <script defer src="https://cdn.plyr.io/3.7.8/plyr.js"></script> -->
     <script defer src="app.js"></script>
 </body>
 </html>
