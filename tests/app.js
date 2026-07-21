@@ -567,12 +567,25 @@ async function syncFirebaseUserWithBackend(user, customStudentName = null) {
             updateProfileUI();
             const errorMsg = document.getElementById('error-message');
             if(errorMsg) errorMsg.innerText = ""; 
+
+            // 🚀 NAYA FIX: Remove Native Bootloader lock
+            const bootStyle = document.getElementById('native-bootloader-style');
+            if (bootStyle) bootStyle.remove();
             
-            // 🛡️ IIT LOGIC FIX: Auth pass hone ke baad App Shell me enter karwana mandatory hai!
             navigate('main-app-shell');
             switchTab('home-tab', 'Home Dashboard');
             
-            loadDashboard();
+            // 🚀 SMOOTH LOGIN TRANSITION: Agar cache available hai toh turant dikhao aur silently load karo
+            const cachedDashboardJSON = localStorage.getItem('cached_dashboard_data');
+            if (cachedDashboardJSON) {
+                try {
+                    renderDashboardFromData(JSON.parse(cachedDashboardJSON));
+                    loadDashboard(true); // Silent mode ON
+                } catch(e) { loadDashboard(false); }
+            } else {
+                loadDashboard(false); // Sirf fresh login pe loader aayega
+            }
+
             triggerSmartPushPrompt(); 
             setTimeout(showPremiumWelcomeAd, 1500);
         } else {
@@ -618,6 +631,10 @@ function checkAuthSession() {
         loggedInUserName = cachedName || cachedUser.split('@')[0]; 
         updateProfileUI();
         
+        // 🚀 NAYA FIX: Remove Native Bootloader lock so dynamic navigation works perfectly
+        const bootStyle = document.getElementById('native-bootloader-style');
+        if (bootStyle) bootStyle.remove();
+
         // 🔥 STEP 1: INSTANT UI SWITCH (Zero Millisecond Wait!)
         navigate('main-app-shell', false);
         switchTab('home-tab', 'Home Dashboard', false);
@@ -656,8 +673,11 @@ if (auth) {
             const authTimestamp = localStorage.getItem('auth_time'); 
             const isTokenExpired = authTimestamp && (Date.now() - parseInt(authTimestamp) > 24 * 60 * 60 * 1000);
             
-            if (!hasLocalToken || isTokenExpired || isFirebaseAuthProcessing) {
-                await syncFirebaseUserWithBackend(user);
+            // 🚀 BUG FIX: Agar manual login process already chal raha hai, toh yahan se dubara call mat karo! (Prevents API Spam)
+            if (!hasLocalToken || isTokenExpired) {
+                if (!isFirebaseAuthProcessing) {
+                    await syncFirebaseUserWithBackend(user);
+                }
             }
         }
     });
