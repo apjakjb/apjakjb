@@ -10,77 +10,91 @@ firebase.initializeApp({
     appId: "1:737523775575:web:26db3649ede4845e688b12"
 });
 const messaging = firebase.messaging();
-
-// 🚀 IIT EXPERT FIX: OS Tagging & 5-Second Debounce Lock
 let lastNotifTime = 0;
 let lastNotifTitle = "";
 
-// 🚀 PRO-ENGINEER FIX: Promise-wrapped IndexedDB writer to prevent OS thread termination
-function savePushToNativeInbox(title, body) {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('PremiumPortalDB', 2); // 🚀 NAYA: Version 2 forces database upgrade  
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains('notifications')) {
-                db.createObjectStore('notifications', { keyPath: 'id' });
-            }
+// 🚀 100% NATIVE FIX: Direct OS-Level Push Interceptor (Bypasses Firebase Wrapper Delays in TWA)
+self.addEventListener('push', function(event) {
+    if (!event.data) return;
+
+    try {
+        const payload = event.data.json();
+        const data = payload.data || payload.notification || {};
+        
+        // Agar Firebase internal data hai toh ignore karo
+        if (!data.title) return;
+
+        const notificationTitle = data.title;
+        const notificationBody = data.body || 'Tap to check out latest mock tests and updates.';
+        
+        const now = Date.now();
+        if (notificationTitle === lastNotifTitle && (now - lastNotifTime) < 5000) return;
+        lastNotifTime = now;
+        lastNotifTitle = notificationTitle;
+
+        const notificationOptions = {
+            body: notificationBody,
+            icon: './icon-192x192.png',
+            badge: './icon-512x512.png', 
+            image: data.imageUrl || '', 
+            tag: 'portal-master-push', 
+            renotify: true, 
+            data: { url: data.url || './index.html?source=pwa#main-app-shell' },
+            actions: [
+                { action: 'start_test', title: '🚀 Attempt Now' },
+                { action: 'view_dashboard', title: '📊 Dashboard' }
+            ],
+            vibrate: [200, 100, 200, 100, 200],
+            requireInteraction: false
         };
-        request.onsuccess = (event) => {
-            const db = event.target.result;
-            const tx = db.transaction('notifications', 'readwrite');
-            const store = tx.objectStore('notifications');
-            store.put({
-                id: Date.now(),
-                title: title,
-                body: body,
-                time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-            });
-            tx.oncomplete = () => resolve(true);
-            tx.onerror = () => reject(tx.error);
-        };
-        request.onerror = () => reject(request.error);
-    });
-}
 
-messaging.onBackgroundMessage((payload) => {
-    console.log('[Firebase SW] Background Data Received: ', payload);
-    
-    const data = payload.data || payload.notification || {};
-    const notificationTitle = data.title || '🚀 APJAKJB Portal Update';
-    const notificationBody = data.body || 'Tap to check out latest mock tests and updates.';
-    
-    const now = Date.now();
-    if (notificationTitle === lastNotifTitle && (now - lastNotifTime) < 5000) return;
-    lastNotifTime = now;
-    lastNotifTitle = notificationTitle;
+        // 🛡️ NATIVE DB ENGINE: Version 3 Forces upgrade, Try-Catch prevents SW crashes
+        const dbSyncPromise = new Promise((resolve) => {
+            const request = indexedDB.open('PremiumPortalDB', 3);
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('notifications')) {
+                    db.createObjectStore('notifications', { keyPath: 'id' });
+                }
+            };
+            request.onsuccess = (e) => {
+                try {
+                    const db = e.target.result;
+                    if (db.objectStoreNames.contains('notifications')) {
+                        const tx = db.transaction('notifications', 'readwrite');
+                        tx.objectStore('notifications').put({
+                            id: Date.now(),
+                            title: notificationTitle,
+                            body: notificationBody,
+                            time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                        });
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = () => resolve(); // Ignore failure, don't crash
+                    } else {
+                        resolve();
+                    }
+                } catch (err) { 
+                    resolve(); // Failsafe against DOMExceptions
+                } 
+            };
+            request.onerror = () => resolve();
+        });
 
-    const notificationOptions = {
-        body: notificationBody,
-        icon: './icon-192x192.png',
-        badge: './icon-512x512.png', 
-        image: data.imageUrl || '', 
-        tag: 'portal-master-push', 
-        renotify: true, 
-        data: { url: data.url || './index.html?source=pwa#main-app-shell' },
-        actions: [
-            { action: 'start_test', title: '🚀 Attempt Now' },
-            { action: 'view_dashboard', title: '📊 Dashboard' }
-        ],
-        vibrate: [200, 100, 200, 100, 200],
-        requireInteraction: false
-    };
-
-    // 🚀 IIT NATIVE FIX: Zero-Latency OS Trigger (Bypass Android Doze Mode)
-    // Never block showNotification with DB operations. OS kills SW if it hangs.
-    const notificationPromise = self.registration.showNotification(notificationTitle, notificationOptions);
-    
-    // Fire DB sync asynchronously without holding up the OS Notification trigger
-    notificationPromise.then(() => {
-        savePushToNativeInbox(notificationTitle, notificationBody).catch(err => console.log('[DB Sync] Background Ignored:', err));
-    });
-    
-    return notificationPromise;
+        // 🛡️ Wait for both the OS Notification render AND the DB save to complete before sleeping
+        event.waitUntil(
+            Promise.all([
+                self.registration.showNotification(notificationTitle, notificationOptions),
+                dbSyncPromise
+            ])
+        );
+    } catch (e) {
+        console.error('[SW Native Push Error]:', e);
+    }
 });
+
+
+
+
 
 // 🚀 100% NATIVE FIX: Play Store TWA Deep Linking Engine
 self.addEventListener('notificationclick', (event) => {
@@ -118,7 +132,7 @@ self.addEventListener('notificationclick', (event) => {
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v111-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
+const CACHE_VERSION = 'premium-portal-v112-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
@@ -139,7 +153,6 @@ const ASSETS_TO_CACHE = [
     'https://checkout.razorpay.com/v1/checkout.js',
     'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
 ];
-
 
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') { 
@@ -181,8 +194,6 @@ self.addEventListener('fetch', (event) => {
     if (event.request.method === 'POST' || requestUrl.href.includes('script.google.com')) {
         return; 
     }
-
-
 
 // 🛡️ THE NATIVE INSTANT-LOADER (Kills Chrome Horizontal Loading Bar)
     if (event.request.mode === 'navigate') {
