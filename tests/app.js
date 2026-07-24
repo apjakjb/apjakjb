@@ -561,7 +561,9 @@ function showCustomPopup(title, message, type = 'info', confirmCallback = null, 
     popupOverlay.style.display = 'flex';
 }
 
+
 function triggerSmartPushPrompt() {
+    // 🛡️ NAYA: Basic browser & messaging support check (Bulletproof)
     if (!('Notification' in window) || !('serviceWorker' in navigator) || !messaging) {
         console.log("[Firebase] Push notifications not supported or engine offline.");
         return;
@@ -571,21 +573,34 @@ function triggerSmartPushPrompt() {
         if (permission === 'granted') {
             console.log('[Firebase] Native Permission Granted! Waiting for Engine...');
             
+            // ✅ BUG FIX 1: Wait for Service Worker to be 100% Ready
             navigator.serviceWorker.ready.then((registration) => {
-                // 1. Initial Token Generation
                 messaging.getToken({ 
                     vapidKey: "BG-J8WhZpg2eAMoLahgNbRJZhDTSvTLXO5B_Vr4kw8VUMF4OvynfMBe2nckINHoAhEa-6mMIDP_NOECRu6vKREc",
                     serviceWorkerRegistration: registration 
-                }).then((currentToken) => {
-                    if (currentToken) saveTokenToDatabase(currentToken);
-                }).catch((err) => console.error('[Firebase] Token Generation Blocked: ', err));
-
-                // 2. 🚀 THE NATIVE FIX: Auto-Refresh Token when it expires (Zero Dead Tokens)
-                messaging.onTokenRefresh(() => {
-                    messaging.getToken().then((refreshedToken) => {
-                        console.log('[Firebase] Token Refreshed Natively by OS');
-                        saveTokenToDatabase(refreshedToken);
-                    }).catch((err) => console.error('[Firebase] Unable to retrieve refreshed token', err));
+                })
+                .then((currentToken) => {
+                    if (currentToken) {
+                        console.log('[Firebase] 🔥 Token Generated Successfully!');
+                        
+                        if (loggedInUser) {
+                            // ✅ BUG FIX 2: Sanitize Username (Removes invalid DB chars like . # $ [ ])
+                            const safeUsername = loggedInUser.replace(/[.#$[\]]/g, '_');
+                            
+                            database.ref('students_fcm/' + safeUsername).set({
+                                token: currentToken,
+                                lastLogin: new Date().toISOString()
+                            }).then(() => {
+                                console.log(`[Firebase RTDB] Token securely saved for user: ${safeUsername}`);
+                            }).catch((error) => {
+                                console.error("[Firebase RTDB] Database save failed! Check Firebase Rules.", error);
+                            });
+                        }
+                    } else {
+                        console.log('[Firebase] No registration token available.');
+                    }
+                }).catch((err) => {
+                    console.error('[Firebase] Token Generation Blocked: ', err);
                 });
             });
         } else {
@@ -594,38 +609,8 @@ function triggerSmartPushPrompt() {
     });
 }
 
-// 🛡️ Modular Token Saver Function
-function saveTokenToDatabase(token) {
-    if (loggedInUser && database) {
-        const safeUsername = loggedInUser.replace(/[.#$[\]]/g, '_');
-        database.ref('students_fcm/' + safeUsername).set({
-            token: token,
-            lastLogin: new Date().toISOString()
-        }).then(() => {
-            console.log(`[Firebase RTDB] Token securely synced for: ${safeUsername}`);
-        }).catch((error) => console.error("[Firebase RTDB] Database save failed!", error));
-    }
-}
 
-// 🚀 100% NATIVE FIX: Listen to Deep Links from Service Worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('message', (event) => {
-        // Jab user push notification tap karta hai, SW ye command bhejega
-        if (event.data && event.data.type === 'PUSH_ROUTING' && event.data.url) {
-            let targetTab = event.data.url.split('#')[1];
-            
-            // 🛡️ THE BLANK SCREEN KILLER: Prevent routing to 'main-app-shell' to avoid empty UI crash
-            if (targetTab === 'main-app-shell' || !targetTab) {
-                targetTab = 'home-tab';
-            }
-            
-            if (targetTab && loggedInUser && !isTestActive) {
-                // Smoothly switch tab without reloading the app
-                switchTab(targetTab, 'Portal Update', true);
-            }
-        }
-    });
-}
+
 
 
 // ==========================================
@@ -2102,6 +2087,25 @@ if ('serviceWorker' in navigator) {
             refreshing = true;
             window.location.reload(); // Turant naya version reload hoga
         });
+
+        // 🚀 NATIVE FIX 2 & 6: Unified OS-to-UI Command Listener
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (!event.data) return;
+            
+            if (event.data.type === 'NAVIGATE') {
+                if (event.data.tab === 'home-tab') {
+                    switchTab('home-tab', 'Home Dashboard');
+                } else if (event.data.tab === 'results-tab') {
+                    switchTab('results-tab', 'Results');
+                }
+            } 
+            else if (event.data.type === 'UPDATE_BELL') {
+                // 🚀 HACKER-PROOF: Background me push aane par instantly Red Dot (badge) UI par dikhega!
+                if (typeof updateBellBadge === 'function') {
+                    updateBellBadge();
+                }
+            }
+        });
     });
 }
 
@@ -2173,70 +2177,152 @@ if (menuUpdateBtn) {
 
 // 1. Native App Database (IndexedDB) for Push Inbox
 function saveNotificationToInbox(title, body) {
-    const request = indexedDB.open('PremiumPortalDB', 4); // 🚀 VERSION 4: Ultimate Fix
+    const request = indexedDB.open('PremiumPortalDB', 2);
     request.onupgradeneeded = (e) => {
         if (!e.target.result.objectStoreNames.contains('notifications')) {
             e.target.result.createObjectStore('notifications', { keyPath: 'id' });
         }
     };
     request.onsuccess = (e) => {
-        try {
-            const db = e.target.result;
-            if (db.objectStoreNames.contains('notifications')) {
-                const tx = db.transaction('notifications', 'readwrite');
-                tx.objectStore('notifications').put({
-                    id: Date.now() + Math.floor(Math.random() * 1000), // Zero collision ID
-                    title: title,
-                    body: body,
-                    time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-                });
-                tx.oncomplete = () => {
-                    db.close(); // 🚀 Memory Unlock
-                    updateBellBadge();
-                };
-                tx.onerror = () => db.close();
-            } else {
-                db.close();
-            }
-        } catch (err) { console.warn("[DB Save Guard] Handled silently:", err); }
+        const tx = e.target.result.transaction('notifications', 'readwrite');
+        tx.objectStore('notifications').put({
+            id: Date.now(),
+            title: title,
+            body: body,
+            time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+        });
+        tx.oncomplete = () => updateBellBadge();
     };
 }
 
 function updateBellBadge() {
-    const request = indexedDB.open('PremiumPortalDB', 4);
+    const request = indexedDB.open('PremiumPortalDB', 2);
     request.onsuccess = (e) => {
-        try {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('notifications')) { db.close(); return; }
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('notifications')) return;
+        
+        const tx = db.transaction('notifications', 'readonly');
+        const store = tx.objectStore('notifications');
+        const getReq = store.getAll();
+        
+        getReq.onsuccess = () => {
+            const list = getReq.result;
+            const lastSeenId = parseInt(localStorage.getItem('last_seen_notif_id')) || 0;
             
-            const tx = db.transaction('notifications', 'readonly');
-            const countReq = tx.objectStore('notifications').count();
-            countReq.onsuccess = () => {
-                const count = countReq.result;
-                let badge = document.getElementById('bell-unread-badge');
-                const notifBtn = document.getElementById('notification-btn');
-                
-                if (notifBtn && !badge) {
-                    notifBtn.style.position = "relative";
-                    badge = document.createElement('span');
-                    badge.id = 'bell-unread-badge';
-                    badge.className = 'notif-badge';
-                    notifBtn.appendChild(badge);
-                }
-                if (badge) {
-                    if (count > 0) {
-                        badge.style.display = "inline-block";
-                        badge.innerText = count > 9 ? "9+" : count;
-                    } else {
-                        badge.style.display = "none";
+            // 🚀 NATIVE FIX 7: Sirf UNREAD notifications count karo (jo last seen ke baad aaye hain)
+            const unreadCount = list.filter(item => item.id > lastSeenId).length;
+            
+            let badge = document.getElementById('bell-unread-badge');
+            const notifBtn = document.getElementById('notification-btn');
+            
+            if (notifBtn && !badge) {
+                notifBtn.style.position = "relative";
+                badge = document.createElement('span');
+                badge.id = 'bell-unread-badge';
+                badge.className = 'notif-badge';
+                notifBtn.appendChild(badge);
+            }
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.style.display = "inline-block";
+                    badge.innerText = unreadCount > 9 ? "9+" : unreadCount;
+                    
+                    if (navigator.setAppBadge) {
+                        navigator.setAppBadge(unreadCount).catch(console.error);
+                    }
+                } else {
+                    badge.style.display = "none";
+                    if (navigator.clearAppBadge) {
+                        navigator.clearAppBadge().catch(console.error);
                     }
                 }
-                db.close(); // 🚀 Memory Unlock
-            };
-            tx.oncomplete = () => db.close();
-        } catch (err) { console.warn("[Badge Guard] Handled silently:", err); }
+            }
+        };
     };
 }
+
+// 2. Navi/GPay Floating Top Banner Engine
+let bannerTimeout;
+function showNaviStyleBanner(title, body) {
+    if (isTestActive) {
+        console.log("[Push Guard] Live exam active. Banner silenced.");
+        return; 
+    }
+
+    // 🚀 NATIVE FIX 4: Real App Haptic Feedback (Double Buzz)
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]); 
+    }
+
+    let banner = document.getElementById('native-top-push-banner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'native-top-push-banner';
+        banner.className = 'native-push-banner';
+        banner.innerHTML = `
+            <div class="push-icon-box">
+                <span class="material-icons" style="font-size:24px;">notifications_active</span>
+            </div>
+            <div class="push-content">
+                <h4 id="push-banner-title">Title</h4>
+                <p id="push-banner-body">Body text</p>
+            </div>
+            <button class="push-close" onclick="closeNaviBanner()"><span class="material-icons">close</span></button>
+        `;
+        document.body.appendChild(banner);
+        
+        banner.addEventListener('click', (e) => {
+            if (!e.target.closest('.push-close')) {
+                closeNaviBanner();
+                openNotificationCenter();
+            }
+        });
+    }
+
+    document.getElementById('push-banner-title').innerText = title;
+    document.getElementById('push-banner-body').innerText = body;
+
+    clearTimeout(bannerTimeout);
+    setTimeout(() => banner.classList.add('show'), 50);
+    bannerTimeout = setTimeout(closeNaviBanner, 4500);
+}
+
+function closeNaviBanner() {
+    const banner = document.getElementById('native-top-push-banner');
+    if (banner) banner.classList.remove('show');
+}
+
+// 3. Foreground In-App Notification Handler
+let lastInAppPushTime = 0;
+let lastInAppTitle = "";
+
+messaging.onMessage((payload) => {
+    const data = payload.data || payload.notification || {};
+    const title = data.title || "🚀 Portal Notification";
+    const body = data.body || "You have a new update in your test portal.";
+    
+    const now = Date.now();
+    if (title === lastInAppTitle && (now - lastInAppPushTime) < 5000) return;
+    lastInAppPushTime = now;
+    lastInAppTitle = title;
+
+    saveNotificationToInbox(title, body);
+    showNaviStyleBanner(title, body);
+});
+
+// 🚀 NATIVE FIX 5: Bulletproof Token Expiry Listener (Stops Dead Tokens)
+messaging.onTokenRefresh(() => {
+    messaging.getToken().then((refreshedToken) => {
+        console.log('[Firebase] Engine auto-refreshed the security token.');
+        if (loggedInUser && refreshedToken && typeof database !== 'undefined') {
+            const safeUsername = loggedInUser.replace(/[.#$[\]]/g, '_');
+            database.ref('students_fcm/' + safeUsername).update({
+                token: refreshedToken,
+                lastUpdated: new Date().toISOString()
+            }).catch(console.error);
+        }
+    }).catch(err => console.error('[Firebase] Token refresh blocked: ', err));
+});
 
 // 4. Wire Up Notification Bell Button
 function openNotificationCenter() {
@@ -2265,69 +2351,61 @@ function openNotificationCenter() {
     container.innerHTML = `<div style="text-align:center; padding:20px;"><span class="material-icons" style="animation: spinGlow 1s linear infinite;">autorenew</span></div>`;
     modal.style.display = "flex";
 
-    const request = indexedDB.open('PremiumPortalDB', 4);
+    // Fetch dynamically from IndexedDB
+    const request = indexedDB.open('PremiumPortalDB', 2);
     request.onsuccess = (e) => {
-        try {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('notifications')) {
-                container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
-                db.close();
-                return;
-            }
-            
-            const tx = db.transaction('notifications', 'readonly');
-            const store = tx.objectStore('notifications');
-            const getReq = store.getAll();
-            
-            getReq.onsuccess = () => {
-                const list = getReq.result.sort((a, b) => b.id - a.id); // Newest first
-                container.innerHTML = "";
-                
-                if (list.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
-                } else {
-                    list.slice(0, 30).forEach(item => { // Show top 30
-                        container.insertAdjacentHTML('beforeend', `
-                            <div class="notif-item">
-                                <h5>${item.title}</h5>
-                                <p>${item.body}</p>
-                                <small><span class="material-icons" style="font-size:10px; vertical-align:middle;">schedule</span> ${item.time}</small>
-                            </div>
-                        `);
-                    });
-                }
-                db.close(); // 🚀 Memory Unlock
-            };
-            tx.oncomplete = () => db.close();
-        } catch (err) {
-            container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);"><p>Unable to load history.</p></div>`;
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('notifications')) {
+            container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+            return;
         }
+        
+        const store = db.transaction('notifications', 'readonly').objectStore('notifications');
+        const getReq = store.getAll();
+        
+        getReq.onsuccess = () => {
+            const list = getReq.result.sort((a, b) => b.id - a.id); // Sort by newest first
+            container.innerHTML = "";
+            
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+            } else {
+                // 🚀 NATIVE FIX 7: Mark all current notifications as "SEEN" in local memory
+                const highestId = list[0].id; 
+                localStorage.setItem('last_seen_notif_id', highestId.toString());
+                
+                // Immediately clear the red dot / badges now that user has seen the inbox
+                updateBellBadge();
+
+                list.slice(0, 30).forEach(item => { // Show top 30
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="notif-item">
+                            <h5>${item.title}</h5>
+                            <p>${item.body}</p>
+                            <small><span class="material-icons" style="font-size:10px; vertical-align:middle;">schedule</span> ${item.time}</small>
+                        </div>
+                    `);
+                });
+            }
+        };
     };
 }
 
 function clearAllNotifications() {
-    const request = indexedDB.open('PremiumPortalDB', 4);
+    const request = indexedDB.open('PremiumPortalDB', 2);
     request.onsuccess = (e) => {
-        try {
-            const db = e.target.result;
-            if (db.objectStoreNames.contains('notifications')) {
-                const tx = db.transaction('notifications', 'readwrite');
-                tx.objectStore('notifications').clear();
-                tx.oncomplete = () => {
-                    db.close(); // 🚀 Memory Unlock
-                    updateBellBadge();
-                    const container = document.getElementById('notif-list-container');
-                    if (container) container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">History cleared.</p></div>`;
-                };
-                tx.onerror = () => db.close();
-            } else {
-                db.close();
-            }
-        } catch (err) {}
+        const db = e.target.result;
+        if (db.objectStoreNames.contains('notifications')) {
+            const tx = db.transaction('notifications', 'readwrite');
+            tx.objectStore('notifications').clear();
+            tx.oncomplete = () => {
+                updateBellBadge();
+                const container = document.getElementById('notif-list-container');
+                if (container) container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">History cleared.</p></div>`;
+            };
+        }
     };
 }
-
-
 
 document.addEventListener("DOMContentLoaded", () => {
     updateBellBadge(); // Initialize badge from DB
