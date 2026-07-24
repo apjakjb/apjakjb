@@ -11,22 +11,25 @@ firebase.initializeApp({
 });
 const messaging = firebase.messaging();
 
-// 🚀 IIT EXPERT FIX: OS Tagging & 5-Second Debounce Lock
+// 🚀 SECRET AGENT FIX: OS Tagging & 5-Second Debounce Lock
 let lastNotifTime = 0;
 let lastNotifTitle = "";
 
-// 🚀 PRO-ENGINEER FIX: Promise-wrapped IndexedDB writer to prevent OS thread termination
+// 🚀 TOP-SECRET: Version 3 Database Engine (Kills Old Corrupt Data)
 function savePushToNativeInbox(title, body) {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open('PremiumPortalDB', 2); // 🚀 NAYA: Version 2 forces database upgrade  
+        const request = indexedDB.open('PremiumPortalDB', 3); // 🚨 VERSION 3 BUMP
         request.onupgradeneeded = (event) => {
             const db = event.target.result;
-            if (!db.objectStoreNames.contains('notifications')) {
-                db.createObjectStore('notifications', { keyPath: 'id' });
+            // Wipe corrupt table if it exists during upgrade to ensure fresh schema
+            if (db.objectStoreNames.contains('notifications')) {
+                db.deleteObjectStore('notifications');
             }
+            db.createObjectStore('notifications', { keyPath: 'id' });
         };
         request.onsuccess = (event) => {
             const db = event.target.result;
+            if (!db.objectStoreNames.contains('notifications')) return resolve(false);
             const tx = db.transaction('notifications', 'readwrite');
             const store = tx.objectStore('notifications');
             store.put({
@@ -43,8 +46,6 @@ function savePushToNativeInbox(title, body) {
 }
 
 messaging.onBackgroundMessage((payload) => {
-    console.log('[Firebase SW] Background Data Received: ', payload);
-    
     const data = payload.data || payload.notification || {};
     const notificationTitle = data.title || '🚀 APJAKJB Portal Update';
     const notificationBody = data.body || 'Tap to check out latest mock tests and updates.';
@@ -59,7 +60,7 @@ messaging.onBackgroundMessage((payload) => {
         icon: './icon-192x192.png',
         badge: './icon-512x512.png', 
         image: data.imageUrl || '', 
-        tag: 'portal-master-push', 
+        tag: 'portal-master-push-' + now, // Unique tag ensures every push wakes the screen
         renotify: true, 
         data: { url: data.url || './index.html?source=pwa#main-app-shell' },
         actions: [
@@ -70,56 +71,48 @@ messaging.onBackgroundMessage((payload) => {
         requireInteraction: false
     };
 
-    // 🛡️ THE MAGIC: Force SW to stay alive until DB write AND Notification are complete
-    const promiseChain = Promise.all([
+    // 🚨 BULLETPROOF RULE: Never wait for IndexedDB. Show notification IMMEDIATELY so OS doesn't kill SW.
+    const notifPromise = self.registration.showNotification(notificationTitle, notificationOptions);
+
+    notifPromise.then(() => {
+        // After notification is successfully queued, safely try DB save.
         savePushToNativeInbox(notificationTitle, notificationBody).then(() => {
-            // 🚀 NATIVE FIX 6: UI Sync Engine - Background me save hone ke baad UI ko instantly update karo
-            return clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-                windowClients.forEach((client) => {
-                    client.postMessage({ type: 'UPDATE_BELL' });
-                });
+            return clients.matchAll({ type: 'window', includeUncontrolled: true });
+        }).then((windowClients) => {
+            windowClients.forEach((client) => {
+                client.postMessage({ type: 'UPDATE_BELL' });
             });
-        }).catch(err => console.log('DB Save Failed:', err)),
-        self.registration.showNotification(notificationTitle, notificationOptions)
-    ]);
+        }).catch(err => console.log('Silent Background DB Save Failed:', err));
+    });
     
-    return promiseChain;
+    return notifPromise; // Fulfills OS requirement instantly
 });
 
-// 🚀 NATIVE FIX 1: OS-Level Notification Click & App Routing Engine
+// 🚀 OS-LEVEL ROUTING ENGINE
 self.addEventListener('notificationclick', function(event) {
-    event.notification.close(); // OS tray se notification hatao
-    
-    // Default URL ya notification data ki URL
+    event.notification.close(); 
     const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : './index.html?source=pwa#main-app-shell';
     
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            // 1. Agar app pehle se open hai background mein
             for (let i = 0; i < windowClients.length; i++) {
                 const client = windowClients[i];
                 if (client.url.includes('index.html') && 'focus' in client) {
-                    // Action Buttons par click ki condition
-                    if (event.action === 'start_test') {
-                        client.postMessage({ type: 'NAVIGATE', tab: 'home-tab' });
-                    } else if (event.action === 'view_dashboard') {
-                        client.postMessage({ type: 'NAVIGATE', tab: 'results-tab' });
-                    }
-                    return client.focus(); // App ko screen par lao
+                    if (event.action === 'start_test') client.postMessage({ type: 'NAVIGATE', tab: 'home-tab' });
+                    else if (event.action === 'view_dashboard') client.postMessage({ type: 'NAVIGATE', tab: 'results-tab' });
+                    return client.focus(); 
                 }
             }
-            // 2. Agar app completely closed/killed state mein hai
-            if (clients.openWindow) {
-                return clients.openWindow(targetUrl);
-            }
+            if (clients.openWindow) return clients.openWindow(targetUrl);
         })
     );
 });
 
+
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v107-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
+const CACHE_VERSION = 'premium-portal-v117-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
