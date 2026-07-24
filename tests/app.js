@@ -2171,20 +2171,26 @@ if (menuUpdateBtn) {
     });
 }
 
+
+
 // =========================================================================
-// 🚀 NATIVE GPAY/NAVI STYLE PUSH ENGINE & BELL INBOX INTEGRATION
+// 🚀 SECRET AGENT GPAY/NAVI PUSH ENGINE & BELL INBOX (VERSION 3 DB)
 // =========================================================================
 
 // 1. Native App Database (IndexedDB) for Push Inbox
 function saveNotificationToInbox(title, body) {
-    const request = indexedDB.open('PremiumPortalDB', 2);
+    const request = indexedDB.open('PremiumPortalDB', 3); // 🚨 TOP SECRET: VERSION 3 BUMP
     request.onupgradeneeded = (e) => {
-        if (!e.target.result.objectStoreNames.contains('notifications')) {
-            e.target.result.createObjectStore('notifications', { keyPath: 'id' });
+        const db = e.target.result;
+        if (db.objectStoreNames.contains('notifications')) {
+            db.deleteObjectStore('notifications'); // Kills corrupt data
         }
+        db.createObjectStore('notifications', { keyPath: 'id' });
     };
     request.onsuccess = (e) => {
-        const tx = e.target.result.transaction('notifications', 'readwrite');
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('notifications')) return;
+        const tx = db.transaction('notifications', 'readwrite');
         tx.objectStore('notifications').put({
             id: Date.now(),
             title: title,
@@ -2195,21 +2201,28 @@ function saveNotificationToInbox(title, body) {
     };
 }
 
+// 🚀 BULLETPROOF BADGE ENGINE: Calculates Unread correctly
 function updateBellBadge() {
-    const request = indexedDB.open('PremiumPortalDB', 2);
+    const request = indexedDB.open('PremiumPortalDB', 3); // 🚨 VERSION 3 BUMP
+    request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (db.objectStoreNames.contains('notifications')) {
+            db.deleteObjectStore('notifications');
+        }
+        db.createObjectStore('notifications', { keyPath: 'id' });
+    };
     request.onsuccess = (e) => {
         const db = e.target.result;
         if (!db.objectStoreNames.contains('notifications')) return;
         
         const tx = db.transaction('notifications', 'readonly');
-        const store = tx.objectStore('notifications');
-        const getReq = store.getAll();
+        const getReq = tx.objectStore('notifications').getAll();
         
         getReq.onsuccess = () => {
             const list = getReq.result;
             const lastSeenId = parseInt(localStorage.getItem('last_seen_notif_id')) || 0;
             
-            // 🚀 NATIVE FIX 7: Sirf UNREAD notifications count karo (jo last seen ke baad aaye hain)
+            // Only count notifications newer than what user saw last time
             const unreadCount = list.filter(item => item.id > lastSeenId).length;
             
             let badge = document.getElementById('bell-unread-badge');
@@ -2226,15 +2239,10 @@ function updateBellBadge() {
                 if (unreadCount > 0) {
                     badge.style.display = "inline-block";
                     badge.innerText = unreadCount > 9 ? "9+" : unreadCount;
-                    
-                    if (navigator.setAppBadge) {
-                        navigator.setAppBadge(unreadCount).catch(console.error);
-                    }
+                    if ('setAppBadge' in navigator) navigator.setAppBadge(unreadCount).catch(()=>{});
                 } else {
                     badge.style.display = "none";
-                    if (navigator.clearAppBadge) {
-                        navigator.clearAppBadge().catch(console.error);
-                    }
+                    if ('clearAppBadge' in navigator) navigator.clearAppBadge().catch(()=>{});
                 }
             }
         };
@@ -2249,10 +2257,7 @@ function showNaviStyleBanner(title, body) {
         return; 
     }
 
-    // 🚀 NATIVE FIX 4: Real App Haptic Feedback (Double Buzz)
-    if (navigator.vibrate) {
-        navigator.vibrate([200, 100, 200]); 
-    }
+    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]); // 🚀 Haptic feedback
 
     let banner = document.getElementById('native-top-push-banner');
     if (!banner) {
@@ -2310,18 +2315,14 @@ messaging.onMessage((payload) => {
     showNaviStyleBanner(title, body);
 });
 
-// 🚀 NATIVE FIX 5: Bulletproof Token Expiry Listener (Stops Dead Tokens)
+// 🚀 NATIVE FIX: Background Token Auto-Refresher to stop Dead Tokens
 messaging.onTokenRefresh(() => {
     messaging.getToken().then((refreshedToken) => {
-        console.log('[Firebase] Engine auto-refreshed the security token.');
         if (loggedInUser && refreshedToken && typeof database !== 'undefined') {
             const safeUsername = loggedInUser.replace(/[.#$[\]]/g, '_');
-            database.ref('students_fcm/' + safeUsername).update({
-                token: refreshedToken,
-                lastUpdated: new Date().toISOString()
-            }).catch(console.error);
+            database.ref('students_fcm/' + safeUsername).update({ token: refreshedToken, lastUpdated: new Date().toISOString() }).catch(()=>{});
         }
-    }).catch(err => console.error('[Firebase] Token refresh blocked: ', err));
+    }).catch(()=>{});
 });
 
 // 4. Wire Up Notification Bell Button
@@ -2351,8 +2352,8 @@ function openNotificationCenter() {
     container.innerHTML = `<div style="text-align:center; padding:20px;"><span class="material-icons" style="animation: spinGlow 1s linear infinite;">autorenew</span></div>`;
     modal.style.display = "flex";
 
-    // Fetch dynamically from IndexedDB
-    const request = indexedDB.open('PremiumPortalDB', 2);
+    // 🚀 BUMPED DB VERSION 3
+    const request = indexedDB.open('PremiumPortalDB', 3);
     request.onsuccess = (e) => {
         const db = e.target.result;
         if (!db.objectStoreNames.contains('notifications')) {
@@ -2360,24 +2361,21 @@ function openNotificationCenter() {
             return;
         }
         
-        const store = db.transaction('notifications', 'readonly').objectStore('notifications');
-        const getReq = store.getAll();
+        const tx = db.transaction('notifications', 'readonly');
+        const getReq = tx.objectStore('notifications').getAll();
         
         getReq.onsuccess = () => {
-            const list = getReq.result.sort((a, b) => b.id - a.id); // Sort by newest first
+            const list = getReq.result.sort((a, b) => b.id - a.id); 
             container.innerHTML = "";
             
             if (list.length === 0) {
                 container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
             } else {
-                // 🚀 NATIVE FIX 7: Mark all current notifications as "SEEN" in local memory
-                const highestId = list[0].id; 
-                localStorage.setItem('last_seen_notif_id', highestId.toString());
-                
-                // Immediately clear the red dot / badges now that user has seen the inbox
+                // 🚨 ZOMBIE BADGE FIX: Update last seen ID & Clear Red Dot immediately upon opening
+                localStorage.setItem('last_seen_notif_id', list[0].id.toString());
                 updateBellBadge();
 
-                list.slice(0, 30).forEach(item => { // Show top 30
+                list.slice(0, 30).forEach(item => {
                     container.insertAdjacentHTML('beforeend', `
                         <div class="notif-item">
                             <h5>${item.title}</h5>
@@ -2392,7 +2390,7 @@ function openNotificationCenter() {
 }
 
 function clearAllNotifications() {
-    const request = indexedDB.open('PremiumPortalDB', 2);
+    const request = indexedDB.open('PremiumPortalDB', 3); // 🚨 VERSION 3 BUMP
     request.onsuccess = (e) => {
         const db = e.target.result;
         if (db.objectStoreNames.contains('notifications')) {
@@ -2408,12 +2406,12 @@ function clearAllNotifications() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    updateBellBadge(); // Initialize badge from DB
+    updateBellBadge();
     const bellBtn = document.getElementById('notification-btn');
-    if (bellBtn) {
-        bellBtn.addEventListener('click', openNotificationCenter);
-    }
+    if (bellBtn) bellBtn.addEventListener('click', openNotificationCenter);
 });
+
+
 
 // ==========================================
 // 9. PREMIUM LEADERBOARD ENGINE
