@@ -2165,56 +2165,132 @@ if (menuUpdateBtn) {
 // 🚀 NATIVE GPAY/NAVI STYLE PUSH ENGINE & BELL INBOX INTEGRATION
 // =========================================================================
 
+
+
 // 1. Native App Database (IndexedDB) for Push Inbox
 function saveNotificationToInbox(title, body) {
-    const request = indexedDB.open('PremiumPortalDB', 2);
+    const request = indexedDB.open('PremiumPortalDB', 3); // 🚀 VERSION 3 FORCES UPGRADE
     request.onupgradeneeded = (e) => {
         if (!e.target.result.objectStoreNames.contains('notifications')) {
             e.target.result.createObjectStore('notifications', { keyPath: 'id' });
         }
     };
     request.onsuccess = (e) => {
-        const tx = e.target.result.transaction('notifications', 'readwrite');
-        tx.objectStore('notifications').put({
-            id: Date.now(),
-            title: title,
-            body: body,
-            time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-        });
-        tx.oncomplete = () => updateBellBadge();
+        try {
+            const db = e.target.result;
+            if (db.objectStoreNames.contains('notifications')) {
+                const tx = db.transaction('notifications', 'readwrite');
+                tx.objectStore('notifications').put({
+                    id: Date.now(),
+                    title: title,
+                    body: body,
+                    time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                });
+                tx.oncomplete = () => updateBellBadge();
+            }
+        } catch (err) { console.warn("[DB Save Guard] Handled silently:", err); }
     };
 }
 
 function updateBellBadge() {
-    const request = indexedDB.open('PremiumPortalDB', 2);
+    const request = indexedDB.open('PremiumPortalDB', 3);
     request.onsuccess = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains('notifications')) return;
-        
-        const countReq = db.transaction('notifications', 'readonly').objectStore('notifications').count();
-        countReq.onsuccess = () => {
-            const count = countReq.result;
-            let badge = document.getElementById('bell-unread-badge');
-            const notifBtn = document.getElementById('notification-btn');
+        try {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('notifications')) return;
             
-            if (notifBtn && !badge) {
-                notifBtn.style.position = "relative";
-                badge = document.createElement('span');
-                badge.id = 'bell-unread-badge';
-                badge.className = 'notif-badge';
-                notifBtn.appendChild(badge);
-            }
-            if (badge) {
-                if (count > 0) {
-                    badge.style.display = "inline-block";
-                    badge.innerText = count > 9 ? "9+" : count;
-                } else {
-                    badge.style.display = "none";
+            const countReq = db.transaction('notifications', 'readonly').objectStore('notifications').count();
+            countReq.onsuccess = () => {
+                const count = countReq.result;
+                let badge = document.getElementById('bell-unread-badge');
+                const notifBtn = document.getElementById('notification-btn');
+                
+                if (notifBtn && !badge) {
+                    notifBtn.style.position = "relative";
+                    badge = document.createElement('span');
+                    badge.id = 'bell-unread-badge';
+                    badge.className = 'notif-badge';
+                    notifBtn.appendChild(badge);
                 }
-            }
-        };
+                if (badge) {
+                    if (count > 0) {
+                        badge.style.display = "inline-block";
+                        badge.innerText = count > 9 ? "9+" : count;
+                    } else {
+                        badge.style.display = "none";
+                    }
+                }
+            };
+        } catch (err) { console.warn("[Badge Guard] Handled silently:", err); }
     };
 }
+
+// 4. Wire Up Notification Bell Button
+function openNotificationCenter() {
+    let modal = document.getElementById('notif-center-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'notif-center-modal';
+        modal.className = 'notif-modal-overlay';
+        modal.innerHTML = `
+            <div class="notif-modal-card">
+                <div class="notif-header">
+                    <h3><span class="material-icons" style="color:var(--primary);">notifications</span> Notification Board</h3>
+                    <button class="btn-icon" onclick="document.getElementById('notif-center-modal').style.display='none'"><span class="material-icons">close</span></button>
+                </div>
+                <div id="notif-list-container" class="notif-list"></div>
+                <button class="btn-secondary" style="margin-top:14px; width:100%; font-size:12px;" onclick="clearAllNotifications()">Clear All History</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+
+    const container = document.getElementById('notif-list-container');
+    container.innerHTML = `<div style="text-align:center; padding:20px;"><span class="material-icons" style="animation: spinGlow 1s linear infinite;">autorenew</span></div>`;
+    modal.style.display = "flex";
+
+    // Fetch dynamically from IndexedDB
+    const request = indexedDB.open('PremiumPortalDB', 3);
+    request.onsuccess = (e) => {
+        try {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('notifications')) {
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+                return;
+            }
+            
+            const store = db.transaction('notifications', 'readonly').objectStore('notifications');
+            const getReq = store.getAll();
+            
+            getReq.onsuccess = () => {
+                const list = getReq.result.sort((a, b) => b.id - a.id); // Sort by newest first
+                container.innerHTML = "";
+                
+                if (list.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+                } else {
+                    list.slice(0, 30).forEach(item => { // Show top 30
+                        container.insertAdjacentHTML('beforeend', `
+                            <div class="notif-item">
+                                <h5>${item.title}</h5>
+                                <p>${item.body}</p>
+                                <small><span class="material-icons" style="font-size:10px; vertical-align:middle;">schedule</span> ${item.time}</small>
+                            </div>
+                        `);
+                    });
+                }
+            };
+        } catch (err) {
+            container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);"><p>Unable to load history.</p></div>`;
+        }
+    };
+}
+
+
+
 
 // 2. Navi/GPay Floating Top Banner Engine
 let bannerTimeout;
@@ -2340,21 +2416,25 @@ function openNotificationCenter() {
     };
 }
 
+
 function clearAllNotifications() {
-    const request = indexedDB.open('PremiumPortalDB', 2);
+    const request = indexedDB.open('PremiumPortalDB', 3);
     request.onsuccess = (e) => {
-        const db = e.target.result;
-        if (db.objectStoreNames.contains('notifications')) {
-            const tx = db.transaction('notifications', 'readwrite');
-            tx.objectStore('notifications').clear();
-            tx.oncomplete = () => {
-                updateBellBadge();
-                const container = document.getElementById('notif-list-container');
-                if (container) container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">History cleared.</p></div>`;
-            };
-        }
+        try {
+            const db = e.target.result;
+            if (db.objectStoreNames.contains('notifications')) {
+                const tx = db.transaction('notifications', 'readwrite');
+                tx.objectStore('notifications').clear();
+                tx.oncomplete = () => {
+                    updateBellBadge();
+                    const container = document.getElementById('notif-list-container');
+                    if (container) container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">History cleared.</p></div>`;
+                };
+            }
+        } catch (err) {}
     };
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
     updateBellBadge(); // Initialize badge from DB
