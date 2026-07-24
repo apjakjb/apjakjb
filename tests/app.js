@@ -561,9 +561,7 @@ function showCustomPopup(title, message, type = 'info', confirmCallback = null, 
     popupOverlay.style.display = 'flex';
 }
 
-
 function triggerSmartPushPrompt() {
-    // 🛡️ NAYA: Basic browser & messaging support check (Bulletproof)
     if (!('Notification' in window) || !('serviceWorker' in navigator) || !messaging) {
         console.log("[Firebase] Push notifications not supported or engine offline.");
         return;
@@ -573,34 +571,21 @@ function triggerSmartPushPrompt() {
         if (permission === 'granted') {
             console.log('[Firebase] Native Permission Granted! Waiting for Engine...');
             
-            // ✅ BUG FIX 1: Wait for Service Worker to be 100% Ready
             navigator.serviceWorker.ready.then((registration) => {
+                // 1. Initial Token Generation
                 messaging.getToken({ 
                     vapidKey: "BG-J8WhZpg2eAMoLahgNbRJZhDTSvTLXO5B_Vr4kw8VUMF4OvynfMBe2nckINHoAhEa-6mMIDP_NOECRu6vKREc",
                     serviceWorkerRegistration: registration 
-                })
-                .then((currentToken) => {
-                    if (currentToken) {
-                        console.log('[Firebase] 🔥 Token Generated Successfully!');
-                        
-                        if (loggedInUser) {
-                            // ✅ BUG FIX 2: Sanitize Username (Removes invalid DB chars like . # $ [ ])
-                            const safeUsername = loggedInUser.replace(/[.#$[\]]/g, '_');
-                            
-                            database.ref('students_fcm/' + safeUsername).set({
-                                token: currentToken,
-                                lastLogin: new Date().toISOString()
-                            }).then(() => {
-                                console.log(`[Firebase RTDB] Token securely saved for user: ${safeUsername}`);
-                            }).catch((error) => {
-                                console.error("[Firebase RTDB] Database save failed! Check Firebase Rules.", error);
-                            });
-                        }
-                    } else {
-                        console.log('[Firebase] No registration token available.');
-                    }
-                }).catch((err) => {
-                    console.error('[Firebase] Token Generation Blocked: ', err);
+                }).then((currentToken) => {
+                    if (currentToken) saveTokenToDatabase(currentToken);
+                }).catch((err) => console.error('[Firebase] Token Generation Blocked: ', err));
+
+                // 2. 🚀 THE NATIVE FIX: Auto-Refresh Token when it expires (Zero Dead Tokens)
+                messaging.onTokenRefresh(() => {
+                    messaging.getToken().then((refreshedToken) => {
+                        console.log('[Firebase] Token Refreshed Natively by OS');
+                        saveTokenToDatabase(refreshedToken);
+                    }).catch((err) => console.error('[Firebase] Unable to retrieve refreshed token', err));
                 });
             });
         } else {
@@ -609,8 +594,32 @@ function triggerSmartPushPrompt() {
     });
 }
 
+// 🛡️ Modular Token Saver Function
+function saveTokenToDatabase(token) {
+    if (loggedInUser && database) {
+        const safeUsername = loggedInUser.replace(/[.#$[\]]/g, '_');
+        database.ref('students_fcm/' + safeUsername).set({
+            token: token,
+            lastLogin: new Date().toISOString()
+        }).then(() => {
+            console.log(`[Firebase RTDB] Token securely synced for: ${safeUsername}`);
+        }).catch((error) => console.error("[Firebase RTDB] Database save failed!", error));
+    }
+}
 
-
+// 🚀 100% NATIVE FIX: Listen to Deep Links from Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        // Jab user push notification tap karta hai, SW ye command bhejega
+        if (event.data && event.data.type === 'PUSH_ROUTING' && event.data.url) {
+            const targetTab = event.data.url.split('#')[1];
+            if (targetTab && loggedInUser && !isTestActive) {
+                // Smoothly switch tab without reloading the app
+                switchTab(targetTab, 'Portal Update', true);
+            }
+        }
+    });
+}
 
 
 // ==========================================
