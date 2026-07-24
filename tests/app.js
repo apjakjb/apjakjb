@@ -612,7 +612,13 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', (event) => {
         // Jab user push notification tap karta hai, SW ye command bhejega
         if (event.data && event.data.type === 'PUSH_ROUTING' && event.data.url) {
-            const targetTab = event.data.url.split('#')[1];
+            let targetTab = event.data.url.split('#')[1];
+            
+            // 🛡️ THE BLANK SCREEN KILLER: Prevent routing to 'main-app-shell' to avoid empty UI crash
+            if (targetTab === 'main-app-shell' || !targetTab) {
+                targetTab = 'home-tab';
+            }
+            
             if (targetTab && loggedInUser && !isTestActive) {
                 // Smoothly switch tab without reloading the app
                 switchTab(targetTab, 'Portal Update', true);
@@ -2165,11 +2171,9 @@ if (menuUpdateBtn) {
 // 🚀 NATIVE GPAY/NAVI STYLE PUSH ENGINE & BELL INBOX INTEGRATION
 // =========================================================================
 
-
-
 // 1. Native App Database (IndexedDB) for Push Inbox
 function saveNotificationToInbox(title, body) {
-    const request = indexedDB.open('PremiumPortalDB', 3); // 🚀 VERSION 3 FORCES UPGRADE
+    const request = indexedDB.open('PremiumPortalDB', 4); // 🚀 VERSION 4: Ultimate Fix
     request.onupgradeneeded = (e) => {
         if (!e.target.result.objectStoreNames.contains('notifications')) {
             e.target.result.createObjectStore('notifications', { keyPath: 'id' });
@@ -2181,25 +2185,32 @@ function saveNotificationToInbox(title, body) {
             if (db.objectStoreNames.contains('notifications')) {
                 const tx = db.transaction('notifications', 'readwrite');
                 tx.objectStore('notifications').put({
-                    id: Date.now(),
+                    id: Date.now() + Math.floor(Math.random() * 1000), // Zero collision ID
                     title: title,
                     body: body,
                     time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
                 });
-                tx.oncomplete = () => updateBellBadge();
+                tx.oncomplete = () => {
+                    db.close(); // 🚀 Memory Unlock
+                    updateBellBadge();
+                };
+                tx.onerror = () => db.close();
+            } else {
+                db.close();
             }
         } catch (err) { console.warn("[DB Save Guard] Handled silently:", err); }
     };
 }
 
 function updateBellBadge() {
-    const request = indexedDB.open('PremiumPortalDB', 3);
+    const request = indexedDB.open('PremiumPortalDB', 4);
     request.onsuccess = (e) => {
         try {
             const db = e.target.result;
-            if (!db.objectStoreNames.contains('notifications')) return;
+            if (!db.objectStoreNames.contains('notifications')) { db.close(); return; }
             
-            const countReq = db.transaction('notifications', 'readonly').objectStore('notifications').count();
+            const tx = db.transaction('notifications', 'readonly');
+            const countReq = tx.objectStore('notifications').count();
             countReq.onsuccess = () => {
                 const count = countReq.result;
                 let badge = document.getElementById('bell-unread-badge');
@@ -2220,7 +2231,9 @@ function updateBellBadge() {
                         badge.style.display = "none";
                     }
                 }
+                db.close(); // 🚀 Memory Unlock
             };
+            tx.oncomplete = () => db.close();
         } catch (err) { console.warn("[Badge Guard] Handled silently:", err); }
     };
 }
@@ -2252,21 +2265,22 @@ function openNotificationCenter() {
     container.innerHTML = `<div style="text-align:center; padding:20px;"><span class="material-icons" style="animation: spinGlow 1s linear infinite;">autorenew</span></div>`;
     modal.style.display = "flex";
 
-    // Fetch dynamically from IndexedDB
-    const request = indexedDB.open('PremiumPortalDB', 3);
+    const request = indexedDB.open('PremiumPortalDB', 4);
     request.onsuccess = (e) => {
         try {
             const db = e.target.result;
             if (!db.objectStoreNames.contains('notifications')) {
                 container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
+                db.close();
                 return;
             }
             
-            const store = db.transaction('notifications', 'readonly').objectStore('notifications');
+            const tx = db.transaction('notifications', 'readonly');
+            const store = tx.objectStore('notifications');
             const getReq = store.getAll();
             
             getReq.onsuccess = () => {
-                const list = getReq.result.sort((a, b) => b.id - a.id); // Sort by newest first
+                const list = getReq.result.sort((a, b) => b.id - a.id); // Newest first
                 container.innerHTML = "";
                 
                 if (list.length === 0) {
@@ -2282,143 +2296,17 @@ function openNotificationCenter() {
                         `);
                     });
                 }
+                db.close(); // 🚀 Memory Unlock
             };
+            tx.oncomplete = () => db.close();
         } catch (err) {
             container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);"><p>Unable to load history.</p></div>`;
         }
     };
 }
 
-
-
-
-// 2. Navi/GPay Floating Top Banner Engine
-let bannerTimeout;
-function showNaviStyleBanner(title, body) {
-    if (isTestActive) {
-        console.log("[Push Guard] Live exam active. Banner silenced.");
-        return; 
-    }
-
-    let banner = document.getElementById('native-top-push-banner');
-    if (!banner) {
-        banner = document.createElement('div');
-        banner.id = 'native-top-push-banner';
-        banner.className = 'native-push-banner';
-        banner.innerHTML = `
-            <div class="push-icon-box">
-                <span class="material-icons" style="font-size:24px;">notifications_active</span>
-            </div>
-            <div class="push-content">
-                <h4 id="push-banner-title">Title</h4>
-                <p id="push-banner-body">Body text</p>
-            </div>
-            <button class="push-close" onclick="closeNaviBanner()"><span class="material-icons">close</span></button>
-        `;
-        document.body.appendChild(banner);
-        
-        banner.addEventListener('click', (e) => {
-            if (!e.target.closest('.push-close')) {
-                closeNaviBanner();
-                openNotificationCenter();
-            }
-        });
-    }
-
-    document.getElementById('push-banner-title').innerText = title;
-    document.getElementById('push-banner-body').innerText = body;
-
-    clearTimeout(bannerTimeout);
-    setTimeout(() => banner.classList.add('show'), 50);
-    bannerTimeout = setTimeout(closeNaviBanner, 4500);
-}
-
-function closeNaviBanner() {
-    const banner = document.getElementById('native-top-push-banner');
-    if (banner) banner.classList.remove('show');
-}
-
-// 3. Foreground In-App Notification Handler
-let lastInAppPushTime = 0;
-let lastInAppTitle = "";
-
-messaging.onMessage((payload) => {
-    const data = payload.data || payload.notification || {};
-    const title = data.title || "🚀 Portal Notification";
-    const body = data.body || "You have a new update in your test portal.";
-    
-    const now = Date.now();
-    if (title === lastInAppTitle && (now - lastInAppPushTime) < 5000) return;
-    lastInAppPushTime = now;
-    lastInAppTitle = title;
-
-    saveNotificationToInbox(title, body);
-    showNaviStyleBanner(title, body);
-});
-
-// 4. Wire Up Notification Bell Button
-function openNotificationCenter() {
-    let modal = document.getElementById('notif-center-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'notif-center-modal';
-        modal.className = 'notif-modal-overlay';
-        modal.innerHTML = `
-            <div class="notif-modal-card">
-                <div class="notif-header">
-                    <h3><span class="material-icons" style="color:var(--primary);">notifications</span> Notification Board</h3>
-                    <button class="btn-icon" onclick="document.getElementById('notif-center-modal').style.display='none'"><span class="material-icons">close</span></button>
-                </div>
-                <div id="notif-list-container" class="notif-list"></div>
-                <button class="btn-secondary" style="margin-top:14px; width:100%; font-size:12px;" onclick="clearAllNotifications()">Clear All History</button>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.style.display = 'none';
-        });
-    }
-
-    const container = document.getElementById('notif-list-container');
-    container.innerHTML = `<div style="text-align:center; padding:20px;"><span class="material-icons" style="animation: spinGlow 1s linear infinite;">autorenew</span></div>`;
-    modal.style.display = "flex";
-
-    // Fetch dynamically from IndexedDB
-    const request = indexedDB.open('PremiumPortalDB', 2);
-    request.onsuccess = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains('notifications')) {
-            container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
-            return;
-        }
-        
-        const store = db.transaction('notifications', 'readonly').objectStore('notifications');
-        const getReq = store.getAll();
-        
-        getReq.onsuccess = () => {
-            const list = getReq.result.sort((a, b) => b.id - a.id); // Sort by newest first
-            container.innerHTML = "";
-            
-            if (list.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">No notifications yet.</p></div>`;
-            } else {
-                list.slice(0, 30).forEach(item => { // Show top 30
-                    container.insertAdjacentHTML('beforeend', `
-                        <div class="notif-item">
-                            <h5>${item.title}</h5>
-                            <p>${item.body}</p>
-                            <small><span class="material-icons" style="font-size:10px; vertical-align:middle;">schedule</span> ${item.time}</small>
-                        </div>
-                    `);
-                });
-            }
-        };
-    };
-}
-
-
 function clearAllNotifications() {
-    const request = indexedDB.open('PremiumPortalDB', 3);
+    const request = indexedDB.open('PremiumPortalDB', 4);
     request.onsuccess = (e) => {
         try {
             const db = e.target.result;
@@ -2426,14 +2314,19 @@ function clearAllNotifications() {
                 const tx = db.transaction('notifications', 'readwrite');
                 tx.objectStore('notifications').clear();
                 tx.oncomplete = () => {
+                    db.close(); // 🚀 Memory Unlock
                     updateBellBadge();
                     const container = document.getElementById('notif-list-container');
                     if (container) container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);"><span class="material-icons" style="font-size:40px; opacity:0.4;">notifications_off</span><p style="margin-top:8px;">History cleared.</p></div>`;
                 };
+                tx.onerror = () => db.close();
+            } else {
+                db.close();
             }
         } catch (err) {}
     };
 }
+
 
 
 document.addEventListener("DOMContentLoaded", () => {
