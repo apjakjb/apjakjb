@@ -116,7 +116,11 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
     flex-direction: column;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform;
+    /* 👇 NAYA CODE YAHAN HAI 👇 */
+    border-radius: 0 20px 20px 0; /* Top-Right aur Bottom-Right ko 28px round karega */
+    overflow: hidden; /* Header ke color ko round corners se bahar nikalne se rokega */
 }
+
 .side-drawer.open {
     transform: translateX(var(--drawer-width));
 }
