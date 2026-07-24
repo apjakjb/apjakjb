@@ -10,25 +10,16 @@ firebase.initializeApp({
     appId: "1:737523775575:web:26db3649ede4845e688b12"
 });
 const messaging = firebase.messaging();
-
-
-
-
 let lastNotifTime = 0;
 let lastNotifTitle = "";
-
-
 let lastNotifTime = 0;
 let lastNotifTitle = "";
-
 // 🚀 100% NATIVE FIX: Direct OS-Level Push Interceptor (Bypasses Firebase Wrapper Delays)
 self.addEventListener('push', function(event) {
     if (!event.data) return;
-
     try {
         const payload = event.data.json();
         const data = payload.data || payload.notification || {};
-        
         if (!data.title) return;
 
         const notificationTitle = data.title;
@@ -150,7 +141,7 @@ self.addEventListener('notificationclick', (event) => {
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v107-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
+const CACHE_VERSION = 'premium-portal-v113-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
