@@ -10,138 +10,116 @@ firebase.initializeApp({
     appId: "1:737523775575:web:26db3649ede4845e688b12"
 });
 const messaging = firebase.messaging();
+
+// 🚀 IIT EXPERT FIX: OS Tagging & 5-Second Debounce Lock
 let lastNotifTime = 0;
 let lastNotifTitle = "";
-let lastNotifTime = 0;
-let lastNotifTitle = "";
-// 🚀 100% NATIVE FIX: Direct OS-Level Push Interceptor (Bypasses Firebase Wrapper Delays)
-self.addEventListener('push', function(event) {
-    if (!event.data) return;
-    try {
-        const payload = event.data.json();
-        const data = payload.data || payload.notification || {};
-        if (!data.title) return;
 
-        const notificationTitle = data.title;
-        const notificationBody = data.body || 'Tap to check out latest mock tests and updates.';
-        
-        const now = Date.now();
-        if (notificationTitle === lastNotifTitle && (now - lastNotifTime) < 5000) return;
-        lastNotifTime = now;
-        lastNotifTitle = notificationTitle;
-
-        let rawUrl = data.url || './index.html?source=pwa#home-tab';
-        // 🛡️ THE BLANK SCREEN HOTFIX: Prevent wrong URL from crashing UI
-        if (rawUrl.includes('#main-app-shell')) {
-            rawUrl = rawUrl.replace('#main-app-shell', '#home-tab');
-        }
-
-        const notificationOptions = {
-            body: notificationBody,
-            icon: './icon-192x192.png',
-            badge: './icon-512x512.png', 
-            image: data.imageUrl || '', 
-            tag: 'portal-master-push', 
-            renotify: true, 
-            data: { url: rawUrl },
-            actions: [
-                { action: 'start_test', title: '🚀 Attempt Now' },
-                { action: 'view_dashboard', title: '📊 Dashboard' }
-            ],
-            vibrate: [200, 100, 200, 100, 200],
-            requireInteraction: false
+// 🚀 PRO-ENGINEER FIX: Promise-wrapped IndexedDB writer to prevent OS thread termination
+function savePushToNativeInbox(title, body) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('PremiumPortalDB', 2); // 🚀 NAYA: Version 2 forces database upgrade  
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('notifications')) {
+                db.createObjectStore('notifications', { keyPath: 'id' });
+            }
         };
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const tx = db.transaction('notifications', 'readwrite');
+            const store = tx.objectStore('notifications');
+            store.put({
+                id: Date.now(),
+                title: title,
+                body: body,
+                time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+            });
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
+        };
+        request.onerror = () => reject(request.error);
+    });
+}
 
-        // 🛡️ NATIVE DB ENGINE: Version 4 Forces upgrade, Closes connection to prevent deadlock
-        const dbSyncPromise = new Promise((resolve) => {
-            const request = indexedDB.open('PremiumPortalDB', 4);
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains('notifications')) {
-                    db.createObjectStore('notifications', { keyPath: 'id' });
-                }
-            };
-            request.onsuccess = (e) => {
-                try {
-                    const db = e.target.result;
-                    if (db.objectStoreNames.contains('notifications')) {
-                        const tx = db.transaction('notifications', 'readwrite');
-                        
-                        let timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-                        if(!timeStr || timeStr === 'Invalid Date') { timeStr = new Date().getHours() + ':' + new Date().getMinutes(); }
+messaging.onBackgroundMessage((payload) => {
+    console.log('[Firebase SW] Background Data Received: ', payload);
+    
+    const data = payload.data || payload.notification || {};
+    const notificationTitle = data.title || '🚀 APJAKJB Portal Update';
+    const notificationBody = data.body || 'Tap to check out latest mock tests and updates.';
+    
+    const now = Date.now();
+    if (notificationTitle === lastNotifTitle && (now - lastNotifTime) < 5000) return;
+    lastNotifTime = now;
+    lastNotifTitle = notificationTitle;
 
-                        tx.objectStore('notifications').put({
-                            id: Date.now() + Math.floor(Math.random() * 1000), 
-                            title: notificationTitle,
-                            body: notificationBody,
-                            time: timeStr
-                        });
-                        tx.oncomplete = () => { db.close(); resolve(); };
-                        tx.onerror = () => { db.close(); resolve(); };
-                    } else {
-                        db.close(); resolve();
-                    }
-                } catch (err) { resolve(); } 
-            };
-            request.onerror = () => resolve();
-        });
+    const notificationOptions = {
+        body: notificationBody,
+        icon: './icon-192x192.png',
+        badge: './icon-512x512.png', 
+        image: data.imageUrl || '', 
+        tag: 'portal-master-push', 
+        renotify: true, 
+        data: { url: data.url || './index.html?source=pwa#main-app-shell' },
+        actions: [
+            { action: 'start_test', title: '🚀 Attempt Now' },
+            { action: 'view_dashboard', title: '📊 Dashboard' }
+        ],
+        vibrate: [200, 100, 200, 100, 200],
+        requireInteraction: false
+    };
 
-        event.waitUntil(
-            Promise.all([
-                self.registration.showNotification(notificationTitle, notificationOptions),
-                dbSyncPromise
-            ])
-        );
-    } catch (e) {
-        console.error('[SW Native Push Error]:', e);
-    }
+    // 🛡️ THE MAGIC: Force SW to stay alive until DB write AND Notification are complete
+    const promiseChain = Promise.all([
+        savePushToNativeInbox(notificationTitle, notificationBody).then(() => {
+            // 🚀 NATIVE FIX 6: UI Sync Engine - Background me save hone ke baad UI ko instantly update karo
+            return clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+                windowClients.forEach((client) => {
+                    client.postMessage({ type: 'UPDATE_BELL' });
+                });
+            });
+        }).catch(err => console.log('DB Save Failed:', err)),
+        self.registration.showNotification(notificationTitle, notificationOptions)
+    ]);
+    
+    return promiseChain;
 });
 
-// 🚀 100% NATIVE FIX: Play Store TWA Deep Linking Engine
-self.addEventListener('notificationclick', (event) => {
-    console.log('[Service Worker] Native Notification Clicked.');
-    event.notification.close(); 
-
-    let rawUrl = event.notification.data && event.notification.data.url 
-        ? event.notification.data.url 
-        : './index.html?source=pwa#home-tab';
-        
-    // 🛡️ THE BLANK SCREEN HOTFIX: Prevent wrong URL from crashing UI
-    if (rawUrl.includes('#main-app-shell')) {
-        rawUrl = rawUrl.replace('#main-app-shell', '#home-tab');
-    }
-
-    const absoluteTargetUrl = new URL(rawUrl, self.location.origin).href;
-
+// 🚀 NATIVE FIX 1: OS-Level Notification Click & App Routing Engine
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close(); // OS tray se notification hatao
+    
+    // Default URL ya notification data ki URL
+    const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : './index.html?source=pwa#main-app-shell';
+    
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            // 1. Agar app pehle se open hai background mein
             for (let i = 0; i < windowClients.length; i++) {
                 const client = windowClients[i];
-                if (client.url.includes(self.registration.scope) && 'focus' in client) {
-                    return client.focus().then(focusedClient => {
-                        if (focusedClient) {
-                            focusedClient.postMessage({ type: 'PUSH_ROUTING', url: absoluteTargetUrl });
-                        }
-                    });
+                if (client.url.includes('index.html') && 'focus' in client) {
+                    // Action Buttons par click ki condition
+                    if (event.action === 'start_test') {
+                        client.postMessage({ type: 'NAVIGATE', tab: 'home-tab' });
+                    } else if (event.action === 'view_dashboard') {
+                        client.postMessage({ type: 'NAVIGATE', tab: 'results-tab' });
+                    }
+                    return client.focus(); // App ko screen par lao
                 }
             }
+            // 2. Agar app completely closed/killed state mein hai
             if (clients.openWindow) {
-                return clients.openWindow(absoluteTargetUrl);
+                return clients.openWindow(targetUrl);
             }
         })
     );
 });
 
-
-
-
-
-
-
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v113-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
+const CACHE_VERSION = 'premium-portal-v107-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
