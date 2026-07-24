@@ -10,10 +10,18 @@ firebase.initializeApp({
     appId: "1:737523775575:web:26db3649ede4845e688b12"
 });
 const messaging = firebase.messaging();
+
+
+
+
 let lastNotifTime = 0;
 let lastNotifTitle = "";
 
-// 🚀 100% NATIVE FIX: Direct OS-Level Push Interceptor (Bypasses Firebase Wrapper Delays in TWA)
+
+let lastNotifTime = 0;
+let lastNotifTitle = "";
+
+// 🚀 100% NATIVE FIX: Direct OS-Level Push Interceptor (Bypasses Firebase Wrapper Delays)
 self.addEventListener('push', function(event) {
     if (!event.data) return;
 
@@ -21,7 +29,6 @@ self.addEventListener('push', function(event) {
         const payload = event.data.json();
         const data = payload.data || payload.notification || {};
         
-        // Agar Firebase internal data hai toh ignore karo
         if (!data.title) return;
 
         const notificationTitle = data.title;
@@ -32,6 +39,12 @@ self.addEventListener('push', function(event) {
         lastNotifTime = now;
         lastNotifTitle = notificationTitle;
 
+        let rawUrl = data.url || './index.html?source=pwa#home-tab';
+        // 🛡️ THE BLANK SCREEN HOTFIX: Prevent wrong URL from crashing UI
+        if (rawUrl.includes('#main-app-shell')) {
+            rawUrl = rawUrl.replace('#main-app-shell', '#home-tab');
+        }
+
         const notificationOptions = {
             body: notificationBody,
             icon: './icon-192x192.png',
@@ -39,7 +52,7 @@ self.addEventListener('push', function(event) {
             image: data.imageUrl || '', 
             tag: 'portal-master-push', 
             renotify: true, 
-            data: { url: data.url || './index.html?source=pwa#main-app-shell' },
+            data: { url: rawUrl },
             actions: [
                 { action: 'start_test', title: '🚀 Attempt Now' },
                 { action: 'view_dashboard', title: '📊 Dashboard' }
@@ -48,9 +61,9 @@ self.addEventListener('push', function(event) {
             requireInteraction: false
         };
 
-        // 🛡️ NATIVE DB ENGINE: Version 3 Forces upgrade, Try-Catch prevents SW crashes
+        // 🛡️ NATIVE DB ENGINE: Version 4 Forces upgrade, Closes connection to prevent deadlock
         const dbSyncPromise = new Promise((resolve) => {
-            const request = indexedDB.open('PremiumPortalDB', 3);
+            const request = indexedDB.open('PremiumPortalDB', 4);
             request.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains('notifications')) {
@@ -62,25 +75,26 @@ self.addEventListener('push', function(event) {
                     const db = e.target.result;
                     if (db.objectStoreNames.contains('notifications')) {
                         const tx = db.transaction('notifications', 'readwrite');
+                        
+                        let timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        if(!timeStr || timeStr === 'Invalid Date') { timeStr = new Date().getHours() + ':' + new Date().getMinutes(); }
+
                         tx.objectStore('notifications').put({
-                            id: Date.now(),
+                            id: Date.now() + Math.floor(Math.random() * 1000), 
                             title: notificationTitle,
                             body: notificationBody,
-                            time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                            time: timeStr
                         });
-                        tx.oncomplete = () => resolve();
-                        tx.onerror = () => resolve(); // Ignore failure, don't crash
+                        tx.oncomplete = () => { db.close(); resolve(); };
+                        tx.onerror = () => { db.close(); resolve(); };
                     } else {
-                        resolve();
+                        db.close(); resolve();
                     }
-                } catch (err) { 
-                    resolve(); // Failsafe against DOMExceptions
-                } 
+                } catch (err) { resolve(); } 
             };
             request.onerror = () => resolve();
         });
 
-        // 🛡️ Wait for both the OS Notification render AND the DB save to complete before sleeping
         event.waitUntil(
             Promise.all([
                 self.registration.showNotification(notificationTitle, notificationOptions),
@@ -92,27 +106,26 @@ self.addEventListener('push', function(event) {
     }
 });
 
-
-
-
-
 // 🚀 100% NATIVE FIX: Play Store TWA Deep Linking Engine
 self.addEventListener('notificationclick', (event) => {
     console.log('[Service Worker] Native Notification Clicked.');
     event.notification.close(); 
 
-    // 🛡️ PWABuilder TWA Loophole Fix: Relative URLs open in Chrome Browser! Convert to Absolute URL.
-    const rawUrl = event.notification.data && event.notification.data.url 
+    let rawUrl = event.notification.data && event.notification.data.url 
         ? event.notification.data.url 
-        : './index.html?source=pwa#main-app-shell';
+        : './index.html?source=pwa#home-tab';
+        
+    // 🛡️ THE BLANK SCREEN HOTFIX: Prevent wrong URL from crashing UI
+    if (rawUrl.includes('#main-app-shell')) {
+        rawUrl = rawUrl.replace('#main-app-shell', '#home-tab');
+    }
+
     const absoluteTargetUrl = new URL(rawUrl, self.location.origin).href;
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            // SCENARIO 1: App background mein chal raha hai
             for (let i = 0; i < windowClients.length; i++) {
                 const client = windowClients[i];
-                // Strict scope matching to avoid breaking out of TWA
                 if (client.url.includes(self.registration.scope) && 'focus' in client) {
                     return client.focus().then(focusedClient => {
                         if (focusedClient) {
@@ -121,7 +134,6 @@ self.addEventListener('notificationclick', (event) => {
                     });
                 }
             }
-            // SCENARIO 2: App closed hai. Forcefully TWA wrapper ke andar open karo
             if (clients.openWindow) {
                 return clients.openWindow(absoluteTargetUrl);
             }
@@ -129,10 +141,16 @@ self.addEventListener('notificationclick', (event) => {
     );
 });
 
+
+
+
+
+
+
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v112-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
+const CACHE_VERSION = 'premium-portal-v107-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
@@ -153,6 +171,7 @@ const ASSETS_TO_CACHE = [
     'https://checkout.razorpay.com/v1/checkout.js',
     'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
 ];
+
 
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') { 
@@ -194,6 +213,8 @@ self.addEventListener('fetch', (event) => {
     if (event.request.method === 'POST' || requestUrl.href.includes('script.google.com')) {
         return; 
     }
+
+
 
 // 🛡️ THE NATIVE INSTANT-LOADER (Kills Chrome Horizontal Loading Bar)
     if (event.request.mode === 'navigate') {
