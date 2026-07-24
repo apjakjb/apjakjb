@@ -149,19 +149,27 @@ document.addEventListener("DOMContentLoaded", () => {
     updateThemeUI(savedTheme === 'dark');
 });
 
-// Side Drawer Navigation Logic
+
+// ==========================================
+// 🚀 ULTRA-SMOOTH NATIVE DRAWER ENGINE (FINGER-TRACKING)
+// ==========================================
 const drawer = document.getElementById('side-drawer');
 const drawerOverlay = document.getElementById('drawer-overlay');
+const DRAWER_WIDTH = 280; // Matches var(--drawer-width) from style.css
 
 function toggleDrawer() {
     const isOpen = drawer.classList.contains('open');
+    drawer.style.transform = ''; 
+    drawerOverlay.style.opacity = '';
+    
     if (isOpen) {
         drawer.classList.remove('open');
         drawerOverlay.classList.remove('open');
-        setTimeout(() => { drawerOverlay.style.display = 'none'; }, 250);
+        setTimeout(() => { 
+            if (!drawer.classList.contains('open')) drawerOverlay.style.display = 'none'; 
+        }, 250);
     } else {
         drawerOverlay.style.display = 'block';
-        // Small delay to allow display:block to render before opacity transition
         setTimeout(() => {
             drawer.classList.add('open');
             drawerOverlay.classList.add('open');
@@ -170,41 +178,128 @@ function toggleDrawer() {
 }
 
 document.getElementById('menu-toggle-btn').addEventListener('click', () => {
-    // 🛡️ THE FIX: Test chalte waqt side menu bar kholna bhi strictly ban hai!
     if (isTestActive) {
-        showCustomPopup(
-            "Menu Locked 🔒", 
-            "Side drawer menu is disabled during the exam. Please focus entirely on your question paper.", 
-            "danger"
-        );
+        showCustomPopup("Menu Locked 🔒", "Side drawer menu is disabled during the exam.", "danger");
         return;
     }
     toggleDrawer();
 });
 drawerOverlay.addEventListener('click', toggleDrawer);
 
-// 🛡️ NAYA: Native Swipe-to-Close Engine (Bulletproof)
+// 🛡️ REAL NATIVE FINGER-TRACKING SWIPE ENGINE
 let touchStartX = 0;
 let touchStartY = 0;
+let isDraggingDrawer = false;
+let isVerticalScroll = false;
 
-drawer.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
+document.addEventListener('touchstart', (e) => {
+    // 🛡️ NO LOOPHOLE: Exam ke waqt swipe open/close strictly blocked!
+    if (isTestActive) return;
+
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isDraggingDrawer = false;
+    isVerticalScroll = false;
+
+    const isOpen = drawer.classList.contains('open');
+    
+    // Drag to Open: Sirf left edge (25px) se finger chalane par drawer bahar aayega
+    if (!isOpen && touchStartX <= 25) {
+        isDraggingDrawer = true;
+        drawerOverlay.style.display = 'block';
+    } 
+    // Drag to Close: Agar open hai, toh touch track karna shuru karo
+    else if (isOpen) {
+        isDraggingDrawer = true;
+    }
 }, { passive: true });
 
-drawer.addEventListener('touchend', (e) => {
-    const touchEndX = e.changedTouches[0].screenX;
-    const touchEndY = e.changedTouches[0].screenY;
+document.addEventListener('touchmove', (e) => {
+    if (!isDraggingDrawer || isVerticalScroll) return;
+
+    const touchCurrentX = e.touches[0].clientX;
+    const touchCurrentY = e.touches[0].clientY;
+    const deltaX = touchCurrentX - touchStartX;
+    const deltaY = Math.abs(touchCurrentY - touchStartY);
     
-    const swipeDistanceX = touchEndX - touchStartX;
-    const swipeDistanceY = Math.abs(touchEndY - touchStartY);
+    // 1. Agar student menu mein upar/neeche (Vertical) scroll kar raha hai, toh drag lock kar do
+    if (deltaY > 12 && deltaY > Math.abs(deltaX)) {
+        isVerticalScroll = true; 
+        drawer.style.transform = '';
+        drawerOverlay.style.opacity = '';
+        return;
+    }
+
+    const isOpen = drawer.classList.contains('open');
+    let newTranslateX;
+
+    // 2. Exact Finger-Position Calculation
+    if (!isOpen) {
+        if (deltaX < 0) return; // Closed hai toh left nahi ja sakta
+        newTranslateX = Math.min(deltaX, DRAWER_WIDTH); // 0 se 280 tak drag hoga
+    } else {
+        if (deltaX > 0) return; // Open hai toh aur right nahi ja sakta
+        newTranslateX = Math.max(DRAWER_WIDTH + deltaX, 0); // 280 se 0 tak wapas jayega
+    }
+
+    // 3. Disable CSS animations for 0ms delay (Finger magnet effect)
+    drawer.style.transition = 'none';
+    drawerOverlay.style.transition = 'none';
     
-    // EXPERT LOGIC: Agar swipe Left side (-50px) gaya hai AUR vertical scroll (Y-axis) 50px se kam hai, tabhi menu band karo!
-    if (swipeDistanceX < -50 && swipeDistanceY < 50) {
-        if (drawer.classList.contains('open')) {
-            toggleDrawer();
+    // 4. Makkhan movement apply karo
+    drawer.style.transform = `translateX(${newTranslateX}px)`;
+    drawerOverlay.style.opacity = (newTranslateX / DRAWER_WIDTH).toFixed(2);
+    
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+    if (!isDraggingDrawer || isVerticalScroll) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchEndX - touchStartX;
+    const isOpen = drawer.classList.contains('open');
+
+    // Wapas smooth CSS animation on karo
+    drawer.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+    drawerOverlay.style.transition = 'opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+    
+    // Inline overrides hatao taaki CSS handle kare
+    drawer.style.transform = '';
+    drawerOverlay.style.opacity = '';
+
+    // Smart Threshold: Finger kahan chhodi, wahan se decision
+    const dragThreshold = DRAWER_WIDTH / 3; // 33% drag hona zaroori hai
+
+    if (!isOpen) {
+        if (deltaX > dragThreshold) {
+            drawer.classList.add('open');  // Khol do
+            drawerOverlay.classList.add('open');
+        } else {
+            setTimeout(() => { 
+                if(!drawer.classList.contains('open')) drawerOverlay.style.display = 'none'; 
+            }, 250); // Wapas band kar do
+        }
+    } else {
+        if (deltaX < -dragThreshold) {
+            drawer.classList.remove('open'); // Band kar do
+            drawerOverlay.classList.remove('open');
+            setTimeout(() => { 
+                if(!drawer.classList.contains('open')) drawerOverlay.style.display = 'none'; 
+            }, 250);
+        } else {
+            drawer.classList.add('open'); // Wapas khol do
+            drawerOverlay.classList.add('open');
         }
     }
+
+    // Clean up
+    setTimeout(() => {
+        drawer.style.transition = '';
+        drawerOverlay.style.transition = '';
+    }, 250);
+    
+    isDraggingDrawer = false;
+    isVerticalScroll = false;
 }, { passive: true });
 
 
