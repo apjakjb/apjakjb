@@ -1,6 +1,6 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
- 
+
 firebase.initializeApp({
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
     authDomain: "testportal-9562c.firebaseapp.com",
@@ -70,19 +70,55 @@ messaging.onBackgroundMessage((payload) => {
         requireInteraction: false
     };
 
-    // 🛡️ THE MAGIC: Force SW to stay alive until DB write AND Notification are complete
-    const promiseChain = Promise.all([
-        savePushToNativeInbox(notificationTitle, notificationBody).catch(err => console.log('DB Save Failed:', err)),
-        self.registration.showNotification(notificationTitle, notificationOptions)
-    ]);
+    // 🚀 IIT NATIVE FIX: Zero-Latency OS Trigger (Bypass Android Doze Mode)
+    // Never block showNotification with DB operations. OS kills SW if it hangs.
+    const notificationPromise = self.registration.showNotification(notificationTitle, notificationOptions);
     
-    return promiseChain;
+    // Fire DB sync asynchronously without holding up the OS Notification trigger
+    notificationPromise.then(() => {
+        savePushToNativeInbox(notificationTitle, notificationBody).catch(err => console.log('[DB Sync] Background Ignored:', err));
+    });
+    
+    return notificationPromise;
+});
+
+// 🚀 100% NATIVE FIX: Play Store TWA Deep Linking Engine
+self.addEventListener('notificationclick', (event) => {
+    console.log('[Service Worker] Native Notification Clicked.');
+    event.notification.close(); 
+
+    // 🛡️ PWABuilder TWA Loophole Fix: Relative URLs open in Chrome Browser! Convert to Absolute URL.
+    const rawUrl = event.notification.data && event.notification.data.url 
+        ? event.notification.data.url 
+        : './index.html?source=pwa#main-app-shell';
+    const absoluteTargetUrl = new URL(rawUrl, self.location.origin).href;
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            // SCENARIO 1: App background mein chal raha hai
+            for (let i = 0; i < windowClients.length; i++) {
+                const client = windowClients[i];
+                // Strict scope matching to avoid breaking out of TWA
+                if (client.url.includes(self.registration.scope) && 'focus' in client) {
+                    return client.focus().then(focusedClient => {
+                        if (focusedClient) {
+                            focusedClient.postMessage({ type: 'PUSH_ROUTING', url: absoluteTargetUrl });
+                        }
+                    });
+                }
+            }
+            // SCENARIO 2: App closed hai. Forcefully TWA wrapper ke andar open karo
+            if (clients.openWindow) {
+                return clients.openWindow(absoluteTargetUrl);
+            }
+        })
+    );
 });
 
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v110-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
+const CACHE_VERSION = 'premium-portal-v111-INSTANT-OPEN'; // Version updated for Native Stale-While-Revalidate Engine
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
