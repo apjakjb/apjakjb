@@ -1,7 +1,7 @@
 // ==========================================
 // API CONFIGURATION
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbztRERQTM-_kWvkQrzyERwXNHQlWIII46WqgQAs3IqKPLZnqEWZDu-PLaKiXg0vrdeUtA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxq2_kPTh6ZBr3e-85YBWojM765UueC7uJ3PCPVN5RMxa5QtlEAjdYj3nWkL5rAIxQ73g/exec";
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
@@ -51,6 +51,8 @@ let totalTestSeconds = 0;
 let serverTimeOffset = 0; 
 let isPostExamRestricted = false; 
 let globalLiveTests910 = [];
+let globalAllLiveTests = []; // 🚀 NAYA: Secure Master Storage for Countdown Engine
+let countdownBannerInterval = null; // 🚀 NAYA: Engine Timer Interval
 let currentLeaderboardData = []; // 🛡️ NAYA: Data for Share Image 
 let currentSubjectClassLvl = '9'; 
 let globalLiveTests1112 = []; // 🛡️ NAYA: Storage for XI/XII Subject filtering
@@ -467,11 +469,12 @@ window.addEventListener('popstate', (e) => {
     const state = e.state;
 
     // 🛡️ SMART REFRESH ENGINE: Test submit hone ke baad jab student exit karega, portal completely fresh data ke sath sync hoga
-    if (isPostExamRestricted && state && state.tab !== 'analysis-tab' && state.tab !== 'leaderboard-tab') {
-        isPostExamRestricted = false;
-        loadDashboard(); // Yeh server se latest result pull karke, live test ko permanently 'Attempted' kar dega aur Home par le aayega
-        return;
-    }
+            if (isPostExamRestricted && state && state.tab !== 'analysis-tab' && state.tab !== 'leaderboard-tab') {
+                isPostExamRestricted = false;
+                switchTab(state.tab, state.title || 'Portal', false); // 🚀 IIT EXPERT FIX: Immediately route the UI to requested tab before background sync
+                loadDashboard(); // Silently refresh data to mark live test as 'Attempted'
+                return;
+            }
     
     // 2. Agar user kisi Tab par back aaya hai
     if (state && state.tab) {
@@ -1111,6 +1114,7 @@ function renderDashboardFromData(result) {
     
     globalLiveTests910 = []; 
     globalLiveTests1112 = [];
+    globalAllLiveTests = result.liveTests || []; // 🚀 SYNC ALL TESTS TO MASTER
     testHistoryData = result.history || {}; 
 
     let practiceCount910 = 0, practiceCount1112 = 0, completedCount = 0;
@@ -1196,7 +1200,147 @@ function renderDashboardFromData(result) {
 
     attachTestCardListeners();
     startDashboardLiveEngine(); 
+    startCountdownBannerEngine(); // 🚀 IGNITE 1-HOUR COUNTDOWN ENGINE
 }
+
+
+// ==========================================
+// 🚀 NAYA: PREMIUM 1-HOUR COUNTDOWN ENGINE (SMART CAROUSEL)
+// ==========================================
+function startCountdownBannerEngine() {
+    clearInterval(countdownBannerInterval); 
+    
+    const banner = document.getElementById('live-countdown-banner');
+    const nameEl = document.getElementById('countdown-test-name');
+    const timeEl = document.getElementById('countdown-timer-display');
+    const btnDetails = document.getElementById('btn-view-test-details');
+    
+    if (!banner || !nameEl || !timeEl || !btnDetails) return;
+
+    let carouselIndex = 0;
+    let rotationCounter = 0; // Tracks seconds for the 3-second rotation
+    let currentTargetTest = null; // Holds the test currently on display
+
+    function tick() {
+        const nowMs = getSecureTime(); 
+        let impendingTests = [];
+
+        // 1. Ek Ghante (1 Hour) ke andar aane wale SAARE tests dhoondho (Completed tests excluded)
+                globalAllLiveTests.forEach(test => {
+                    const startMs = new Date(test.startTime).getTime();
+                    const diffMs = startMs - nowMs;
+                    
+                    // 🚀 IIT EXPERT FIX: Do not show countdown for tests the student has already submitted
+                    if (diffMs > 0 && diffMs <= 3600000 && test.status !== "completed") {
+                        // Future use ke liye time-difference attach kar do
+                        impendingTests.push({ testRef: test, diff: diffMs });
+                    }
+                });
+
+        // Agar array khali hai (koi test nahi bacha), toh banner chupa do
+        if (impendingTests.length === 0) {
+            banner.style.display = 'none';
+            return;
+        }
+
+        // 2. Tests ko time ke hisaab se ascending order me lagao (Jo pehle start hoga wo 1st)
+        impendingTests.sort((a, b) => a.diff - b.diff);
+        banner.style.display = 'flex';
+
+        // 3. Carousel Logic (Har 3 seconds me agle test par shift hona)
+        if (rotationCounter % 3 === 0) {
+            // Agar real-time me array size chota/bada hua ho toh index fix karo
+            if (carouselIndex >= impendingTests.length) carouselIndex = 0;
+            
+            currentTargetTest = impendingTests[carouselIndex];
+            
+            // Makkhan jaisi Fade Animation
+            nameEl.style.transition = 'opacity 0.2s ease';
+            nameEl.style.opacity = '0.1';
+            
+            setTimeout(() => {
+                // Agar 1 se zyada tests hain, toh (1/2), (2/2) UI dikhao
+                let prefix = impendingTests.length > 1 ? `(${carouselIndex + 1}/${impendingTests.length}) ` : '';
+                // 🚀 IIT EXPERT FIX: Test title ki jagah "Class | Subject" exact format
+                nameEl.innerText = `${prefix}Class ${currentTargetTest.testRef.classLvl} | ${currentTargetTest.testRef.subject}`;
+                nameEl.style.opacity = '1';
+            }, 200);
+
+            // Agli baari ke liye index advance karo
+            carouselIndex = (carouselIndex + 1) % impendingTests.length;
+        }
+        rotationCounter++;
+
+        // 4. Timer Logic (Sirf us test ka exact time dikhayega jo abhi screen par hai)
+        if (currentTargetTest) {
+            const activeStartMs = new Date(currentTargetTest.testRef.startTime).getTime();
+            const activeDiff = activeStartMs - nowMs;
+            let safeDiff = activeDiff > 0 ? activeDiff : 0; // Zero se niche na gire
+            
+            let hrs = Math.floor(safeDiff / 3600000).toString().padStart(2, '0');
+            let mins = Math.floor((safeDiff % 3600000) / 60000).toString().padStart(2, '0');
+            let secs = Math.floor((safeDiff % 60000) / 1000).toString().padStart(2, '0');
+            
+            timeEl.innerText = `${hrs}:${mins}:${secs}`;
+
+            // 5. Smart Click Routing (Screen pe jo text hai, Button EXACTLY wahin jayega)
+            btnDetails.onclick = () => {
+                const targetRef = currentTargetTest.testRef;
+                const testClass = String(targetRef.classLvl).toUpperCase();
+                const testSubject = String(targetRef.subject);
+                
+                const isSenior = testClass.includes('11') || testClass.includes('12') || testClass.includes('XI');
+                
+                // 🚀 IIT EXPERT FIX: Auto-Hydrate the DOM by programmatically filtering the subject FIRST
+                if (isSenior) {
+                    // Exact Class 11 ya 12 route determine karo
+                    currentSubjectClassLvl1112 = (testClass.includes('12') || testClass.includes('XII')) ? '12' : '11';
+                    
+                    // Filter engine ko force trigger karo taaki DOM create ho
+                    openFilteredLiveTests1112(currentSubjectClassLvl1112, testSubject);
+                    
+                    const tabBtn = document.getElementById('tab-upcoming-1112');
+                    if (tabBtn) tabBtn.click(); 
+                } else {
+                    // Exact Class 9 ya 10 route determine karo
+                    currentSubjectClassLvl = (testClass.includes('10') || (testClass.includes('X') && !testClass.includes('IX'))) ? '10' : '9';
+                    
+                    // Filter engine ko force trigger karo taaki DOM create ho
+                    openFilteredLiveTests(currentSubjectClassLvl, testSubject);
+                    
+                    const tabBtn = document.getElementById('tab-upcoming-910');
+                    if (tabBtn) tabBtn.click(); 
+                }
+
+                // Makkhan Smooth Scroll aur Red Glow Tracker
+                setTimeout(() => {
+                    const targetListId = isSenior ? 'upcoming-live-list-1112' : 'upcoming-live-list-910';
+                    const targetList = document.getElementById(targetListId);
+                    if (targetList) {
+                        const testCard = targetList.querySelector(`[data-test="${targetRef.testId}"]`);
+                        if (testCard) {
+                            testCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            testCard.style.transition = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                            testCard.style.transform = 'scale(1.02)';
+                            testCard.style.boxShadow = '0 0 25px rgba(225, 29, 72, 0.45), 0 0 0 2px #E11D48';
+                            
+                            setTimeout(() => {
+                                testCard.style.transform = '';
+                                testCard.style.boxShadow = '';
+                            }, 3000); // 3 second baad glow wapas normal
+                        }
+                    }
+                }, 350); 
+            };
+        }
+    }
+
+    tick(); 
+    countdownBannerInterval = setInterval(tick, 1000); 
+}
+
+
+
 
 // 🚀 UPGRADED SILENT DASHBOARD SYNC
 async function loadDashboard(isSilent = false) {
@@ -1235,17 +1379,50 @@ function renderCompletedCard(test, container) {
     const pastData = testHistoryData[test.testId];
     const safeScore = pastData ? pastData.score : test.score;
     const safeTotal = pastData ? pastData.total : test.total;
+    
+    // 🛡️ NAYA FIX: Retrieve Exact Attempt Date securely
+    const rawDate = (pastData && pastData.attemptDate) ? pastData.attemptDate : (test.attemptDate || null);
+    const attemptDate = rawDate ? formatShortDate(rawDate) : "Recently Completed";
+    
+    // Fallback logic for safety
+    const safeSubject = test.subject || "General";
+    const safeClass = test.classLvl ? `Class ${test.classLvl}` : "All Classes";
+
+    // 🚀 PREMIUM CARD UI UPGRADE: Title Centered at Top, Premium Details Below
     container.insertAdjacentHTML('beforeend', `
-        <div class="test-card" data-test="${test.testId}" data-completed="true">
-            <div class="test-info">
-                <h4>${test.title}</h4>
-                <p>Scored: <strong style="color:var(--success)">${safeScore}</strong> / ${safeTotal} Marks</p>
+        <div class="test-card" data-test="${test.testId}" data-completed="true" style="flex-direction: column; align-items: center; gap: 14px; padding: 20px 16px; border: 1.5px solid var(--border); border-radius: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.04); background: linear-gradient(145deg, var(--card-bg) 0%, var(--bg-color) 100%);">
+            
+            <!-- 1. Top Centered Title -->
+            <h4 style="font-size: 18px; font-weight: 900; color: var(--text-main); margin: 0; text-align: center; line-height: 1.3; width: 100%; border-bottom: 1.5px dashed var(--border-dark); padding-bottom: 14px;">${test.title}</h4>
+            
+            <!-- 2. Details Row (Class, Subject, Date) & Score -->
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <span class="ptc-subject" style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(79, 70, 229, 0.2);">${safeSubject}</span>
+                        <span class="ptc-class" style="font-size: 10px; font-weight: 750; color: var(--text-muted); background: var(--card-bg); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border);">${safeClass}</span>
+                    </div>
+                    <p style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--text-muted); margin: 0;">
+                        <span class="material-icons" style="font-size: 15px; color: var(--nav-inactive);">event_available</span> ${attemptDate}
+                    </p>
+                </div>
+                
+                <!-- 3. Premium Score Block -->
+                <div style="text-align: center; background: rgba(16, 185, 129, 0.1); padding: 10px 14px; border-radius: 14px; border: 1.5px solid rgba(16, 185, 129, 0.25); min-width: 85px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
+                    <p style="font-size: 9px; font-weight: 800; color: var(--success); text-transform: uppercase; margin: 0 0 2px 0; letter-spacing: 0.5px;">Score</p>
+                    <h3 style="color: var(--success); font-size: 22px; font-weight: 900; margin: 0;">${safeScore}<span style="font-size: 13px; font-weight: 750; opacity: 0.7;">/${safeTotal}</span></h3>
+                </div>
+
             </div>
-            <button class="btn-secondary test-action-btn">View Analysis</button>
+            
+            <!-- 4. Action Button -->
+            <button class="btn-secondary test-action-btn" style="width: 100%; background: var(--card-bg); border: 1.5px solid var(--border-dark); color: var(--primary); font-weight: 800; font-size: 13px; padding: 12px; border-radius: 14px; display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s ease;">
+                <span class="material-icons" style="font-size: 18px;">analytics</span> View Detailed Analysis
+            </button>
         </div>
     `);
 }
-
 
 // --- NATIVE LIVE ENGINE (REAL-TIME UI) ---
 function updateLiveCards() {
@@ -2004,7 +2181,6 @@ async function processSubmission() {
 }
 
 
-
 function displayDeepAnalysis(score, total, percentage, detailsArray, pushToHistory = true) {
     let cleanPercentage = parseFloat(percentage);
     if (isNaN(cleanPercentage)) cleanPercentage = total > 0 ? ((score / total) * 100) : 0;
@@ -2030,18 +2206,40 @@ function displayDeepAnalysis(score, total, percentage, detailsArray, pushToHisto
                 ${!isCorrect ? `<p class="correct-ans">Correct Answer: ${item.correctAnswer}</p>` : ''}
             </div>
         `;
-
     });
 
-    // 🚀 NAYA: MATHJAX FOR ANALYSIS SCREEN
-    if (window.MathJax) {
-        MathJax.typesetPromise([document.getElementById('breakdown-list')])
-            .catch((err) => console.log('Math rendering error in analysis: ', err.message));
+    // 🚀 IIT EXPERT FIX 1: Explicitly bind the Leaderboard button dynamically to prevent silent failure drops
+    const lbBtn = document.getElementById('view-leaderboard-btn');
+    if (lbBtn) {
+        lbBtn.onclick = function(e) {
+            e.preventDefault();
+            if (!activeTestName) {
+                showCustomPopup("Action Blocked", "Test session context lost. Please try reopening the result.", "danger");
+                return;
+            }
+            fetchAndRenderLeaderboard(activeTestName);
+        };
+    }
+
+    // 🚀 IIT EXPERT FIX 2: Bulletproof Lazy-Load MathJax for Analysis Screen (Fixes broken math symbols)
+    const contentStr = breakdownList.innerHTML;
+    const containsMath = contentStr.includes('$') || contentStr.includes('\\(') || contentStr.includes('\\[');
+    
+    if (containsMath) {
+        if (!window.MathJax) {
+            window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }, startup: { typeset: false } };
+            loadExternalSDK("https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js", "MathJax-script").then(() => {
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    MathJax.typesetPromise([breakdownList]).catch(e => console.log(e));
+                }
+            });
+        } else if (window.MathJax.typesetPromise) {
+            MathJax.typesetPromise([breakdownList]).catch(e => console.log(e));
+        }
     }
 
     switchTab('analysis-tab', 'Performance Insights', pushToHistory);
 }
-
 
 
 // ==========================================
@@ -2411,22 +2609,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (bellBtn) bellBtn.addEventListener('click', openNotificationCenter);
 });
 
-
-
 // ==========================================
 // 9. PREMIUM LEADERBOARD ENGINE
 // ==========================================
-document.getElementById('view-leaderboard-btn').addEventListener('click', () => {
-    fetchAndRenderLeaderboard(activeTestName);
-});
-
 async function fetchAndRenderLeaderboard(testId) {
     const listContainer = document.getElementById('leaderboard-list');
     
     // 🛡️ NATIVE UI FIX: Tab switch use karo
     switchTab('leaderboard-tab', 'Live Rankings');
     
-    document.getElementById('leaderboard-test-name').innerText = testId.replace(/_/g, ' ').toUpperCase();
+    // 🛡️ SAFETY FIX: Ensure testId is a valid string before parsing
+    const safeTestNameStr = testId ? String(testId) : "Unknown_Test";
+    document.getElementById('leaderboard-test-name').innerText = safeTestNameStr.replace(/_/g, ' ').toUpperCase();
     
     // Premium loading animation
     listContainer.innerHTML = `<div style="text-align:center; padding: 40px;"><span class="material-icons" style="font-size:40px; color:var(--primary); animation: waveMotion 1.5s infinite;">emoji_events</span><p style="margin-top:10px; font-weight:600;">Fetching All India Ranks...</p></div>`;
@@ -2548,51 +2742,6 @@ if (contactBtn) {
         window.open(whatsappUrl, '_blank');
     });
 }
-
-
-// ==========================================
-// 🌟 PREMIUM AUTO IMAGE SLIDER ENGINE
-// ==========================================
-function initPremiumSlider() {
-    const track = document.getElementById('slider-track');
-    const dotsContainer = document.getElementById('slider-dots');
-    
-    // Agar screen par slider nahi hai, toh kuch mat karo
-    if (!track || !dotsContainer) return;
-
-    const slides = track.querySelectorAll('.slide-img');
-    if (slides.length === 0) return;
-
-    let currentIndex = 0;
-    const slideCount = slides.length;
-
-    // 1. Automatically dots create karo jitni images hain
-    slides.forEach((_, i) => {
-        const dot = document.createElement('div');
-        dot.classList.add('dot');
-        if (i === 0) dot.classList.add('active');
-        dotsContainer.appendChild(dot);
-    });
-
-    const dots = dotsContainer.querySelectorAll('.dot');
-
-    // 2. Slide change karne ka main function
-    function goToSlide(index) {
-        track.style.transform = `translateX(-${index * 100}%)`;
-        dots.forEach(dot => dot.classList.remove('active'));
-        dots[index].classList.add('active');
-        currentIndex = index;
-    }
-
-    // 3. Har 3.5 seconds mein automatic agle slide par jao
-    setInterval(() => {
-        let nextIndex = (currentIndex + 1) % slideCount;
-        goToSlide(nextIndex);
-    }, 3500);
-}
-
-// App khulte hi slider engine ko start kar do
-document.addEventListener('DOMContentLoaded', initPremiumSlider);
 
 
 
