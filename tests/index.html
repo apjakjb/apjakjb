@@ -48,26 +48,10 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Test Portal</title>
     <link rel="stylesheet" href="style.css">
-    <!-- <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" /> -->
-    <!-- 🚀 BULLETPROOF NON-BLOCKING SDK LOADERS (Prevents PWA Splash Screen Hangs) -->
     <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>    
-    <!-- <script defer src="https://checkout.razorpay.com/v1/checkout.js"></script> -->
-    <!-- <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> -->
-    <!-- <script>
-        MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            },
-            startup: {
-                typeset: true
-            }
-        };
-    </script>
-    <script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> -->
 </head>
 
 <body oncontextmenu="return false;" onkeydown="if(event.keyCode==123) return false;">
@@ -315,11 +299,19 @@
                 <div id="home-tab" class="tab-view active">
                     <div class="screen-content">
 
-<p class="section-title">Here we with you...</p>
-<div class="login-premium-promo-wrapper">
-    <img src="./assets/promo-banner.gif" alt="Premium Offers" class="login-premium-promo-img">
-</div>
-
+                        <!-- 🚀 NAYA: 1-Hour Premium Live Test Countdown Banner -->
+                        <div id="live-countdown-banner" class="premium-countdown-banner" style="display: none;">
+                            <div class="banner-content">
+                                <div class="banner-icon-ring">
+                                    <span class="material-icons" style="font-size: 20px;">hourglass_top</span>
+                                </div>
+                                <div class="banner-text">
+                                    <h4 id="countdown-test-name">Test Name</h4>
+                                    <p>Starts exactly in: <strong id="countdown-timer-display" style="color: var(--danger); font-family: monospace; font-size: 14px; letter-spacing: 0.5px;">00:00:00</strong></p>
+                                </div>
+                            </div>
+                            <button id="btn-view-test-details" class="btn-primary banner-action-btn">Explore Details</button>
+                        </div>
 
 <div class="welcome-section">
     <h3 id="welcome-text">Hello Dear, Student</h3>
@@ -327,18 +319,17 @@
 </div>
 
 
+<div class="login-premium-promo-wrapper">
+    <img src="./assets/promo-banner.gif" alt="Premium Offers" class="login-premium-promo-img">
+</div>
+
 <button type="button" id="home-share-btn" class="drawer-item" style="margin-top: 10px; background: skyblue; display: flex; align-items: center; justify-content: center; gap: 8px;">
     <span class="material-icons">share</span> Invite Friends
 </button>
-                        <br>
-                        <div class="premium-image-slider">
-                            <div class="slider-track" id="slider-track">
-                                <img src="./assets/slider1.jpg" alt="Slide 1" class="slide-img">
-                                <img src="./assets/slider2.jpg" alt="Slide 2" class="slide-img">
-                                <img src="./assets/slider3.jpg" alt="Slide 3" class="slide-img">
-                            </div>
-                            <div class="slider-dots" id="slider-dots"></div>
-                        </div>
+
+
+
+                        
 
                         <p class="section-title" style="margin-top: 25px;">Explore Categories for XI & XII</p>
                         <div class="features-grid">
