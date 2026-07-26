@@ -4,7 +4,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbxq2_kPTh6ZBr3e-85YBWojM765UueC7uJ3PCPVN5RMxa5QtlEAjdYj3nWkL5rAIxQ73g/exec";
 
 // ========================================== 
-// FIREBASE ENGINE & DATABASE  
+// FIREBASE ENGINE & DATABASE 
 // ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
@@ -1401,24 +1401,24 @@ function renderCompletedCard(test, container) {
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                         <span class="ptc-subject" style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(79, 70, 229, 0.2);">${safeSubject}</span>
-                        <span class="ptc-class" style="font-size: 10px; font-weight: 750; color: var(--text-muted); background: var(--card-bg); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border);">${safeClass}</span>
+                        <span class="ptc-subject" style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(79, 70, 229, 0.2);">${safeClass}</span>
                     </div>
-                    <p style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--text-muted); margin: 0;">
-                        <span class="material-icons" style="font-size: 15px; color: var(--nav-inactive);">event_available</span> ${attemptDate}
+                    <p style="display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 700; color: var(--text-muted); margin: 0;">
+                        <span class="material-icons" style="font-size: 17px; color: var(--nav-inactive);">event_available</span> ${attemptDate}
                     </p>
                 </div>
                 
                 <!-- 3. Premium Score Block -->
                 <div style="text-align: center; background: rgba(16, 185, 129, 0.1); padding: 10px 14px; border-radius: 14px; border: 1.5px solid rgba(16, 185, 129, 0.25); min-width: 85px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
                     <p style="font-size: 9px; font-weight: 800; color: var(--success); text-transform: uppercase; margin: 0 0 2px 0; letter-spacing: 0.5px;">Score</p>
-                    <h3 style="color: var(--success); font-size: 22px; font-weight: 900; margin: 0;">${safeScore}<span style="font-size: 13px; font-weight: 750; opacity: 0.7;">/${safeTotal}</span></h3>
+                    <h3 style="color: var(--success); font-size: 12px; font-weight: 900; margin: 0;">${safeScore}<span style="font-size: 9px; font-weight: 750; opacity: 0.7;">/${safeTotal}</span></h3>
                 </div>
 
             </div>
             
             <!-- 4. Action Button -->
             <button class="btn-secondary test-action-btn" style="width: 100%; background: var(--card-bg); border: 1.5px solid var(--border-dark); color: var(--primary); font-weight: 800; font-size: 13px; padding: 12px; border-radius: 14px; display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s ease;">
-                <span class="material-icons" style="font-size: 18px;">analytics</span> View Detailed Analysis
+                <span class="material-icons" style="font-size: 18px;">analytics</span> View Your Result
             </button>
         </div>
     `);
