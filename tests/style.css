@@ -7,7 +7,7 @@
     --text-muted: #4B5563;
     --border: #F3F4F6;
     --border-dark: #E5E7EB;
-    --success: #10B981; 
+    --success: #10B981;
     --danger: #EF4444;
     --warning: #F59E0B;
     --nav-inactive: #9CA3AF;
@@ -1114,68 +1114,6 @@ button {
 
 
 /* ========================================== */
-/* 🌟 PREMIUM AUTO IMAGE SLIDER UI (NO CROP)  */
-/* ========================================== */
-.premium-image-slider {
-    position: relative;
-    width: 100%;
-    height: auto; /* 🎯 NAYA FIX: Fixed height hata di, ab height image ke hisaab se adjust hogi */
-    border-radius: 18px; 
-    overflow: hidden;
-    margin-bottom: 22px;
-    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
-    background: var(--card-bg); 
-    border: 1.5px solid var(--border);
-}
-
-.slider-track {
-    display: flex;
-    width: 100%;
-    align-items: center; /* 🎯 NAYA FIX: Images hamesha vertically center mein rahengi */
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
-}
-
-.slide-img {
-    flex: 0 0 100%; /* 🎯 NAYA FIX: Har image theek screen jitni jagah legi */
-    width: 100%;
-    height: auto; /* 🎯 NAYA FIX: Image apni natural shape retain karegi */
-    object-fit: contain; /* 🎯 NAYA MAGIC FIX: Image ab kabhi cut/crop nahi hogi, poori dikhegi */
-    display: block;
-}
-
-/* Dots aur dark mode ki design waise hi rahegi */
-.slider-dots {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 6px;
-    z-index: 5;
-}
-
-.dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    transition: all 0.3s ease;
-}
-
-.dot.active {
-    background: #ffffff;
-    width: 16px; 
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-[data-theme="dark"] .premium-image-slider {
-    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4);
-    border-color: var(--border-dark);
-}
-
-
-/* ========================================== */
 /* 🌟 VIP PREMIUM GRID CARD UI (GOLD LOOK)    */
 /* ========================================== */
 .premium-glow-card {
@@ -2001,3 +1939,112 @@ select.ai-input {
     animation: popupScaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
+
+
+/* ========================================== */
+/* 🚀 NAYA: 1-HOUR COUNTDOWN BANNER UI        */
+/* ========================================== */
+.premium-countdown-banner {
+    background: linear-gradient(135deg, #FFF1F2 0%, #FEE2E2 100%);
+    border: 1.5px solid #FDA4AF;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.15);
+    animation: slideDownFade 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes slideDownFade {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.premium-countdown-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg);
+    animation: goldShine 3s infinite;
+    pointer-events: none;
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.banner-icon-ring {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 12px;
+    background: rgba(225, 29, 72, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #E11D48;
+    border: 1px solid rgba(225, 29, 72, 0.2);
+}
+
+.banner-icon-ring .material-icons {
+    animation: pulseGlowUpdate 1.5s infinite;
+}
+
+.banner-text h4 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #881337;
+    margin: 0 0 2px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.banner-text p {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9F1239;
+    margin: 0;
+}
+
+.banner-action-btn {
+    background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3) !important;
+    width: auto !important;
+    padding: 8px 14px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.banner-action-btn:active {
+    transform: scale(0.95);
+}
+
+[data-theme="dark"] .premium-countdown-banner {
+    background: linear-gradient(135deg, rgba(225, 29, 72, 0.15) 0%, rgba(159, 18, 57, 0.25) 100%);
+    border-color: #9F1239;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .banner-text h4 { color: #FDA4AF; }
+[data-theme="dark"] .banner-text p { color: #FCA5A5; }
+[data-theme="dark"] .premium-countdown-banner::before {
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+}
+
