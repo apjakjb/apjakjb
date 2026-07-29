@@ -525,8 +525,8 @@
                 </div>
 
 
-                <!-- ========================================== -->
-                <!-- 🤖 AI SMART QUIZ GENERATOR TAB             -->
+<!-- ========================================== -->
+                <!-- 🤖 AI SMART EXAMINER TAB                   -->
                 <!-- ========================================== -->
                 <div id="ai-tab" class="tab-view" style="display: none;">
                     <div class="screen-content" style="padding-bottom: 90px;">
@@ -549,10 +549,11 @@
                         </div>
 
                         <p class="section-title" style="margin-top: 22px;">Step 1: Select Target & Subject</p>
-                        <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 20px;">
+                        <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 20px; position: relative; z-index: 10;">
                             <div class="ai-form-group">
                                 <label><span class="material-icons">school</span> Target Class</label>
-                                <select id="ai-class-select" class="ai-input" required>
+                                <!-- 🛡️ IIT FIX: Global Inline Handler Attached -->
+                                <select id="ai-class-select" class="ai-input" required onchange="window.triggerClassChange(this)">
                                     <option value="" disabled selected>Select Class</option>
                                     <option value="Class IX">Class IX</option>
                                     <option value="Class X (HSLC)">Class X (HSLC)</option>
@@ -574,7 +575,7 @@
                         </div>
 
                         <p class="section-title">Step 2: Enter Chapter / Topic Name</p>
-                        <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 24px;">
+                        <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 24px; position: relative; z-index: 10;">
                             <div class="ai-form-group" style="margin-bottom: 16px;">
                                 <label><span class="material-icons">biotech</span> Chapter or Specific Topic</label>
                                 <input type="text" id="ai-topic-input" class="ai-input" placeholder="e.g., Respiration in Assamese" maxlength="60" required>
@@ -584,14 +585,15 @@
                             <div class="ai-form-group" style="margin-bottom: 0;">
                                 <label><span class="material-icons">format_list_numbered</span> Number of MCQs</label>
                                 <div style="display: flex; gap: 10px; margin-top: 8px;">
-                                    <button type="button" class="ai-count-btn active" data-count="10">10 MCQs (Standard)</button>
-                                    <button type="button" class="ai-count-btn" data-count="15">15 MCQs (Deep Practice)</button>
+                                    <!-- 🛡️ IIT FIX: Global Inline Handler Attached -->
+                                    <button type="button" class="ai-count-btn active" data-count="10" onclick="window.updateAiCount(this, 10)">10 MCQs (Standard)</button>
+                                    <button type="button" class="ai-count-btn" data-count="15" onclick="window.updateAiCount(this, 15)">15 MCQs (Deep Practice)</button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Generate Action Button -->
-                        <button type="button" id="btn-generate-ai-quiz" class="btn-primary ai-generate-btn">
+                        <!-- 🛡️ IIT FIX: Global Inline Handler Attached -->
+                        <button type="button" id="btn-generate-ai-quiz" class="btn-primary ai-generate-btn" onclick="window.startAiExam(this)" style="position: relative; z-index: 10;">
                             <span class="material-icons ai-sparkle-icon" style="font-size: 20px;">auto_awesome</span> 
                             Generate Instant Test
                         </button>
@@ -689,8 +691,11 @@
                 <!-- 📝 1. TEST SESSION TAB (NO BACK BUTTON)    -->
                 <!-- ========================================== -->
                 <div id="test-tab" class="tab-view" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: var(--card-bg); border-bottom: 1px solid var(--border);">
-                        <span id="question-counter" class="badge" style="font-size: 14px; font-weight: 800;">0/0</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--card-bg); border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; flex-direction: column; gap: 2px; max-width: 65%;">
+                            <span id="question-counter" class="badge" style="font-size: 12px; font-weight: 800; width: fit-content;">0/0</span>
+                            <h4 id="test-title" style="font-size: 13px; font-weight: 800; color: var(--text-main); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Practice Test</h4>
+                        </div>
                         <div class="timer-wrapper">
                             <span class="material-icons timer-icon" id="exam-timer-icon" style="font-size:18px;">schedule</span>
                             <div id="timer" class="timer-badge" style="font-size:15px;">00:00</div>
