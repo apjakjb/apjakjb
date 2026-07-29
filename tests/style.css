@@ -1785,8 +1785,18 @@ button {
 }
 
 [data-theme="dark"] .ai-count-btn.active {
-    background: rgba(79, 70, 229, 0.2);
-    color: #818CF8;
+    background: var(--primary) !important;
+    color: #FFFFFF !important;
+    border-color: #818CF8 !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4) !important;
+}
+
+/* 🛡️ IIT EXPERT FIX: Clear Visual Disabled State for AI Dropdowns */
+.ai-input:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    background-color: var(--border) !important;
+    border-color: var(--border-dark) !important;
 }
 
 .ai-generate-btn {
@@ -1811,11 +1821,13 @@ button {
     box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
 }
 
-/* 🛡️ LOOPHOLE FIX 1: Prevent API Spam Double-Clicks */
+/* 🛡️ IIT EXPERT FIX: Mobile Touch Ripple & Generation State Fix */
 .ai-generate-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.65 !important;
+    cursor: wait !important;
+    transform: none !important;
+    filter: grayscale(0.2);
     pointer-events: none;
-    filter: grayscale(0.5);
 }
 
 /* 🛡️ LOOPHOLE FIX 2: Text/Icon Specific Glow Animation (Removes Box-Shadow Glitch) */
