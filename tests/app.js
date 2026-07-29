@@ -7,7 +7,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxq2_kPTh6ZBr3e-85YBWoj
 // FIREBASE ENGINE & DATABASE 
 // ==========================================
 const firebaseConfig = {
-    apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8", 
+    apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
     authDomain: "testportal-9562c.firebaseapp.com",
     databaseURL: "https://testportal-9562c-default-rtdb.asia-southeast1.firebasedatabase.app/",
     projectId: "testportal-9562c",
@@ -2729,6 +2729,7 @@ setupLiveTabs('910');
 setupLiveTabs('1112');
 setupLiveTabs('series');
 
+
 // =========================================
 // 11. WHATSAPP SUPPORT ENGINE (PWA BULLETPROOF)
 // ==========================================
@@ -2737,26 +2738,18 @@ const contactBtn = document.getElementById('menu-contact-btn');
 if (contactBtn) {
     contactBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        
         const phoneNumber = "918822778233"; 
         const message = "Hello Sir, I need some help regarding the Premium Test Portal.";
+        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         
-        // 🚀 IIT EXPERT FIX: Universal Deep Link Protocol for SPNWA
-        const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+        // 🛡️ THE 100% GUARANTEED FIX: Break out of PWA Standalone Scope
+        // PWA WebViews block window.location.href for external apps. window.open forces Native OS intent.
+        window.open(whatsappUrl, '_blank');
         
-        // 🛡️ ZERO LOOPHOLE: Trigger URL IMMEDIATELY inside the user-gesture context. 
-        // Agar setTimeout lagayenge, toh PWA aur Chrome isko auto-redirect samajh kar block kar dega!
-        const link = document.createElement('a');
-        link.href = whatsappUrl;
-        link.target = '_blank'; // Force new tab/native app intent
-        link.rel = 'noopener noreferrer';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Native app launch hone ke saath parallel mein drawer menu smoothly band karo
-        toggleDrawer(); 
+        // Background me smoothly drawer close karega
+        if (document.getElementById('side-drawer').classList.contains('open')) {
+            toggleDrawer();
+        }
     });
 }
 
@@ -3204,14 +3197,6 @@ async function openExploreDemoScreen(bundleId, title, aboutText, price) {
 }
 
 
-
-
-
-
-
-
-
-
 // Click Listener jo is master function ko trigger karega
 document.addEventListener('click', (e) => {
     // Agar dashboard ke "Explore Demo" pe click kiya
@@ -3233,11 +3218,13 @@ document.addEventListener('click', (e) => {
 document.getElementById('home-share-btn')?.addEventListener('click', shareAppLogic);
 
 document.getElementById('drawer-share-btn')?.addEventListener('click', () => {
-    // 🚀 IIT EXPERT FIX: Must close drawer FIRST before triggering Native Share API to prevent z-index gesture freeze
+    // 🛡️ SECURITY BYPASS: Direct execution of share logic to maintain User Activation State
+    shareAppLogic();
+    
+    // Background mein drawer ko close hone do
     if (document.getElementById('side-drawer').classList.contains('open')) {
         toggleDrawer();
     }
-    setTimeout(shareAppLogic, 350); 
 });
 
 async function shareAppLogic() {
