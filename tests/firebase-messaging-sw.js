@@ -112,7 +112,7 @@ self.addEventListener('notificationclick', function(event) {
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v122-HOTFIX'; // Version updated for Native Stale-While-Revalidate Engine
+const CACHE_VERSION = 'premium-portal-v125-HOTFIX'; // Version updated for Native Stale-While-Revalidate Engine
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
@@ -180,6 +180,13 @@ self.addEventListener('fetch', (event) => {
 
 // 🛡️ THE NATIVE INSTANT-LOADER (Kills Chrome Horizontal Loading Bar)
     if (event.request.mode === 'navigate') {
+        
+        // 🚀 TRAINING THE BLOCKER: "VIP Pass" for External Native Apps
+        // Agar link hamare app ke domain ka nahi hai (e.g. WhatsApp wa.me), toh guard usey bypass karne dega!
+        if (requestUrl.origin !== self.location.origin) {
+            return; // Let the browser seamlessly open the Native WhatsApp/External App
+        }
+
         event.respondWith(
             caches.match('./index.html').then((cachedResponse) => {
                 // 🚀 IIT EXPERT FIX: Agar file cache mein hai, toh INSTANTLY load karo (0 network delay).
