@@ -5,7 +5,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxq2_kPTh6ZBr3e-85YBWoj
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
-// ==========================================
+// ========================================== 
 const firebaseConfig = {
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
     authDomain: "testportal-9562c.firebaseapp.com",
