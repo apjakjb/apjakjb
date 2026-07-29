@@ -2737,18 +2737,29 @@ const contactBtn = document.getElementById('menu-contact-btn');
 if (contactBtn) {
     contactBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        toggleDrawer(); // Side menu smoothly band hoga
-
+        
         const phoneNumber = "918822778233"; 
         const message = "Hello Sir, I need some help regarding the Premium Test Portal.";
-        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         
-        // 🚀 IIT EXPERT FIX: Bypass PWA Popup Blockers by assigning href directly instead of window.open
-        setTimeout(() => {
-            window.location.href = whatsappUrl;
-        }, 250); // Wait for drawer animation to complete to prevent UI lag
+        // 🚀 IIT EXPERT FIX: Universal Deep Link Protocol for SPNWA
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+        
+        // 🛡️ ZERO LOOPHOLE: Trigger URL IMMEDIATELY inside the user-gesture context. 
+        // Agar setTimeout lagayenge, toh PWA aur Chrome isko auto-redirect samajh kar block kar dega!
+        const link = document.createElement('a');
+        link.href = whatsappUrl;
+        link.target = '_blank'; // Force new tab/native app intent
+        link.rel = 'noopener noreferrer';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Native app launch hone ke saath parallel mein drawer menu smoothly band karo
+        toggleDrawer(); 
     });
 }
+
 
 // ==========================================
 // 💳 PREMIUM RAZORPAY PAYMENT ENGINE (PLAY STORE COMPLIANT 🚀)
