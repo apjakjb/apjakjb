@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script>
         (function() {
+            // 1. Desktop Mode Screen UI Neutralizer
             function neutralizeDesktopMode() {
                 var isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
                 if (isTouch && window.innerWidth > window.screen.width) {
@@ -17,6 +18,43 @@
             neutralizeDesktopMode();
             window.addEventListener('resize', neutralizeDesktopMode);
             window.addEventListener('orientationchange', neutralizeDesktopMode);
+
+            // 2. 🛡️ PURE NATIVE FIX: Aggressive Pinch-to-Zoom Blocker
+            document.addEventListener('touchstart', function(event) {
+                // Jaise hi screen par 1 se zyada ungli touch hogi, browser freeze ho jayega
+                if (event.touches.length > 1) {
+                    event.preventDefault(); 
+                }
+            }, { passive: false });
+
+            // Multi-touch slide/drag blocker
+            document.addEventListener('touchmove', function(event) {
+                if (event.touches.length > 1) {
+                    event.preventDefault();
+                }
+            }, { passive: false });
+
+            // 3. 🛡️ PURE NATIVE FIX: Double-Tap-to-Zoom Blocker
+            var lastTouchEnd = 0;
+            document.addEventListener('touchend', function(event) {
+                var now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    // Agar user 300ms me 2 baar tab karta hai toh zoom block karo.
+                    // Par agar button ya input pe double tap kar raha hai toh usko click karne do taaki app na ruke.
+                    var target = event.target;
+                    if (!target.closest('button, input, textarea, select, .option-btn, .q-bubble, .material-icons, a')) {
+                        event.preventDefault();
+                    }
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+
+            // 4. 🛡️ PURE NATIVE FIX: Kill Ctrl + Scroll (Desktop Wheel Zoom)
+            document.addEventListener('wheel', function(event) {
+                if (event.ctrlKey) {
+                    event.preventDefault();
+                }
+            }, { passive: false });
         })();
     </script>
     <meta name="theme-color" content="#4F46E5">
@@ -108,9 +146,6 @@
             <button class="drawer-item active" id="menu-home-btn">
                 <span class="material-icons">home</span> Home Dashboard
             </button>
-            <button class="drawer-item" id="menu-ai-btn">
-                <span class="material-icons" style="color: #F59E0B;">self_improvement</span> Xhondhan AI
-            </button>
             <button class="drawer-item" id="menu-dark-toggle">
                 <span class="material-icons" id="drawer-theme-icon">dark_mode</span> 
                 <span id="drawer-theme-text">Dark Theme</span>
@@ -118,16 +153,6 @@
             <button class="drawer-item" id="menu-update-btn">
                 <span class="material-icons" style="color: var(--primary);">system_update_alt</span> Check for Updates
             </button>
-            <button class="drawer-item whatsapp-item" id="menu-contact-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="whatsapp-svg-icon">
-                    <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
-                </svg>
-                WhatsApp Support
-            </button>
-
-<button type="button" id="drawer-share-btn" class="drawer-item">
-    <span class="material-icons">share</span> Invite Friends
-</button>
 
             <div class="drawer-divider"></div>
             <button class="drawer-item logout-item" id="drawer-logout-btn">
@@ -323,15 +348,6 @@
 <div class="login-premium-promo-wrapper">
     <img src="./assets/promo-banner.gif" alt="Premium Offers" class="login-premium-promo-img">
 </div>
-
-<button type="button" id="home-share-btn" class="drawer-item" style="margin-top: 10px; background: skyblue; display: flex; align-items: center; justify-content: center; gap: 8px;">
-    <span class="material-icons">share</span> Invite Friends
-</button>
-
-
-
-                        
-
                         <p class="section-title" style="margin-top: 25px;">Explore Categories for XI & XII</p>
                         <div class="features-grid">
                             <div class="grid-card premium-glow-card" id="grid-action-premium-1112">
@@ -523,92 +539,6 @@
                         <div id="premium-test-list" class="test-list-container"></div>
                     </div>
                 </div>
-
-
-<!-- ========================================== -->
-                <!-- 🤖 AI SMART EXAMINER TAB                   -->
-                <!-- ========================================== -->
-                <div id="ai-tab" class="tab-view" style="display: none;">
-                    <div class="screen-content" style="padding-bottom: 90px;">
-                        
-                        <!-- AI Premium Glowing Banner -->
-                        <div class="ai-header-card">
-                            <div class="ai-badge-row">
-                                <span class="ai-pill"><span class="material-icons" style="font-size: 14px;">bolt</span> 100% Free & Unlimited</span>
-                                <span class="ai-pill" style="background: rgba(16, 185, 129, 0.2); color: #10B981;"><span class="material-icons" style="font-size: 14px;">verified_user</span> Zero DB Clutter</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 14px; margin-top: 14px;">
-                                <div class="ai-icon-ring">
-                                    <span class="material-icons" style="font-size: 32px; color: #04C704;">self_improvement</span>
-                                </div>
-                                <div>
-                                    <h2 style="color: #FFF; font-size: 20px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">Xhondhan AI</h2>
-                                    <p style="color: rgba(255,255,255,0.85); font-size: 10px; margin: 4px 0 0; font-weight: 500;">Powered by Test Portal ● SA Khan</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <p class="section-title" style="margin-top: 22px;">Step 1: Select Target & Subject</p>
-                        <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 20px; position: relative; z-index: 10;">
-                            <div class="ai-form-group">
-                                <label><span class="material-icons">school</span> Target Class</label>
-                                <!-- 🛡️ IIT FIX: Global Inline Handler Attached -->
-                                <select id="ai-class-select" class="ai-input" required onchange="window.triggerClassChange(this)">
-                                    <option value="" disabled selected>Select Class</option>
-                                    <option value="Class IX">Class IX</option>
-                                    <option value="Class X (HSLC)">Class X (HSLC)</option>
-                                    <option value="Class XI (HS 1st Year)">Class XI (HS 1st Year)</option>
-                                    <option value="Class XII (HS 2nd Year)">Class XII (HS 2nd Year)</option>
-                                    <option value="ADRE (HS Level)">ADRE (HS Level)</option>
-                                    <option value="TET (HS Level)">TET (HS Level)</option>
-                                    <option value="ADRE (Degree Level)">ADRE (Degree Level)</option>
-                                    <option value="TET (Degree Level)">TET (Degree Level)</option>
-                                </select>
-                            </div>
-
-                            <div class="ai-form-group" style="margin-top: 16px; margin-bottom: 0;">
-                                <label><span class="material-icons">menu_book</span> Select Subject</label>
-                                <select id="ai-subject-select" class="ai-input" disabled required>
-                                    <option value="" disabled selected>Select subject</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <p class="section-title">Step 2: Enter Chapter / Topic Name</p>
-                        <div style="background: var(--card-bg); padding: 18px; border-radius: 18px; border: 1.5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 24px; position: relative; z-index: 10;">
-                            <div class="ai-form-group" style="margin-bottom: 16px;">
-                                <label><span class="material-icons">biotech</span> Chapter or Specific Topic</label>
-                                <input type="text" id="ai-topic-input" class="ai-input" placeholder="e.g., Respiration in Assamese" maxlength="60" required>
-                                <small style="color: var(--text-muted); font-size: 11px; margin-top: 6px; display: block; font-weight: 500;">💡 Tip: Be specific for Expert Level practice questions!</small>
-                            </div>
-
-                            <div class="ai-form-group" style="margin-bottom: 0;">
-                                <label><span class="material-icons">format_list_numbered</span> Number of MCQs</label>
-                                <div style="display: flex; gap: 10px; margin-top: 8px;">
-                                    <!-- 🛡️ IIT FIX: Global Inline Handler Attached -->
-                                    <button type="button" class="ai-count-btn active" data-count="10" onclick="window.updateAiCount(this, 10)">10 MCQs (Standard)</button>
-                                    <button type="button" class="ai-count-btn" data-count="15" onclick="window.updateAiCount(this, 15)">15 MCQs (Deep Practice)</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 🛡️ IIT FIX: Global Inline Handler Attached -->
-                        <button type="button" id="btn-generate-ai-quiz" class="btn-primary ai-generate-btn" onclick="window.startAiExam(this)" style="position: relative; z-index: 10;">
-                            <span class="material-icons ai-sparkle-icon" style="font-size: 20px;">auto_awesome</span> 
-                            Generate Instant Test
-                        </button>
-
-                        <div style="text-align: center; margin-top: 16px;">
-                            <p style="font-size: 11px; color: var(--text-muted); font-weight: 600;">
-                                <span class="material-icons" style="font-size: 14px; vertical-align: middle; color: var(--success);">verified</span> MIQ will generate exactly according to revised exam pattern
-                            </p>
-                        </div>
-
-                    </div>
-                </div>
-
-
-
 
                 <div id="results-tab" class="tab-view" style="display: none;">
                     <div class="screen-content">
@@ -896,10 +826,6 @@
                 <button class="nav-tab-btn active" id="tab-btn-home">
                     <span class="material-icons">home</span>
                     <span class="tab-label">Home</span>
-                </button>
-                <button class="nav-tab-btn" id="tab-btn-ai">
-                    <span class="material-icons">self_improvement</span>
-                    <span class="tab-label">Xhondhan</span>
                 </button>
                 <button class="nav-tab-btn" id="tab-btn-results">
                     <span class="material-icons">analytics</span>
