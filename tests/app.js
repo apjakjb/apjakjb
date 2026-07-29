@@ -3489,169 +3489,136 @@ document.getElementById('share-rank-btn')?.addEventListener('click', () => {
     }, 150); // ⏳ Yeh 150ms ka delay browser ko freeze hone se bachayega
 });
 
-// ==========================================
-// 🤖 AI SMART EXAMINER - MASTER ENGINE (NO DB, NO TIMER)
-// ==========================================
-let selectedAiQuestionCount = 10; 
 
-// 🛡️ IIT EXPERT FIX 1: Bulletproof Encapsulation to guarantee DOM readiness
-const initializeAiEngine = () => {
-    document.querySelectorAll('.ai-count-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.ai-count-btn').forEach(b => b.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            selectedAiQuestionCount = parseInt(e.currentTarget.getAttribute('data-count')) || 10;
-        });
-    });
+// ==========================================
+// 🤖 AI SMART EXAMINER - MASTER ENGINE (100% PWA DOM BYPASS)
+// ==========================================
+window.selectedAiQuestionCount = 10;
 
-    const aiClassSelect = document.getElementById('ai-class-select');
+window.aiSubjectsMap = {
+    'Class IX': ['Science', 'Mathematics', 'English', 'Social Science', 'Geography', 'History', 'Advance Mathematics'],
+    'Class X (HSLC)': ['Science', 'Mathematics', 'English', 'Social Science', 'Geography', 'History', 'Advance Mathematics'],
+    'Class XI (HS 1st Year)': ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'English', 'Geography', 'Economics', 'Political Science', 'Education', 'History', 'Accountancy', 'Business Studies'],
+    'Class XII (HS 2nd Year)': ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'English', 'Geography', 'Economics', 'Political Science', 'Education', 'History', 'Accountancy', 'Business Studies'],
+    'ADRE (HS Level)': ['Mathematics', 'General Knowledge', 'Social Studies', 'Logical Reasoning', 'General English'],
+    'TET (HS Level)': ['Mathematics', 'Child Development & Pedagogy', 'General Knowledge', 'General English'],
+    'ADRE (Degree Level)': ['Mathematics', 'General Knowledge', 'Reasoning Ability', 'General English', 'Assamese/Language'],
+    'TET (Degree Level)': ['Mathematics', 'Pedagogy & Curriculum', 'General Knowledge', 'General English']
+};
+
+// 🛡️ Global Engine 1: Dynamic Subject Unlocking
+window.triggerClassChange = function(selectElement) {
     const aiSubjectSelect = document.getElementById('ai-subject-select');
+    if (!aiSubjectSelect) return;
+    
+    const selectedClass = selectElement.value ? selectElement.value.trim() : "";
+    const subjects = window.aiSubjectsMap[selectedClass] || [];
 
-    const aiSubjectsMap = {
-        'Class IX': ['Mathematics', 'Science', 'English', 'Social Science', 'Geography (E)', 'History (E)', 'Advance Mathematics (E)', 'IT/ITeS NSQF (E)'],
-        'Class X (HSLC)': ['Mathematics', 'Science', 'English', 'Social Science', 'Geography (E)', 'History (E)', 'Advance Mathematics (E)', 'IT/ITeS NSQF (E)'],
-        'Class XI (HS 1st Year)': ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'English', 'Geography', 'Economics', 'Political Science', 'Education', 'History', 'Accountancy', 'Business Studies'],
-        'Class XII (HS 2nd Year)': ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'English', 'Geography', 'Economics', 'Political Science', 'Education', 'History', 'Accountancy', 'Business Studies'],
-        'ADRE (HS Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English'],
-        'TET (HS Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English'],
-        'ADRE (Degree Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'Comprehension and English Language'],
-        'TET (Degree Level)': ['Mathematics', 'GK (General Knowledge)', 'Social Studies', 'Logical Reasoning and Mental Ability', 'General English', 'Comprehension and English Language']
-    };
+    let optionsHTML = '<option value="" disabled selected>Select subject</option>';
 
-    if (aiClassSelect && aiSubjectSelect) {
-        const populateSubjects = () => {
-            const selectedClass = aiClassSelect.value.trim();
-            const subjects = aiSubjectsMap[selectedClass] || [];
+    if (subjects.length > 0) {
+        aiSubjectSelect.disabled = false;
+        aiSubjectSelect.style.opacity = "1"; // Force visual enable
+        aiSubjectSelect.style.cursor = "pointer";
+        subjects.forEach(subject => {
+            optionsHTML += `<option value="${subject}">${subject}</option>`;
+        });
+    } else {
+        aiSubjectSelect.disabled = true;
+    }
+    
+    aiSubjectSelect.innerHTML = optionsHTML;
+    aiSubjectSelect.selectedIndex = 0; 
+};
 
-            // 🛡️ XSS Proof & Strict HTML Injection (Bypasses array boundary limits on mobile)
-            let optionsHTML = '<option value="" disabled selected>Select subject</option>';
+// 🛡️ Global Engine 2: MCQ Count Toggling
+window.updateAiCount = function(btnElement, count) {
+    document.querySelectorAll('.ai-count-btn').forEach(b => b.classList.remove('active'));
+    btnElement.classList.add('active');
+    window.selectedAiQuestionCount = parseInt(count) || 10;
+};
 
-            if (subjects.length > 0) {
-                aiSubjectSelect.disabled = false;
-                subjects.forEach(subject => {
-                    optionsHTML += `<option value="${subject}">${subject}</option>`;
-                });
-            } else {
-                aiSubjectSelect.disabled = true;
-            }
+// 🛡️ Global Engine 3: Generate Button Executor
+window.startAiExam = async function(btnElement) {
+    if (btnElement.disabled) return;
+    
+    const topicInput = document.getElementById('ai-topic-input');
+    const subjectSelect = document.getElementById('ai-subject-select');
+    const classSelect = document.getElementById('ai-class-select');
+    
+    const topic = topicInput ? topicInput.value.trim() : "";
+    const subject = subjectSelect && !subjectSelect.disabled ? subjectSelect.value : "";
+    const classLvl = classSelect ? classSelect.value : "";
+
+    if (!classLvl) { showCustomPopup("Target Required ⚠️", "Please select a target class or exam.", "warning"); return; }
+    if (!subject || subject === "") { showCustomPopup("Subject Required ⚠️", "Please select a valid subject from the dropdown.", "warning"); return; }
+    if (!topic) { showCustomPopup("Topic Required ⚠️", "Please enter a specific topic or chapter name.", "warning"); return; }
+
+    btnElement.disabled = true;
+    const originalBtnHTML = btnElement.innerHTML;
+    btnElement.innerHTML = `<span class="material-icons" style="font-size:18px; animation: spinGlow 1s linear infinite;">autorenew</span> Generating Questions...`;
+    
+    showLoader("Xhondhan AI is crafting your test...");
+    
+    try {
+        const authToken = localStorage.getItem('auth_token');
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            redirect: "follow",
+            body: JSON.stringify({
+                action: "generateAiTest",
+                username: loggedInUser,
+                token: authToken,
+                subject: subject,
+                topic: topic,
+                classLvl: classLvl,
+                count: window.selectedAiQuestionCount
+            })
+        });
+
+        const rawResponseText = await response.text();
+        let result;
+        try {
+            result = JSON.parse(rawResponseText);
+        } catch (jsonError) {
+            hideLoader();
+            btnElement.disabled = false;
+            btnElement.innerHTML = originalBtnHTML;
+            showCustomPopup("Service Busy 🛠️", "Xhondhan AI server is currently busy. Please try again in a few seconds.", "warning");
+            return;
+        }
+
+        hideLoader();
+        btnElement.disabled = false;
+        btnElement.innerHTML = originalBtnHTML;
+
+        if (result.success && result.questions && result.questions.length > 0) {
+            currentQuestions = result.questions;
+            currentQuestionIndex = 0;
+            userAnswers = {}; 
+            isCurrentTestAI = true; 
             
-            aiSubjectSelect.innerHTML = optionsHTML;
-        };
-
-        aiClassSelect.addEventListener('change', populateSubjects);
-        aiClassSelect.addEventListener('input', populateSubjects);
-        setTimeout(populateSubjects, 150);
+            const testTitleEl = document.getElementById('test-title');
+            if (testTitleEl) testTitleEl.innerText = result.testTitle || `AI Practice: ${subject}`;
+            
+            isTestActive = true; 
+            renderQuestion();
+            
+            clearInterval(timerInterval);
+            const timerDisplay = document.getElementById('timer');
+            if (timerDisplay) timerDisplay.innerText = "∞ Practice";
+            const timerIcon = document.getElementById('exam-timer-icon');
+            if (timerIcon) timerIcon.innerText = "self_improvement"; 
+            
+            switchTab('test-tab', 'Practice Mode'); 
+        } else {
+            showCustomPopup("Generation Failed 🚀", result.message || "Failed to fetch questions. Please modify the topic name.", "info");
+        }
+    } catch (error) {
+        hideLoader();
+        btnElement.disabled = false;
+        btnElement.innerHTML = originalBtnHTML;
+        showCustomPopup("Connection Lost 📡", "Slow internet connection. Please check your network and try again.", "danger");
     }
 };
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeAiEngine);
-} else {
-    initializeAiEngine();
-}
-
-// 🛡️ IIT EXPERT FIX 2: Bulletproof AI Test Generator Trigger Engine
-const setupAiGenerateButton = () => {
-    const generateBtn = document.getElementById('btn-generate-ai-quiz');
-    if (!generateBtn) return;
-
-    const newGenerateBtn = generateBtn.cloneNode(true);
-    generateBtn.parentNode.replaceChild(newGenerateBtn, generateBtn);
-
-    newGenerateBtn.addEventListener('click', async () => {
-        const topicInput = document.getElementById('ai-topic-input');
-        const subjectSelect = document.getElementById('ai-subject-select');
-        const classSelect = document.getElementById('ai-class-select');
-        
-        const topic = topicInput ? topicInput.value.trim() : "";
-        const subject = subjectSelect && !subjectSelect.disabled ? subjectSelect.value : "";
-        const classLvl = classSelect ? classSelect.value : "";
-
-        if (!classLvl) {
-            showCustomPopup("Target Required ⚠️", "Please select a target class or exam.", "warning");
-            return;
-        }
-        if (!subject || subject === "") {
-            showCustomPopup("Subject Required ⚠️", "Please select a valid subject from the dropdown.", "warning");
-            return;
-        }
-        if (!topic) {
-            showCustomPopup("Topic Required ⚠️", "Please enter a specific topic or chapter name.", "warning");
-            return;
-        }
-
-        newGenerateBtn.disabled = true;
-        showLoader("Generating your test. Please Wait...");
-        
-        try {
-            const authToken = localStorage.getItem('auth_token');
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                redirect: "follow",
-                body: JSON.stringify({
-                    action: "generateAiTest",
-                    username: loggedInUser,
-                    token: authToken,
-                    subject: subject,
-                    topic: topic,
-                    classLvl: classLvl,
-                    count: selectedAiQuestionCount
-                })
-            });
-
-            const rawResponseText = await response.text();
-            let result;
-            try {
-                result = JSON.parse(rawResponseText);
-            } catch (jsonError) {
-                hideLoader();
-                newGenerateBtn.disabled = false;
-                showCustomPopup("Service Temporarily Busy 🛠️", "Xhondhan AI server is currently too busy processing requests. Please try again later.", "warning");
-                return;
-            }
-
-            hideLoader();
-            newGenerateBtn.disabled = false;
-
-            if (result.success && result.questions && result.questions.length > 0) {
-                currentQuestions = result.questions;
-                currentQuestionIndex = 0;
-                userAnswers = {}; 
-                isCurrentTestAI = true; 
-                
-                const testTitleEl = document.getElementById('test-title');
-                if (testTitleEl) testTitleEl.innerText = result.testTitle || `AI Quiz: ${subject}`;
-                
-                isTestActive = true; 
-                renderQuestion();
-                
-                clearInterval(timerInterval);
-                const timerDisplay = document.getElementById('timer');
-                if (timerDisplay) timerDisplay.innerText = "∞ Practice";
-                const timerIcon = document.getElementById('exam-timer-icon');
-                if (timerIcon) timerIcon.innerText = "self_improvement"; 
-                
-                switchTab('test-tab', 'Practice Mode'); 
-
-                try {
-                    let elem = document.documentElement;
-                    if (elem.requestFullscreen) { elem.requestFullscreen().catch(e=>{}); }
-                    else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen().catch(e=>{}); }
-                } catch (err) {}
-            } else {
-                showCustomPopup("High Server Traffic 🚀", "AI Engine failed to fetch questions. Please modify the topic and try again.", "info");
-            }
-        } catch (error) {
-            hideLoader();
-            newGenerateBtn.disabled = false;
-            showCustomPopup("Connection Lost 📡", "Slow internet connection. Please check your network and try again.", "danger");
-        }
-    });
-};
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupAiGenerateButton);
-} else {
-    setupAiGenerateButton();
-}
