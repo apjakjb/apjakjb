@@ -5,7 +5,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxq2_kPTh6ZBr3e-85YBWoj
 
 // ========================================== 
 // FIREBASE ENGINE & DATABASE 
-// ========================================== 
+// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDFHfVutxbFR7kJoni9m4A-_t--mdXY3L8",
     authDomain: "testportal-9562c.firebaseapp.com",
@@ -188,14 +188,15 @@ document.getElementById('menu-toggle-btn').addEventListener('click', () => {
 });
 drawerOverlay.addEventListener('click', toggleDrawer);
 
-// 🛡️ REAL NATIVE FINGER-TRACKING SWIPE ENGINE
+
+// 🚀 100% NATIVE GPU-ACCELERATED DRAWER ENGINE (ZERO LOOPHOLES)
 let touchStartX = 0;
 let touchStartY = 0;
 let isDraggingDrawer = false;
 let isVerticalScroll = false;
+let animationFrameID = null; 
 
 document.addEventListener('touchstart', (e) => {
-    // 🛡️ NO LOOPHOLE: Exam ke waqt swipe open/close strictly blocked!
     if (isTestActive) return;
 
     touchStartX = e.touches[0].clientX;
@@ -205,14 +206,16 @@ document.addEventListener('touchstart', (e) => {
 
     const isOpen = drawer.classList.contains('open');
     
-    // Drag to Open: Sirf left edge (25px) se finger chalane par drawer bahar aayega
-    if (!isOpen && touchStartX <= 25) {
+    // Drag to Open: Left edge (0 to 30px trigger zone for thumbs)
+    if (!isOpen && touchStartX <= 30) {
         isDraggingDrawer = true;
         drawerOverlay.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Lock background scrolling
     } 
-    // Drag to Close: Agar open hai, toh touch track karna shuru karo
+    // Drag to Close: Trigger only if already open
     else if (isOpen) {
         isDraggingDrawer = true;
+        document.body.style.overflow = 'hidden'; // Lock background scrolling
     }
 }, { passive: true });
 
@@ -224,11 +227,12 @@ document.addEventListener('touchmove', (e) => {
     const deltaX = touchCurrentX - touchStartX;
     const deltaY = Math.abs(touchCurrentY - touchStartY);
     
-    // 1. Agar student menu mein upar/neeche (Vertical) scroll kar raha hai, toh drag lock kar do
-    if (deltaY > 12 && deltaY > Math.abs(deltaX)) {
+    // 🛡️ 1. Strict Angle Lock (Gesture Slop) - Kills accidental horizontal swipes
+    if (!isVerticalScroll && deltaY > 10 && deltaY > Math.abs(deltaX)) {
         isVerticalScroll = true; 
         drawer.style.transform = '';
         drawerOverlay.style.opacity = '';
+        document.body.style.overflow = ''; // Unlock background
         return;
     }
 
@@ -237,69 +241,74 @@ document.addEventListener('touchmove', (e) => {
 
     // 2. Exact Finger-Position Calculation
     if (!isOpen) {
-        if (deltaX < 0) return; // Closed hai toh left nahi ja sakta
-        newTranslateX = Math.min(deltaX, DRAWER_WIDTH); // 0 se 280 tak drag hoga
+        if (deltaX < 0) return; // Prevent negative sliding
+        newTranslateX = Math.min(deltaX, DRAWER_WIDTH); 
     } else {
-        if (deltaX > 0) return; // Open hai toh aur right nahi ja sakta
-        newTranslateX = Math.max(DRAWER_WIDTH + deltaX, 0); // 280 se 0 tak wapas jayega
+        if (deltaX > 0) return; // Prevent pushing past open limit
+        newTranslateX = Math.max(DRAWER_WIDTH + deltaX, 0); 
     }
 
-    // 3. Disable CSS animations for 0ms delay (Finger magnet effect)
-    drawer.style.transition = 'none';
-    drawerOverlay.style.transition = 'none';
+    // 🛡️ 3. GPU Sync Engine (Prevents CPU Lag & Jitter)
+    if (animationFrameID) cancelAnimationFrame(animationFrameID);
     
-    // 4. Makkhan movement apply karo
-    drawer.style.transform = `translateX(${newTranslateX}px)`;
-    drawerOverlay.style.opacity = (newTranslateX / DRAWER_WIDTH).toFixed(2);
+    animationFrameID = requestAnimationFrame(() => {
+        drawer.style.transition = 'none';
+        drawerOverlay.style.transition = 'none';
+        
+        // translate3d forces the phone's GPU to render the movement
+        drawer.style.transform = `translate3d(${newTranslateX}px, 0, 0)`;
+        drawerOverlay.style.opacity = (newTranslateX / DRAWER_WIDTH).toFixed(2);
+    });
     
 }, { passive: true });
 
 document.addEventListener('touchend', (e) => {
-    if (!isDraggingDrawer || isVerticalScroll) return;
+    if (!isDraggingDrawer || isVerticalScroll) {
+        document.body.style.overflow = ''; 
+        return;
+    }
     
+    if (animationFrameID) cancelAnimationFrame(animationFrameID);
+
     const touchEndX = e.changedTouches[0].clientX;
     const deltaX = touchEndX - touchStartX;
     const isOpen = drawer.classList.contains('open');
 
-    // Wapas smooth CSS animation on karo
-    drawer.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
-    drawerOverlay.style.transition = 'opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+    // Restore smooth iOS-like CSS physics
+    drawer.style.transition = 'transform 0.3s cubic-bezier(0.32, 1, 0.23, 1)';
+    drawerOverlay.style.transition = 'opacity 0.3s cubic-bezier(0.32, 1, 0.23, 1)';
     
-    // Inline overrides hatao taaki CSS handle kare
+    // Remove inline overrides
     drawer.style.transform = '';
     drawerOverlay.style.opacity = '';
 
-    // Smart Threshold: Finger kahan chhodi, wahan se decision
-    const dragThreshold = DRAWER_WIDTH / 3; // 33% drag hona zaroori hai
+    // 🛡️ 4. Pro Native Snap Threshold (25% rule)
+    const dragThreshold = DRAWER_WIDTH / 4; 
 
     if (!isOpen) {
         if (deltaX > dragThreshold) {
-            drawer.classList.add('open');  // Khol do
+            drawer.classList.add('open'); 
             drawerOverlay.classList.add('open');
         } else {
             setTimeout(() => { 
                 if(!drawer.classList.contains('open')) drawerOverlay.style.display = 'none'; 
-            }, 250); // Wapas band kar do
+            }, 300); 
         }
     } else {
         if (deltaX < -dragThreshold) {
-            drawer.classList.remove('open'); // Band kar do
+            drawer.classList.remove('open'); 
             drawerOverlay.classList.remove('open');
             setTimeout(() => { 
                 if(!drawer.classList.contains('open')) drawerOverlay.style.display = 'none'; 
-            }, 250);
+            }, 300);
         } else {
-            drawer.classList.add('open'); // Wapas khol do
+            drawer.classList.add('open'); 
             drawerOverlay.classList.add('open');
         }
     }
 
-    // Clean up
-    setTimeout(() => {
-        drawer.style.transition = '';
-        drawerOverlay.style.transition = '';
-    }, 250);
-    
+    // Unlock background and reset states
+    document.body.style.overflow = '';
     isDraggingDrawer = false;
     isVerticalScroll = false;
 }, { passive: true });
@@ -1377,37 +1386,31 @@ function renderCompletedCard(test, container) {
     const safeSubject = test.subject || "General";
     const safeClass = test.classLvl ? `Class ${test.classLvl}` : "All Classes";
 
-    // 🚀 PREMIUM CARD UI UPGRADE: Title Centered at Top, Premium Details Below
+    // 🚀 PREMIUM COMPACT UI UPGRADE: Sleek, Space-Saving, and Elegant
     container.insertAdjacentHTML('beforeend', `
-        <div class="test-card" data-test="${test.testId}" data-completed="true" style="flex-direction: column; align-items: center; gap: 14px; padding: 20px 16px; border: 1.5px solid var(--border); border-radius: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.04); background: linear-gradient(145deg, var(--card-bg) 0%, var(--bg-color) 100%);">
+        <div class="test-card" data-test="${test.testId}" data-completed="true" style="flex-direction: column; padding: 16px; border: 1.5px solid var(--border); border-radius: 16px; margin-bottom: 12px; background: var(--card-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
             
-            <!-- 1. Top Centered Title -->
-            <h4 style="font-size: 18px; font-weight: 900; color: var(--text-main); margin: 0; text-align: center; line-height: 1.3; width: 100%; border-bottom: 1.5px dashed var(--border-dark); padding-bottom: 14px;">${test.title}</h4>
-            
-            <!-- 2. Details Row (Class, Subject, Date) & Score -->
-            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                        <span class="ptc-subject" style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(79, 70, 229, 0.2);">${safeSubject}</span>
-                        <span class="ptc-subject" style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(79, 70, 229, 0.2);">${safeClass}</span>
-                    </div>
-                    <p style="display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 700; color: var(--text-muted); margin: 0;">
-                        <span class="material-icons" style="font-size: 17px; color: var(--nav-inactive);">event_available</span> ${attemptDate}
-                    </p>
+            <!-- 1. Top Row: Title & Clean Score -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 12px; margin-bottom: 10px;">
+                <h4 style="font-size: 15px; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.3; flex: 1;">${test.title}</h4>
+                <div style="text-align: right; line-height: 1.1; min-width: 50px;">
+                    <span style="font-size: 16px; font-weight: 900; color: var(--success);">${safeScore}</span><span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">/${safeTotal}</span>
+                    <div style="font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px;">Marks</div>
                 </div>
-                
-                <!-- 3. Premium Score Block -->
-                <div style="text-align: center; background: rgba(16, 185, 129, 0.1); padding: 10px 14px; border-radius: 14px; border: 1.5px solid rgba(16, 185, 129, 0.25); min-width: 85px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
-                    <p style="font-size: 9px; font-weight: 800; color: var(--success); text-transform: uppercase; margin: 0 0 2px 0; letter-spacing: 0.5px;">Score</p>
-                    <h3 style="color: var(--success); font-size: 12px; font-weight: 900; margin: 0;">${safeScore}<span style="font-size: 9px; font-weight: 750; opacity: 0.7;">/${safeTotal}</span></h3>
-                </div>
-
             </div>
             
-            <!-- 4. Action Button -->
-            <button class="btn-secondary test-action-btn" style="width: 100%; background: var(--card-bg); border: 1.5px solid var(--border-dark); color: var(--primary); font-weight: 800; font-size: 13px; padding: 12px; border-radius: 14px; display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s ease;">
-                <span class="material-icons" style="font-size: 18px;">analytics</span> View Your Result
+            <!-- 2. Middle Row: Badges & Date (Compact Inline) -->
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; width: 100%; margin-bottom: 14px;">
+                <span style="background: rgba(79, 70, 229, 0.08); color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase;">${safeSubject}</span>
+                <span style="background: var(--bg-color); color: var(--text-muted); border: 1px solid var(--border); padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;">${safeClass}</span>
+                <span style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--text-muted); margin-left: auto;">
+                    <span class="material-icons" style="font-size: 13px;">history</span> ${attemptDate}
+                </span>
+            </div>
+            
+            <!-- 3. Action Button (Thinner, Sleek) -->
+            <button class="btn-secondary test-action-btn" style="width: 100%; background: var(--bg-color); border: 1px solid var(--border-dark); color: var(--primary); font-weight: 750; font-size: 12px; padding: 10px; border-radius: 12px; display: flex; justify-content: center; align-items: center; gap: 6px; transition: all 0.2s ease;">
+                <span class="material-icons" style="font-size: 16px;">analytics</span> View Detailed Analysis
             </button>
         </div>
     `);
@@ -1951,21 +1954,39 @@ const fullTextString = qData.questionText + " " + qData.options.join(' ');
     const containsMath = fullTextString.includes('$') || fullTextString.includes('\\(') || fullTextString.includes('\\[');
     
     if (containsMath) {
+        // 🚀 IIT EXPERT FIX: MathJax UI Mutex Lock Engine
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        
+        // Step 1: UI Lock ON (Buttons disabled to prevent overlap clicks)
+        if (nextBtn) { nextBtn.disabled = true; nextBtn.style.opacity = '0.5'; }
+        if (prevBtn) { prevBtn.disabled = true; prevBtn.style.opacity = '0.5'; }
+
         if (typeof window.mathJaxQueue === 'undefined') window.mathJaxQueue = Promise.resolve();
         
+        // Helper func to safely release lock
+        const unlockUI = () => {
+            if (nextBtn) { nextBtn.disabled = false; nextBtn.style.opacity = '1'; }
+            if (prevBtn && currentQuestionIndex > 0) { prevBtn.disabled = false; prevBtn.style.opacity = '1'; }
+        };
+
         if (!window.MathJax) {
             window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }, startup: { typeset: false } };
             loadExternalSDK("https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js", "MathJax-script").then(() => {
                 if(window.MathJax && window.MathJax.typesetPromise) {
                     window.mathJaxQueue = window.mathJaxQueue.then(() => 
                         MathJax.typesetPromise([document.getElementById('question-text'), document.getElementById('options-container')])
-                    ).catch(e => console.warn("MathJax Error:", e));
+                    ).then(unlockUI).catch(e => { console.warn("MathJax Error:", e); unlockUI(); });
+                } else {
+                    unlockUI();
                 }
-            });
+            }).catch(unlockUI);
         } else if (window.MathJax.typesetPromise) {
             window.mathJaxQueue = window.mathJaxQueue.then(() => 
                 MathJax.typesetPromise([document.getElementById('question-text'), document.getElementById('options-container')])
-            ).catch(e => console.warn("MathJax Error:", e));
+            ).then(unlockUI).catch(e => { console.warn("MathJax Error:", e); unlockUI(); });
+        } else {
+            unlockUI();
         }
     }
 }
@@ -3195,105 +3216,6 @@ function showPremiumWelcomeAd() {
         adPopup.style.display = 'none';
     });
 }
-
-
-// ==========================================
-// 🛡️ NAYA: PREMIUM PROFILE EDIT ENGINE (DOM SAFE)
-// ==========================================
-const editNameBtn = document.getElementById('edit-name-btn');
-
-if (editNameBtn) {
-    editNameBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        const nameEl = document.getElementById('profile-student-name');
-        const parentDiv = nameEl.parentNode;
-        const currentName = localStorage.getItem('student_name') || loggedInUserName;
-        
-        // 🚀 IIT EXPERT FIX: Hiding elements instead of destroying semantic HTML
-        nameEl.style.display = 'none';
-        editNameBtn.style.display = 'none';
-
-        // Check if editor already exists to prevent duplicate injections
-        if (document.getElementById('inline-editor-wrapper')) {
-            document.getElementById('inline-editor-wrapper').style.display = 'flex';
-            return;
-        }
-
-        // Injecting an isolated div ensures strict event delegation and prevents CSS layout breaks
-        const editorWrapper = document.createElement('div');
-        editorWrapper.id = 'inline-editor-wrapper';
-        editorWrapper.style.cssText = 'display: flex; gap: 6px; align-items: center; justify-content: center; width: 100%;';
-        
-        editorWrapper.innerHTML = `
-            <input type="text" id="inline-name-input" value="${escapeHTML(currentName)}" maxlength="30" 
-                style="padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--primary); 
-                background: var(--card-bg); color: var(--text-main); font-size: 14px; 
-                font-weight: 700; text-align: center; width: 150px; outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);">
-            <button type="button" id="inline-save-btn" class="btn-primary" 
-                style="padding: 6px 12px; border-radius: 8px; font-size: 13px; width: auto; 
-                background: var(--success); border: none; cursor: pointer; color: white; font-weight: 750;">Save</button>
-        `;
-        
-        parentDiv.appendChild(editorWrapper);
-
-        // Immediate focus for better mobile UX
-        setTimeout(() => document.getElementById('inline-name-input').focus(), 100);
-
-        document.getElementById('inline-save-btn').addEventListener('click', async (btnEvent) => {
-            btnEvent.preventDefault();
-            const inputField = document.getElementById('inline-name-input');
-            const newName = inputField.value.trim();
-            const saveBtn = document.getElementById('inline-save-btn');
-            
-            // Clean Revert Function
-            const revertUI = () => {
-                editorWrapper.style.display = 'none';
-                nameEl.style.display = 'block';
-                editNameBtn.style.display = 'flex';
-                updateProfileUI(); // Restores real DB name
-            };
-
-            if (!newName || newName === currentName) {
-                revertUI();
-                return;
-            }
-            
-            saveBtn.disabled = true;
-            saveBtn.innerText = '...';
-            showLoader("Updating Profile...");
-            
-            try {
-                const authToken = localStorage.getItem('auth_token');
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "updateProfileName", username: loggedInUser, token: authToken, newName: newName })
-                });
-
-                const result = JSON.parse(await response.text());
-                hideLoader();
-
-                if (result.success) {
-                    loggedInUserName = newName;
-                    localStorage.setItem('student_name', newName);
-                    showCustomPopup("Profile Updated 🎉", "Your new name is successfully linked to the Leaderboard.", "success");
-                    revertUI();
-                } else {
-                    showCustomPopup("Update Failed", result.message, "danger");
-                    saveBtn.disabled = false;
-                    saveBtn.innerText = 'Save';
-                }
-            } catch (error) {
-                hideLoader();
-                showCustomPopup("Network Error", "Could not save your new name. Please check your connection.", "danger");
-                saveBtn.disabled = false;
-                saveBtn.innerText = 'Save';
-            }
-        });
-    });
-}
-
 
 // ==========================================
 // 🚀 PREMIUM SHARE LEADERBOARD ENGINE (NAVI STYLE + ASYNC LOADER)
