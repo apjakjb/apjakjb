@@ -112,7 +112,7 @@ self.addEventListener('notificationclick', function(event) {
 // =========================================================================
 // 🛡️ BULLETPROOF PWA CACHING LOGIC (PLAY STORE READY)
 // =========================================================================
-const CACHE_VERSION = 'premium-portal-v125-HOTFIX'; // Version updated for Native Stale-While-Revalidate Engine
+const CACHE_VERSION = 'premium-portal-v126-HOTFIX'; // Version updated for Native Stale-While-Revalidate Engine
 const STATIC_CACHE_NAME = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `dynamic-${CACHE_VERSION}`;
 
@@ -241,14 +241,27 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // 🛡️ FIXED DYNAMIC CACHING (Prevents Cache Bloat)
+    // 🚀 IIT EXPERT FIX: Cache Limiter Function (Prevents Storage Bloat)
+    const limitCacheSize = (name, size) => {
+        caches.open(name).then(cache => {
+            cache.keys().then(keys => {
+                // Agar cache limit se bada ho gaya, toh sabse purana item delete karo (keys[0])
+                if (keys.length > size) {
+                    cache.delete(keys[0]).then(() => limitCacheSize(name, size));
+                }
+            });
+        });
+    };
+
+    // 🛡️ UPGRADED DYNAMIC CACHING (With LRU Eviction Engine)
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             return cachedResponse || fetch(event.request).then((networkResponse) => {
                 if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-                    // CORRECTED: Put dynamic files in DYNAMIC_CACHE_NAME, not Static!
                     caches.open(DYNAMIC_CACHE_NAME).then((cache) => {
                         cache.put(event.request, networkResponse.clone());
+                        // Trigger limits: Cache max 50 recent dynamic assets (Kills Bloat)
+                        limitCacheSize(DYNAMIC_CACHE_NAME, 50); 
                     });
                 }
                 return networkResponse;
