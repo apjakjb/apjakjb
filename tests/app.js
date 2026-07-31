@@ -1,3 +1,7 @@
+// 🚀 IIT EXPERT FIX: THE ULTIMATE SECURITY VAULT (IIFE CLOSURE)
+// Duniya khatam ho jayegi, par console se koi tera data modify nahi kar payega!
+(function () {
+
 // ==========================================
 // API CONFIGURATION
 // ==========================================
@@ -379,6 +383,8 @@ function switchTab(tabId, headerTitle, pushToHistory = true) {
 document.getElementById('tab-btn-home').addEventListener('click', () => switchTab('home-tab', 'Home'));
 document.getElementById('tab-btn-results').addEventListener('click', () => switchTab('results-tab', 'Results'));
 document.getElementById('tab-btn-profile').addEventListener('click', () => switchTab('profile-tab', 'Profile'));
+// 🚀 IIT EXPERT FIX: Xhondhan AI App Routing
+document.getElementById('tab-btn-ai').addEventListener('click', () => switchTab('ai-tab', 'Xhondhan ~ Exam Setter'));
 
 // Map Drawer Links to Tabs
 document.getElementById('menu-home-btn').addEventListener('click', () => {
@@ -389,7 +395,8 @@ document.getElementById('menu-home-btn').addEventListener('click', () => {
 // Highlight Active Drawer Item
 document.querySelectorAll('.drawer-item').forEach(item => {
     item.addEventListener('click', (e) => {
-        if(e.currentTarget.id !== 'menu-dark-toggle' && e.currentTarget.id !== 'drawer-logout-btn') {
+        // 🛡️ IIT EXPERT FIX: Prevent highlighter bug on external WhatsApp & Share buttons
+        if(e.currentTarget.id !== 'menu-dark-toggle' && e.currentTarget.id !== 'drawer-logout-btn' && e.currentTarget.id !== 'menu-whatsapp-btn' && e.currentTarget.id !== 'menu-share-btn') {
             document.querySelectorAll('.drawer-item').forEach(btn => btn.classList.remove('active'));
             e.currentTarget.classList.add('active');
         }
@@ -398,6 +405,51 @@ document.querySelectorAll('.drawer-item').forEach(item => {
 
 document.getElementById('menu-dark-toggle').addEventListener('click', () => { toggleDarkMode(); toggleDrawer(); });
 document.getElementById('profile-dark-toggle-row').addEventListener('click', toggleDarkMode);
+
+// 🚀 IIT EXPERT FIX: Auto-close drawer perfectly when switching to Native App
+document.getElementById('menu-whatsapp-btn')?.addEventListener('click', () => { toggleDrawer(); });
+
+// 🛡️ SECURITY FIX: Missing Clipboard Engine added for Rank Sharing and Link Sharing
+const copyToClipboard = (text) => {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).catch(()=>{});
+    } else {
+        let textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try { document.execCommand('copy'); } catch (err) {}
+        textArea.remove();
+    }
+};
+
+// 🚀 IIT EXPERT FIX: Native Bottom Sheet Sharing Engine
+document.getElementById('menu-share-btn')?.addEventListener('click', async () => {
+    toggleDrawer(); // Side menu instantly close karo
+    
+    const shareData = {
+        title: 'Test Portal App',
+        text: 'Boost your exam preparation with Free & Premium Live Tests, All-India Rankings, and Deep Analytics. Join now!',
+        url: 'https://apjakjb.in/tests/' // Play Store URL update hone tak ye rahega
+    };
+
+    try {
+        if (navigator.share) {
+            // Android/iOS Native Share Sheet Trigger
+            await navigator.share(shareData);
+        } else {
+            // Fallback: Desktop browsers ke liye jahan Native Share nahi hota
+            copyToClipboard(`${shareData.title}\n${shareData.text}\n🔗 ${shareData.url}`);
+            showCustomPopup("Link Copied! 📋", "App link has been securely copied to your clipboard. Paste it anywhere to share with your friends.", "success");
+        }
+    } catch (err) {
+        console.log("Share action was cancelled by the user or failed.");
+    }
+});
 
 
 // Feature Grid Category Switcher (Home Tab)
@@ -1555,7 +1607,7 @@ function openFilteredLiveTests(classLvl, subject) {
         
         // Accurate routing based on exact class matching
         if (classLvl === '9' && (testClass.includes('9') || testClass.includes('IX'))) isClassMatch = true;
-        if (classLvl === '10' && (testClass.includes('10') || testClass.includes('X') && !testClass.includes('IX'))) isClassMatch = true;
+        if (classLvl === '10' && (testClass.includes('10') || (testClass.includes('X') && !testClass.includes('IX') && !testClass.includes('XI') && !testClass.includes('XII')))) isClassMatch = true;
 
         const testSubject = String(item.rawData.subject).toLowerCase();
         const isSubjectMatch = testSubject.includes(subject.toLowerCase());
@@ -1577,6 +1629,8 @@ function openFilteredLiveTests(classLvl, subject) {
     attachTestCardListeners();
     updateLiveCards(); 
 
+    // 🚀 SAFE DOM RESET: Restores 'Upcoming' tab state when switching subjects
+    if (window['resetTabs_910']) window['resetTabs_910']();
     switchTab('live-tests-tab-910', `${subject} (Class ${classLvl})`);
 }
 
@@ -1648,6 +1702,8 @@ function openFilteredLiveTests1112(classLvl, subject) {
     attachTestCardListeners();
     updateLiveCards(); 
 
+    // 🚀 SAFE DOM RESET: Restores 'Upcoming' tab state when switching subjects
+    if (window['resetTabs_1112']) window['resetTabs_1112']();
     switchTab('live-tests-tab-1112', `${subject} (Class ${classLvl})`);
 }
 
@@ -2701,48 +2757,9 @@ async function fetchAndRenderLeaderboard(testId) {
     }
 }
 
-
-// ==========================================
-// 10. ADVANCED LIVE TESTS TABS ENGINE (Supports up to 3 Tabs)
-// ==========================================
-function setupLiveTabs(target) {
-    const tabUp = document.getElementById(`tab-upcoming-${target}`);
-    const tabExp = document.getElementById(`tab-expired-${target}`);
-    const tabAtt = document.getElementById(`tab-attempted-${target}`); // Optional 3rd tab
-    
-    const listUp = document.getElementById(`upcoming-live-list-${target}`);
-    const listExp = document.getElementById(`expired-live-list-${target}`);
-    const listAtt = document.getElementById(`attempted-list-${target}`); // Optional 3rd list
-
-    function resetTabs() {
-        [tabUp, tabExp, tabAtt].forEach(t => {
-            if (t) { t.classList.remove('active'); t.style.color = 'var(--text-muted)'; t.style.borderBottom = '3px solid transparent'; }
-        });
-        [listUp, listExp, listAtt].forEach(l => { if (l) l.style.display = 'none'; });
-    }
-
-    if (tabUp) tabUp.addEventListener('click', () => {
-        resetTabs();
-        tabUp.classList.add('active'); tabUp.style.color = 'var(--primary)'; tabUp.style.borderBottom = '3px solid var(--primary)';
-        listUp.style.display = 'block';
-    });
-
-    if (tabExp) tabExp.addEventListener('click', () => {
-        resetTabs();
-        tabExp.classList.add('active'); tabExp.style.color = 'var(--primary)'; tabExp.style.borderBottom = '3px solid var(--primary)';
-        listExp.style.display = 'block';
-    });
-
-    if (tabAtt) tabAtt.addEventListener('click', () => {
-        resetTabs();
-        tabAtt.classList.add('active'); tabAtt.style.color = 'var(--primary)'; tabAtt.style.borderBottom = '3px solid var(--primary)';
-        listAtt.style.display = 'block';
-    });
-}
 setupLiveTabs('910');
 setupLiveTabs('1112');
 setupLiveTabs('series');
-
 
 // ==========================================
 // 💳 PREMIUM RAZORPAY PAYMENT ENGINE (PLAY STORE COMPLIANT 🚀)
@@ -2914,6 +2931,8 @@ document.addEventListener('click', async (e) => {
         expList.innerHTML = "";
         attList.innerHTML = "";
 
+        // 🚀 SAFE DOM RESET: Ensures 'Upcoming' tab is active before fetching
+        if (window['resetTabs_series']) window['resetTabs_series']();
         switchTab('premium-series-tab', seriesTitle);
 
         try {
@@ -3327,3 +3346,143 @@ document.getElementById('share-rank-btn')?.addEventListener('click', () => {
         }
     }, 150); // ⏳ Yeh 150ms ka delay browser ko freeze hone se bachayega
 });
+
+// 🚀 EXPOSE ONLY HARMLESS UI FUNCTIONS TO WINDOW (For HTML inline clicks)
+window.closeNaviBanner = closeNaviBanner;
+window.clearAllNotifications = clearAllNotifications;
+
+
+
+// =========================================================================
+// 🤖 10. XHONDHAN ~ AI EXAM SETTER ENGINE (NATIVE OPTION API ENGINE)
+// =========================================================================
+
+const aiSubjectMapping = {
+    "IX_X": ["Maths", "Adv Maths", "Science", "Social Science", "History", "Geography", "English"],
+    "XI_XII": ["Maths", "Physics", "Biology", "Chemistry", "English", "Pol Science", "Economics", "Education", "History"],
+    "ADRE_TET": ["GK", "Reasoning", "Gen English", "Gen Maths"]
+};
+
+const getTargetCategory = (val) => {
+    if (!val) return null;
+    if (val.includes('IX') || val.includes('X (HSLC)')) return "IX_X";
+    if (val.includes('XI') || val.includes('XII')) return "XI_XII";
+    return "ADRE_TET";
+};
+
+// 🚀 NATIVE FIX 1: Event Delegation (Never loses the trigger in SPA)
+document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'ai-class') {
+        const categoryKey = getTargetCategory(e.target.value);
+        const subjectSelect = document.getElementById('ai-subject');
+        
+        if (!categoryKey || !subjectSelect) return;
+        
+        const subjects = aiSubjectMapping[categoryKey] || [];
+        
+        // 🚀 NATIVE FIX 2: Do NOT use innerHTML for <select> on Mobile. 
+        // Use standard JS Option API to force Android OS to sync its native picker!
+        subjectSelect.options.length = 0; // 1. Safely wipe all old options from OS memory
+        
+        // 2. Add default option natively
+        const defaultOpt = new Option("Select Subject", "");
+        defaultOpt.disabled = true;
+        defaultOpt.selected = true;
+        subjectSelect.add(defaultOpt);
+        
+        // 3. Inject new subjects dynamically into the OS picker
+        subjects.forEach(sub => {
+            subjectSelect.add(new Option(sub, sub));
+        });
+    }
+});
+
+// 🚀 STRICT API GATEKEEPER & GENERATION INTERCEPTOR
+document.addEventListener('click', async (e) => {
+    const generateBtn = e.target.closest('#ai-generate-btn');
+    if (generateBtn) {
+        const classLvl = document.getElementById('ai-class')?.value;
+        const subject = document.getElementById('ai-subject')?.value;
+        const topicInput = document.getElementById('ai-topic');
+        const topic = topicInput ? topicInput.value.trim() : "";
+        const count = document.getElementById('ai-count')?.value || "10";
+        
+        // Strict Step-by-Step Client-side form validation
+        if (!classLvl || classLvl === "") {
+            showCustomPopup("Action Required ⚠️", "Please select your <b>Target Class</b> first.", "warning");
+            return;
+        }
+        if (!subject || subject === "") {
+            showCustomPopup("Action Required ⚠️", "Please select a <b>Subject</b>. AI needs this to fetch exact syllabus questions.", "warning");
+            return;
+        }
+        if (!topic || topic.length < 2) {
+            showCustomPopup("Action Required ⚠️", "Please specify a <b>Topic</b> (e.g., Matrix, Cell). The AI needs a clear target.", "warning");
+            return;
+        }
+        
+        showLoader("Summoning Xhondhan AI...");
+        
+        try {
+            const authToken = localStorage.getItem('auth_token');
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ 
+                    action: "generateAiTest", 
+                    username: loggedInUser, 
+                    token: authToken, 
+                    subject: subject, 
+                    topic: topic, 
+                    classLvl: classLvl, 
+                    count: count 
+                })
+            });
+            
+            const result = JSON.parse(await response.text());
+            hideLoader();
+            
+            if (result.success && result.questions && result.questions.length > 0) {
+                // Backend Bypass! We directly push questions into Memory
+                startAITestEngine(result.questions, result.testTitle);
+            } else {
+                showCustomPopup("Generation Blocked", result.message || "Xhondhan AI couldn't generate questions for this. Try rephrasing the topic.", "danger");
+            }
+        } catch (err) {
+            hideLoader();
+            showCustomPopup("Network Drop", "Could not connect to the Xhondhan AI super-server. Check internet.", "danger");
+        }
+    }
+});
+
+// The AI-Specific UI Interceptor (Bypasses Database Timer)
+function startAITestEngine(aiQuestions, testTitle) {
+    // 🛡️ SECURITY LOCK: Inform rendering engine this is an AI Test (Immediate Feedback mode)
+    isCurrentTestAI = true; 
+    isTestActive = true;
+    currentQuestions = aiQuestions;
+    currentQuestionIndex = 0;
+    userAnswers = {}; // Flush old answers
+
+    // Title update
+    const testTitleEl = document.getElementById('test-title');
+    if (testTitleEl) testTitleEl.innerText = testTitle;
+
+    // 🚀 TIME LOOPHOLE PATCH: Kill actual timer and enforce "Unlimited"
+    clearInterval(timerInterval); 
+    const timerIcon = document.getElementById('exam-timer-icon');
+    if (timerIcon) timerIcon.innerText = "all_inclusive"; // Infinity Icon
+    document.getElementById('timer').innerText = "Unlimited";
+
+    // Build Native Fullscreen & Route to Test
+    renderQuestion();
+    switchTab('test-tab', 'Xhondhan Practice');
+
+    try {
+        let elem = document.documentElement;
+        if (elem.requestFullscreen) { elem.requestFullscreen().catch(()=>{}); }
+        else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen().catch(()=>{}); }
+    } catch (err) { console.log("Fullscreen API Blocked safely."); }
+}
+
+})(); // 🛡️ SECURITY VAULT LOCKED PERMANENTLY HERE
