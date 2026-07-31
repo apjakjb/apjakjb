@@ -210,24 +210,44 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
 
 .center-content { display: flex; flex-direction: column; justify-content: center; }
 
-/* Dynamic Native Shell Component Layouts */
+/* ========================================== */
+/* 🚀 PREMIUM MODERN APP HEADER UI            */
+/* ========================================== */
 .app-header { 
     background: var(--card-bg); 
-    /* 🚀 IIT EXPERT FIX: Automatically adjust height and padding for Mobile Notch/Status Bar */
+    /* Automatically adjust height and padding for Mobile Notch/Status Bar */
     height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
     min-height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
-    padding: env(safe-area-inset-top, 0px) 16px 0 16px; 
+    padding: env(safe-area-inset-top, 0px) 18px 0 18px; /* Slightly wider premium padding */
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    border-bottom: 1px solid var(--border-dark); 
-    z-index: 10;
+    
+    /* 🔥 Premium UI Touch: Faint shadow instead of a hard, boring border line */
+    border-bottom: none; 
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.05); 
+    z-index: 50; /* Super high z-index to overlay content properly */
+    position: relative; 
 }
 
-.header-left, .header-right { display: flex; align-items: center; gap: 4px; }
-.app-header h3 { font-size: 17px; font-weight: 750; color: var(--text-main); letter-spacing: -0.3px; }
+/* 🌙 Dark Mode Support for App Header */
+[data-theme="dark"] .app-header {
+    box-shadow: 0 4px 25px -4px rgba(0, 0, 0, 0.4);
+}
+
+.header-left { display: flex; align-items: center; gap: 14px; }
+.header-right { display: flex; align-items: center; }
+
+/* 🚀 Bolder, Larger Premium Title Typography */
+.app-header h3 { 
+    font-size: 22px; 
+    font-weight: 800; 
+    color: var(--text-main); 
+    letter-spacing: -0.5px; 
+}
+
 .test-header-left { display: flex; align-items: center; gap: 8px; }
-.full-lock-header { border-bottom: 2px solid var(--border-dark); }
+.full-lock-header { border-bottom: 2px solid var(--danger); box-shadow: none; }
 
 /* Native Content Scaffolding Layout */
 .shell-content-container {
@@ -306,8 +326,42 @@ button {
 .btn-secondary:active { transform: scale(0.98); }
 .btn-secondary:disabled { opacity: 0.4; pointer-events: none; }
 
-.btn-icon-nav { background: transparent; color: var(--text-main); padding: 8px; border-radius: 50%; }
-.btn-icon-nav:active { background: var(--border); }
+/* ========================================== */
+/* 🚀 PREMIUM TACTILE HEADER BUTTONS          */
+/* ========================================== */
+.btn-icon-nav { 
+    background: var(--bg-color); 
+    color: var(--text-main); 
+    width: 44px; 
+    height: 44px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    border-radius: 50%; 
+    border: 1.5px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+    position: relative; /* Crucial for notification red dot */
+}
+
+.btn-icon-nav .material-icons {
+    font-size: 22px;
+    color: var(--text-muted);
+}
+
+/* 🚀 iOS Physics Tap Animation */
+.btn-icon-nav:active { 
+    transform: scale(0.88);
+    background: var(--border); 
+    border-color: var(--border-dark);
+}
+
+/* 🌙 Dark Mode Tactile Buttons */
+[data-theme="dark"] .btn-icon-nav {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: var(--border-dark);
+}
 .btn-icon { background: transparent; color: var(--text-muted); padding: 8px; border-radius: 50%; }
 .btn-icon:active { background: var(--border); color: var(--danger); }
 .close-btn { color: var(--primary); }
@@ -333,42 +387,107 @@ button {
 
 .section-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin: 12px 0 14px 2px; letter-spacing: 1px; }
 
-/* Grid Dashboard System Layout */
+/* ========================================== */
+/* 🚀 PREMIUM NATIVE GRID DASHBOARD UI        */
+/* ========================================== */
 .features-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 24px;
 }
+
 .grid-card {
-    background: var(--card-bg);
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
-    padding: 14px;
+    position: relative;
+    border-radius: 18px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    overflow: hidden; /* Important: Prevents background icon from spilling out */
+    min-height: 125px; /* Perfect height for premium native feel */
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.grid-card:active { 
+    transform: scale(0.96); 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04); 
+}
+
+/* 🚀 IIT EXPERT FIX: Removed .grid-card.active-card CSS to permanently kill the "Focus Border" artifact when pressing back! */
+
+/* --- Content Wrapper --- */
+.pro-gc-content {
+    position: relative;
+    z-index: 2; /* Always above the background icon */
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
 }
-.grid-card:active { transform: scale(0.97); }
-.grid-card.active-card { border-color: var(--primary); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.05); }
 
-.grid-icon-box { padding: 8px; border-radius: 10px; display: inline-flex; justify-content: center; align-items: center; }
-.grid-icon-box .material-icons { font-size: 20px; }
-.primary-box { background: #EEF2FF; color: var(--primary); }
-.success-box { background: #ECFDF5; color: var(--success); }
-.warning-box { background: #FFFBEB; color: var(--warning); }
-.danger-box { background: #FEF2F2; color: var(--danger); }
+/* --- Big Background Icon --- */
+.pro-gc-bg-icon {
+    position: absolute;
+    right: -5px;
+    bottom: -10px;
+    font-size: 80px; /* 🚀 Slightly adjusted for FontAwesome Vectors */
+    color: rgba(255, 255, 255, 0.15);
+    z-index: 1;
+    transform: rotate(-10deg);
+    pointer-events: none; /* Prevents icon from intercepting clicks */
+}
 
-[data-theme="dark"] .primary-box { background: rgba(79, 70, 229, 0.15); color: #818CF8; }
-[data-theme="dark"] .success-box { background: rgba(16, 185, 129, 0.15); color: #34D399; }
-[data-theme="dark"] .warning-box { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
-[data-theme="dark"] .danger-box { background: rgba(239, 110, 110, 0.15); color: #F87171; }
+/* --- Dark Theme Adjustments --- */
+[data-theme="dark"] .grid-card { box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+/* 🚀 IIT EXPERT FIX: Removed dark mode active-card border as well */
 
-.grid-card h4 { font-size: 14px; font-weight: 750; color: var(--text-main); }
-.grid-card p { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.pro-gc-content h4 {
+    font-size: 15px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.pro-gc-content p {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    margin: 0 0 16px 0;
+}
+
+/* --- Action Pill (Button) --- */
+.pro-gc-action {
+    margin-top: auto; 
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #ffffff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: inline-block;
+}
+
+
+
+/* --- Premium Native Gradients --- */
+.pro-grad-premium { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
+.pro-grad-live { background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); }
+.pro-grad-practice { background: linear-gradient(135deg, #10B981 0%, #059669 100%); }
+
+
 
 /* Dynamic List Cards Structure */
 .test-card { 
@@ -1842,3 +1961,160 @@ button {
     background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
 }
 
+
+/* ========================================== */
+/* 🤖 XHONDHAN AI EXAM SETTER UI              */
+/* ========================================== */
+.ai-hero-banner {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    border: 1px solid #4F46E5;
+    border-radius: 20px;
+    padding: 24px 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.25);
+}
+.ai-hero-banner::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg);
+    animation: goldShine 4s infinite;
+}
+.ai-title { color: #FFFFFF; font-size: 24px; font-weight: 900; margin-bottom: 4px; letter-spacing: -0.5px; }
+.ai-subtitle { color: #A5B4FC; font-size: 12px; font-weight: 700; margin-bottom: 16px; letter-spacing: 0.5px; text-transform: uppercase;}
+.ai-tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.ai-tag { background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); color: #E0E7FF; padding: 5px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;}
+
+/* Custom Dropdown Chevron native feel */
+select.ai-input { 
+    appearance: none; -webkit-appearance: none; 
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%236B7280" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); 
+    background-repeat: no-repeat; background-position-x: 95%; background-position-y: 50%; 
+}
+[data-theme="dark"] select.ai-input { 
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%2394A3B8" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); 
+}
+select.ai-input:disabled { opacity: 0.5; }
+
+
+
+
+
+
+
+
+
+
+
+/* ========================================== */
+/* 🤖 XHONDHAN AI CUSTOM DROPDOWN ENGINE UI   */
+/* ========================================== */
+
+.custom-select-wrapper {
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.custom-select {
+    position: relative;
+    width: 100%;
+}
+
+.select-selected {
+    width: 100%;
+    padding: 15px 16px 15px 44px;
+    border: 1.5px solid var(--border-dark);
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--bg-color);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* The dropdown chevron icon */
+.select-selected::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border: solid var(--text-muted);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+    display: inline-block;
+    margin-right: 6px;
+    margin-bottom: 4px;
+}
+
+.select-selected.select-arrow-active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+}
+
+.select-selected.select-arrow-active::after {
+    transform: rotate(-135deg);
+    margin-bottom: -4px;
+    border-color: var(--primary);
+}
+
+.select-items {
+    position: absolute;
+    background-color: var(--card-bg);
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    z-index: 99;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    animation: fadeInDropdown 0.2s ease forwards;
+}
+
+[data-theme="dark"] .select-items {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.select-items div {
+    color: var(--text-main);
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+}
+
+.select-items div:last-child {
+    border-bottom: none;
+}
+
+.select-items div:hover, .select-items div:active {
+    background-color: #EEF2FF;
+    color: var(--primary);
+}
+
+[data-theme="dark"] .select-items div:hover, [data-theme="dark"] .select-items div:active {
+    background-color: rgba(79, 70, 229, 0.15);
+    color: #818CF8;
+}
+
+.select-hide {
+    display: none;
+}
+
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
