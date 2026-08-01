@@ -133,11 +133,11 @@ function updateThemeUI(isDark) {
         profileDesc.innerText = isDark ? 'Toggle Day Mode look' : 'Toggle Night Mode look';
     }
 
-    // 3. 🚀 IIT EXPERT FIX: Dynamic Status Bar Color Sync with Title Bar (--card-bg)
+    // 3. 🚀 IIT EXPERT FIX: Dynamic Status Bar Color Sync with Brand Logo Colors
     const metaThemeColor = document.getElementById('theme-color-meta') || document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-        // Light mode mein Title bar #FFFFFF hai, Dark mode mein #1E293B hai
-        metaThemeColor.setAttribute('content', isDark ? '#1E293B' : '#FFFFFF');
+        // Light mode = Logo Red (#EF4444), Dark mode = Logo Blue (#4F46E5)
+        metaThemeColor.setAttribute('content', isDark ? '#4F46E5' : '#EF4444');
     }
 }
 
