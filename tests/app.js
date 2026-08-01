@@ -114,8 +114,6 @@ function initTheme() {
 }
 initTheme(); // Run immediately
 
-// 🛡️ NAYA: Theme UI Sync Engine
-// 🚀 IIT EXPERT FIX: Complete Dual-Screen Theme Sync Engine (No Loophole)
 function updateThemeUI(isDark) {
     // 1. Side Navigation Menu Update
     const drawerIcon = document.getElementById('drawer-theme-icon');
@@ -133,6 +131,13 @@ function updateThemeUI(isDark) {
         profileIcon.innerText = isDark ? 'light_mode' : 'nights_stay';
         profileLabel.innerText = isDark ? 'Light Interface' : 'Dark Interface';
         profileDesc.innerText = isDark ? 'Toggle Day Mode look' : 'Toggle Night Mode look';
+    }
+
+    // 3. 🚀 IIT EXPERT FIX: Dynamic Status Bar Color Sync with Title Bar (--card-bg)
+    const metaThemeColor = document.getElementById('theme-color-meta') || document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+        // Light mode mein Title bar #FFFFFF hai, Dark mode mein #1E293B hai
+        metaThemeColor.setAttribute('content', isDark ? '#1E293B' : '#FFFFFF');
     }
 }
 
@@ -384,7 +389,7 @@ document.getElementById('tab-btn-home').addEventListener('click', () => switchTa
 document.getElementById('tab-btn-results').addEventListener('click', () => switchTab('results-tab', 'Results'));
 document.getElementById('tab-btn-profile').addEventListener('click', () => switchTab('profile-tab', 'Profile'));
 // 🚀 IIT EXPERT FIX: Xhondhan AI App Routing
-document.getElementById('tab-btn-ai').addEventListener('click', () => switchTab('ai-tab', 'Xhondhan ~ Exam Setter'));
+document.getElementById('tab-btn-ai').addEventListener('click', () => switchTab('ai-tab', 'Test Generator'));
 
 // Map Drawer Links to Tabs
 document.getElementById('menu-home-btn').addEventListener('click', () => {
