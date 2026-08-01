@@ -1,5 +1,3 @@
-// 🚀 IIT EXPERT FIX: THE ULTIMATE SECURITY VAULT (IIFE CLOSURE)
-// Duniya khatam ho jayegi, par console se koi tera data modify nahi kar payega!
 (function () {
 
 // ==========================================
