@@ -59,8 +59,8 @@
             }, { passive: false });
         })();
     </script>
-    <!-- 🚀 IIT FIX: Base Status bar matched with Light Mode Title Bar -->
-    <meta name="theme-color" content="#FFFFFF" id="theme-color-meta">
+    <!-- 🚀 IIT FIX: Default Base Status bar matched with Light Mode Red Brand Color -->
+    <meta name="theme-color" content="#EF4444" id="theme-color-meta">
     <meta name="description" content="Premium Android-Style Test Series & Learning Portal">
     <meta name="apple-mobile-web-app-title" content="Premium Portal">
     <meta name="apple-touch-fullscreen" content="yes">
@@ -87,6 +87,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- 🚀 IIT EXPERT FIX: Google Pay Material Symbols (For Animated Fill Icons) -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400..700,0..1,0" rel="stylesheet" />
     <!-- 🚀 IIT EXPERT FIX: Added FontAwesome 6 for Advanced Vector Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Test Portal</title>
@@ -369,6 +371,44 @@
                         </div>
                         
 
+                        <!-- The New Grids -->
+                        <p class="section-title" style="margin-top: 24px;">ADRE Learning Modules</p>
+                        <div class="modern-subject-row">
+                            <!-- Physics -->
+                            <div class="modern-subject-item" data-modern-subject="Physics">
+                                <div class="modern-subject-icon-box" style="background: #FFEAEA; color: #FF6B6B;">
+                                    <i class="fa-solid fa-atom"></i>
+                                </div>
+                                <span>GK TEST</span>
+                            </div>
+                            
+                            <!-- Science -->
+                            <div class="modern-subject-item" data-modern-subject="Science">
+                                <div class="modern-subject-icon-box" style="background: #FFF4E5; color: #FFA94D;">
+                                    <i class="fa-solid fa-microscope"></i>
+                                </div>
+                                <span>Reasoning</span>
+                            </div>
+                            
+                            <!-- Chemistry -->
+                            <div class="modern-subject-item" data-modern-subject="Chemistry">
+                                <div class="modern-subject-icon-box" style="background: #F3E8FF; color: #9775FA;">
+                                    <i class="fa-solid fa-flask"></i>
+                                </div>
+                                <span>Mathematics</span>
+                            </div>
+                            
+                            <!-- Biology -->
+                            <div class="modern-subject-item" data-modern-subject="Biology">
+                                <div class="modern-subject-icon-box" style="background: #FFE8F4; color: #F06595;">
+                                    <i class="fa-solid fa-dna"></i>
+                                </div>
+                                <span>English</span>
+                            </div>
+                        </div>
+
+
+                        <!-- The Old Grids -->
                         <p class="section-title" style="margin-top: 25px;">Explore Categories for XI & XII</p>
                         <div class="features-grid">
                             <!-- Premium Test Grid -->
@@ -924,19 +964,19 @@
             <!-- FIXED BOTTOM NAVIGATION (Hamesha yahi dikhega) -->
             <footer class="app-bottom-nav">
                 <button class="nav-tab-btn active" id="tab-btn-home">
-                    <span class="material-icons">home</span>
+                    <span class="material-symbols-outlined">home</span>
                     <span class="tab-label">Home</span>
                 </button>
                 <button class="nav-tab-btn" id="tab-btn-ai">
-                    <span class="material-icons">self_improvement</span>
+                    <span class="material-symbols-outlined">magic_button</span>
                     <span class="tab-label">Xhondhan</span>
                 </button>
                 <button class="nav-tab-btn" id="tab-btn-results">
-                    <span class="material-icons">analytics</span>
+                    <span class="material-symbols-outlined">analytics</span>
                     <span class="tab-label">Results</span>
                 </button>
                 <button class="nav-tab-btn" id="tab-btn-profile">
-                    <span class="material-icons">person</span>
+                    <span class="material-symbols-outlined">person</span>
                     <span class="tab-label">Profile</span>
                 </button>
             </footer>   
