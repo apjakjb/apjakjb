@@ -130,12 +130,18 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
 }
 
 .drawer-header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    /* 🚀 IIT EXPERT FIX: Premium Red Gradient for Light Theme (Brand Sync) */
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
     padding: 32px 20px 20px 20px;
     color: white;
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+/* 🌙 🚀 IIT EXPERT FIX: Premium Blue Gradient specifically for Dark Theme */
+[data-theme="dark"] .drawer-header {
+    background: linear-gradient(135deg, #4F46E5 0%, #312E81 100%);
 }
 .drawer-avatar { font-size: 48px; color: rgba(255, 255, 255, 0.9); }
 .drawer-user-info h4 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
@@ -214,27 +220,27 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
 /* 🚀 PREMIUM MODERN APP HEADER UI            */
 /* ========================================== */
 .app-header { 
-    background: var(--card-bg); 
+    /* 🚀 IIT EXPERT FIX: Brand Red Background for Light Mode */
+    background: #EF4444; 
     /* Automatically adjust height and padding for Mobile Notch/Status Bar */
     height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
     min-height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
-    padding: env(safe-area-inset-top, 0px) 18px 0 18px; /* Slightly wider premium padding */
+    padding: env(safe-area-inset-top, 0px) 18px 0 18px; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    
-    /* 🔥 Premium UI Touch: Faint shadow instead of a hard, boring border line */
     border-bottom: none; 
-    /* 🚀 IIT EXPERT FIX: Native Bottom-Left and Bottom-Right Border Radius */
     border-radius: 0 0 24px 24px;
-    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.05); 
-    z-index: 50; /* Super high z-index to overlay content properly */
+    box-shadow: 0 8px 25px -4px rgba(239, 68, 68, 0.4); /* Premium Red Glow */
+    z-index: 50; 
     position: relative; 
 }
 
 /* 🌙 Dark Mode Support for App Header */
 [data-theme="dark"] .app-header {
-    box-shadow: 0 4px 25px -4px rgba(0, 0, 0, 0.4);
+    /* 🚀 IIT EXPERT FIX: Brand Blue Background for Dark Mode */
+    background: #4F46E5; 
+    box-shadow: 0 8px 25px -4px rgba(79, 70, 229, 0.4); /* Premium Blue Glow */
 }
 
 .header-left { display: flex; align-items: center; gap: 14px; }
@@ -244,7 +250,7 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
 .app-header h3 { 
     font-size: 22px; 
     font-weight: 800; 
-    color: var(--text-main); 
+    color: #FFFFFF; /* Pure white for high contrast */
     letter-spacing: -0.5px; 
 }
 
@@ -275,22 +281,15 @@ input, p.correct-ans, p.user-ans, .review-item h5, .note-info h4 {
 /* 🌟 PREMIUM IMAGE LOGO STYLING              */
 /* ========================================== */
 .app-logo-image {
-    width: 80px; /* Ekdum perfect size */
+    width: 80px;
     height: 80px;
     object-fit: contain;
-    border-radius: 18px; /* Apple/iOS style smooth corners */
+    border-radius: 18px; 
     margin-bottom: 8px;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
-/* Hover/Touch karne par thoda sa pop hoga */
-.app-logo-image:active {
-    transform: scale(0.95);
-}
-
-[data-theme="dark"] .app-logo-image {
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Dark mode ki shadow */
-}
+.app-logo-image:active { transform: scale(0.95); }
+[data-theme="dark"] .app-logo-image { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); }
 #login-title { font-size: 22px; font-weight: 800; text-align: center; color: var(--text-main); margin-bottom: 24px; letter-spacing: -0.5px; }
 
 .input-wrapper { position: relative; width: 100%; margin-bottom: 14px; }
@@ -332,37 +331,35 @@ button {
 /* 🚀 PREMIUM TACTILE HEADER BUTTONS          */
 /* ========================================== */
 .btn-icon-nav { 
-    background: var(--bg-color); 
-    color: var(--text-main); 
+    background: rgba(255, 255, 255, 0.15); /* Translucent overlay for brand colors */
+    color: #FFFFFF; 
     width: 44px; 
     height: 44px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     border-radius: 50%; 
-    border: 1.5px solid var(--border);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     cursor: pointer;
-    position: relative; /* Crucial for notification red dot */
+    position: relative;
 }
 
 .btn-icon-nav .material-icons {
     font-size: 22px;
-    color: var(--text-muted);
+    color: #FFFFFF; /* Ensures icons are visible on Red/Blue */
 }
 
-/* 🚀 iOS Physics Tap Animation */
 .btn-icon-nav:active { 
     transform: scale(0.88);
-    background: var(--border); 
-    border-color: var(--border-dark);
+    background: rgba(255, 255, 255, 0.25); 
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* 🌙 Dark Mode Tactile Buttons */
 [data-theme="dark"] .btn-icon-nav {
-    background: rgba(30, 41, 59, 0.6);
-    border-color: var(--border-dark);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 .btn-icon { background: transparent; color: var(--text-muted); padding: 8px; border-radius: 50%; }
 .btn-icon:active { background: var(--border); color: var(--danger); }
@@ -791,10 +788,12 @@ button {
     outline: none;
 }
 
-.nav-tab-btn .material-icons {
+.nav-tab-btn .material-symbols-outlined {
     font-size: 24px;
     color: var(--nav-inactive);
-    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+    /* 🚀 IIT EXPERT FIX: Default Inactive = Outlined, Normal Weight */
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1), font-variation-settings 0.3s ease;
     
     /* 🚀 EXPERT LOGIC: Material 3 Pill Shape (Inactive state mein hidden) */
     padding: 6px 20px; 
@@ -814,18 +813,19 @@ button {
 /* 🔥 THE MAGIC: ACTIVE STATE (MD3 PILL HIGHLIGHT) */
 /* ========================================== */
 
-/* Jab tab active hoga, toh background Pill ban jayega (Google Pay style) */
-.nav-tab-btn.active .material-icons {
-    background: #EEF2FF; /* Light Primary Pill Background */
+/* Jab tab active hoga, toh background Pill aur Icon dono FILL ho jayenge (Google Pay style) */
+.nav-tab-btn.active .material-symbols-outlined {
+    background: #EEF2FF; 
     color: var(--primary) !important;
-    /* Purane code mein translateY(-32px) tha jisse hawa me udta tha, ab 0 hai taaki flat rahe */
+    /* 🚀 IIT EXPERT FIX: Active = Instant Solid Fill & Bolder Weight */
+    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
     transform: translateY(0px); 
     box-shadow: none;
     border: none;
 }
 
-[data-theme='dark'] .nav-tab-btn.active .material-icons {
-    background: rgba(79, 70, 229, 0.2); /* Dark mode ki translucent pill */
+[data-theme='dark'] .nav-tab-btn.active .material-symbols-outlined {
+    background: rgba(79, 70, 229, 0.2); 
     color: #818CF8 !important;
 }
 
@@ -836,7 +836,7 @@ button {
 }
 
 /* Native Tap Ripple Protection */
-.nav-tab-btn:active .material-icons {
+.nav-tab-btn:active .material-symbols-outlined {
     transform: scale(0.92);
 }
 
@@ -2121,3 +2121,59 @@ select.ai-input:disabled { opacity: 0.5; }
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+
+/* ========================================== */
+/* 🚀 PREMIUM MODERN SUBJECT ROW UI (Dribbble Replica) */
+/* ========================================== */
+.modern-subject-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 24px;
+    width: 100%;
+    padding: 0 2px;
+}
+
+.modern-subject-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex: 1; /* Automatically equal width distribute karega */
+}
+
+/* Native Tap bounce effect */
+.modern-subject-item:active {
+    transform: scale(0.92);
+}
+
+.modern-subject-icon-box {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Perfectly square banayega */
+    max-width: 65px;
+    border-radius: 20px; /* 🚀 Image wali highly rounded squircles */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px; /* Icon size */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04); /* Faint elegant shadow */
+    transition: box-shadow 0.2s ease;
+}
+
+.modern-subject-item span {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: 0.3px;
+    text-align: center;
+}
+
+/* 🌙 Dark Mode Adjustments (Converts pastels to deep elegant translucents) */
+[data-theme="dark"] .modern-subject-icon-box[style*="background: #FFEAEA"] { background: rgba(255, 107, 107, 0.15) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+[data-theme="dark"] .modern-subject-icon-box[style*="background: #FFF4E5"] { background: rgba(255, 169, 77, 0.15) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+[data-theme="dark"] .modern-subject-icon-box[style*="background: #F3E8FF"] { background: rgba(151, 117, 250, 0.15) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+[data-theme="dark"] .modern-subject-icon-box[style*="background: #FFE8F4"] { background: rgba(240, 101, 149, 0.15) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
